@@ -7,6 +7,11 @@ const waitForGallery = async (page: Page, arrivalTimeout = 15_000) => {
   await expect(page.getByRole('heading', { name: 'Elegí un proyecto' })).toBeVisible({ timeout: arrivalTimeout })
 }
 
+// Espera a que la cámara termine de volar: con render por software, interactuar en pleno vuelo
+// compite con cuadros muy lentos. También verifica que cada vuelo llega a destino.
+const waitForCamera = (page: Page) =>
+  expect(page.locator('.experience')).toHaveAttribute('data-moving', 'false', { timeout: 45_000 })
+
 test.describe('con movimiento', () => {
   test('recorrido completo: intro → galería → proyecto → placa y vuelta', { tag: '@motion' }, async ({ page, isMobile }) => {
     await page.goto('/')
@@ -28,15 +33,18 @@ test.describe('con movimiento', () => {
     await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
     await expect(page.getByRole('heading', { level: 2, name: 'TurnApp' })).toBeVisible()
     await expect(page).toHaveTitle(/^TurnApp/)
+    await waitForCamera(page)
 
     await page.getByRole('button', { name: 'Ver más información' }).click()
     await expect(page).toHaveURL(/\/proyecto\/turnapp\/placa$/)
     await expect(page.getByText('Placa', { exact: true })).toBeVisible()
     await expect(page.getByRole('list', { name: 'Tecnologías de TurnApp' })).toBeVisible()
+    await waitForCamera(page)
 
     await page.goBack({ waitUntil: 'commit' })
     await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
     await expect(page.getByRole('button', { name: 'Ver más información' })).toBeVisible()
+    await waitForCamera(page)
 
     await page.getByRole('button', { name: 'Volver a los proyectos' }).click()
     await waitForGallery(page, 45_000)

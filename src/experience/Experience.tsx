@@ -18,11 +18,12 @@ interface Props {
 export default function Experience({ view }: Props) {
   const send = useViewStore((s) => s.send)
   const ready = useViewStore((s) => s.sceneReady)
+  const moving = useViewStore((s) => s.cameraMoving)
   const reducedMotion = usePrefersReducedMotion()
   useStepInput()
 
   return (
-    <div className="experience" data-view={view.name} data-ready={ready}>
+    <div className="experience" data-view={view.name} data-ready={ready} data-moving={moving}>
       <Canvas
         className="experience__canvas"
         dpr={[1, 2]}

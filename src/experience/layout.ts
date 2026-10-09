@@ -43,15 +43,15 @@ export const INTRO_POSE = introPose(16 / 9)
 export function galleryPose(aspect: number, rowHalfWidth: number): CameraPose {
   if (aspect < 1) {
     return {
-      position: [rowHalfWidth * 3, 2.6, rowHalfWidth * 1.25],
-      target: [-rowHalfWidth * 0.18, 1.0, -rowHalfWidth * 0.2],
+      position: [rowHalfWidth * 3, 3.0, rowHalfWidth * 1.25],
+      target: [-rowHalfWidth * 0.18, 1.4, -rowHalfWidth * 0.2],
       offset: NO_OFFSET,
     }
   }
   const distance = Math.min(14, Math.max(6.5, (rowHalfWidth + 2.2) / (halfTan * aspect)))
   return {
-    position: [0, 1.9, distance],
-    target: [0, 1.1, 0],
+    position: [0, 2.4, distance],
+    target: [0, 1.6, 0],
     offset: NO_OFFSET,
   }
 }

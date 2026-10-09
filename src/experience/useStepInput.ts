@@ -14,7 +14,7 @@ export function useStepInput() {
   useEffect(() => {
     let wheelAccum = 0
     let lastWheel = 0
-    let lastStep = 0
+    let lastStep = Number.NEGATIVE_INFINITY
     let touchStartY: number | null = null
 
     const step = (dir: 'down' | 'up') => {

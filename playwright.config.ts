@@ -34,7 +34,7 @@ export default defineConfig({
       name: 'motion-mobile',
       grep: /@motion/,
       timeout: 90_000,
-      dependencies: ['desktop', 'mobile'],
+      dependencies: ['motion-desktop'],
       // Densidad 1: con render por software el costo es por píxel y el flujo no depende de la nitidez.
       use: { ...devices['Pixel 7'], deviceScaleFactor: 1, reducedMotion: 'no-preference' },
     },
