@@ -515,14 +515,27 @@ html.is-gallery body {
 
 @media (max-aspect-ratio: 1/1) {
   .panel {
-    top: auto;
-    bottom: max(16px, env(safe-area-inset-bottom));
-    left: 16px;
-    right: 16px;
-    transform: none;
-    width: auto;
-    max-height: 50dvh;
-    margin-top: 0;
+    left: 12px;
+    width: 54vw;
+    max-height: calc(100dvh - 150px);
+    padding: 1rem 0.9rem;
+    margin-top: 40px;
+  }
+  .panel .eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+  .panel h2 {
+    font-size: 1.7rem;
+  }
+  .panel__summary,
+  .panel__detail {
+    font-size: 0.85rem;
+  }
+  .panel__actions .button {
+    min-height: 36px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
   }
 }
 
@@ -543,4 +556,14 @@ html.is-gallery body {
     width: 100%;
     gap: 0.4rem;
   }
+}
+
+.overlay--intro {
+  left: var(--gutter);
+  transform: none;
+  width: min(460px, calc(100% - 32px));
+  text-align: left;
+}
+.overlay--intro .overlay__actions {
+  justify-content: flex-start;
 }

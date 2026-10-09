@@ -1,19 +1,37 @@
 import { useCursor } from '@react-three/drei'
-import type { ThreeEvent } from '@react-three/fiber'
-import { useState } from 'react'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { useRef, useState } from 'react'
+import { MeshStandardMaterial, type Mesh } from 'three'
 import type { Project } from '../data/types'
+import { pedestalGeometry, SHAFT, TOP_Y } from './pedestalGeometry'
 
 interface Props {
   project: Project
   interactive: boolean
+  reducedMotion: boolean
   onOpen: (slug: string) => void
 }
 
-const PEDESTAL = { width: 0.7, height: 1.1 } as const
+const OBJECT_SIZE = 0.3
+export const FLOAT_Y = TOP_Y + 0.12 + OBJECT_SIZE / 2
 
-export function Pedestal({ project, interactive, onOpen }: Props) {
+const stone = new MeshStandardMaterial({ color: '#e8e0cc', roughness: 0.75 })
+
+export function Pedestal({ project, interactive, reducedMotion, onOpen }: Props) {
   const [hovered, setHovered] = useState(false)
+  const exhibit = useRef<Mesh>(null)
   useCursor(interactive && hovered)
+
+  const phase = project.pedestal[0]
+  // Con frameloop="demand" el flotado pide el próximo cuadro; con reduced-motion la escena queda quieta.
+  useFrame(({ clock, invalidate }) => {
+    const mesh = exhibit.current
+    if (!mesh || reducedMotion) return
+    const t = clock.getElapsedTime() + phase
+    mesh.position.y = FLOAT_Y + Math.sin(t * 1.1) * 0.025
+    mesh.rotation.y = t * 0.25
+    invalidate()
+  })
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
@@ -31,17 +49,16 @@ export function Pedestal({ project, interactive, onOpen }: Props) {
       }}
       onPointerOut={() => setHovered(false)}
     >
-      <mesh position={[0, PEDESTAL.height / 2, 0]}>
-        <boxGeometry args={[PEDESTAL.width, PEDESTAL.height, PEDESTAL.width]} />
-        <meshStandardMaterial color={interactive && hovered ? '#bdbdbd' : '#a8a8a8'} />
-      </mesh>
-      <mesh position={[0, PEDESTAL.height + 0.2, 0]}>
-        <boxGeometry args={[0.36, 0.36, 0.36]} />
-        <meshStandardMaterial color="#7a7a7a" />
-      </mesh>
-      <mesh position={[0, 0.75, PEDESTAL.width / 2 + 0.011]} rotation={[-0.15, 0, 0]}>
-        <boxGeometry args={[0.46, 0.26, 0.02]} />
+      <mesh geometry={pedestalGeometry()} material={stone} />
+
+      <mesh position={[0, 0.6, SHAFT.radius + 0.012]} name="plaque">
+        <boxGeometry args={[0.2, 0.12, 0.01]} />
         <meshStandardMaterial color="#8e8e8e" />
+      </mesh>
+
+      <mesh ref={exhibit} position={[0, FLOAT_Y, 0]} name="exhibit">
+        <boxGeometry args={[OBJECT_SIZE, OBJECT_SIZE, OBJECT_SIZE]} />
+        <meshStandardMaterial color="#7a7a7a" />
       </mesh>
     </group>
   )

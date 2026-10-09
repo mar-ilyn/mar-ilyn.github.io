@@ -13,11 +13,12 @@ describe('encuadres de cámara', () => {
     }
   })
 
-  it('el detalle deja el objeto a la derecha en horizontal y arriba en vertical', () => {
-    expect(poseFor(detail, 1.78, projects).offset[0]).toBeLessThan(0)
-    const portrait = poseFor(detail, 0.46, projects)
-    expect(portrait.offset[0]).toBe(0)
-    expect(portrait.offset[1]).toBeGreaterThan(0)
+  it('el detalle deja el objeto a la derecha en horizontal y en vertical', () => {
+    for (const aspect of [1.78, 0.46]) {
+      const { offset } = poseFor(detail, aspect, projects)
+      expect(offset[0]).toBeLessThan(0)
+      expect(offset[1]).toBe(0)
+    }
   })
 
   it('en vertical la cámara de detalle retrocede', () => {
@@ -28,8 +29,16 @@ describe('encuadres de cámara', () => {
     expect(dist(0.46)).toBeGreaterThan(dist(1.78))
   })
 
+  it('la intro entra completa también en vertical', () => {
+    for (const aspect of [0.46, 0.75, 1.78]) {
+      const { position, target } = poseFor({ name: 'intro' }, aspect, projects)
+      const distance = position[2] - target[2]
+      expect(distance * halfTan * aspect).toBeGreaterThanOrEqual(2.6)
+    }
+  })
+
   it('intro y vuelo comparten pose con sus estados de destino', () => {
-    expect(poseFor({ name: 'intro' }, 1.78, projects)).toBe(INTRO_POSE)
+    expect(poseFor({ name: 'intro' }, 16 / 9, projects)).toEqual(INTRO_POSE)
     expect(poseFor({ name: 'toGallery' }, 1.78, projects)).toEqual(poseFor({ name: 'gallery' }, 1.78, projects))
   })
 })

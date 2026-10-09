@@ -25,8 +25,8 @@ export const projects: readonly Project[] = [
     image: img('turnapp', 'Ilustración de una agenda semanal con turnos marcados'),
     pedestal: [-4, 0, 0],
     camera: {
-      detail: { position: [-4, 1.65, 2.7], target: [-4, 1.2, 0] },
-      plaque: { position: [-4, 1.0, 1.75], target: [-4, 0.78, 0.36] },
+      detail: { position: [-4, 1.55, 1.75], target: [-4, 1.3, 0] },
+      plaque: { position: [-4, 0.75, 1.4], target: [-4, 0.6, 0.16] },
     },
   },
   {
@@ -44,8 +44,8 @@ export const projects: readonly Project[] = [
     image: img('panel-logistico', 'Ilustración de un tablero con rutas de envío y gráficos de estado'),
     pedestal: [0, 0, 0],
     camera: {
-      detail: { position: [0, 1.65, 2.7], target: [0, 1.2, 0] },
-      plaque: { position: [0, 1.0, 1.75], target: [0, 0.78, 0.36] },
+      detail: { position: [0, 1.55, 1.75], target: [0, 1.3, 0] },
+      plaque: { position: [0, 0.75, 1.4], target: [0, 0.6, 0.16] },
     },
   },
   {
@@ -63,8 +63,8 @@ export const projects: readonly Project[] = [
     image: img('docu-tool', 'Ilustración de documentos apilados saliendo de una planilla'),
     pedestal: [4, 0, 0],
     camera: {
-      detail: { position: [4, 1.65, 2.7], target: [4, 1.2, 0] },
-      plaque: { position: [4, 1.0, 1.75], target: [4, 0.78, 0.36] },
+      detail: { position: [4, 1.55, 1.75], target: [4, 1.3, 0] },
+      plaque: { position: [4, 0.75, 1.4], target: [4, 0.6, 0.16] },
     },
   },
 ]

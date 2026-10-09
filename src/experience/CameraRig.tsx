@@ -16,8 +16,9 @@ interface Props {
 export function CameraRig({ view }: Props) {
   const controls = useRef<CameraControlsImpl>(null)
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height))
+  const invalidate = useThree((s) => s.invalidate)
   const reducedMotion = usePrefersReducedMotion()
-  const placed = useRef(false)
+  const lastView = useRef<ViewState | null>(null)
 
   useEffect(() => {
     const c = controls.current
@@ -36,16 +37,20 @@ export function CameraRig({ view }: Props) {
     if (!c) return
     const { setCameraMoving, setSceneReady, send } = useViewStore.getState()
     const pose = poseFor(view, aspect, projects)
-    const animate = placed.current && !reducedMotion
-    placed.current = true
+    // Solo vuela cuando cambia la vista: la primera ubicación y los cambios de tamaño de pantalla
+    // reubican la cámara al instante, así no bloquean el primer scroll mientras se acomoda.
+    const animate = lastView.current !== null && lastView.current !== view && !reducedMotion
+    lastView.current = view
     c.smoothTime = view.name === 'toGallery' ? 0.7 : 0.45
 
     let cancelled = false
     setCameraMoving(animate)
-    void Promise.all([
+    const transitions = Promise.all([
       c.setLookAt(...pose.position, ...pose.target, animate),
       c.setFocalOffset(...pose.offset, animate),
-    ]).then(() => {
+    ])
+    invalidate()
+    void transitions.then(() => {
       if (cancelled) return
       setCameraMoving(false)
       setSceneReady()
@@ -54,7 +59,7 @@ export function CameraRig({ view }: Props) {
     return () => {
       cancelled = true
     }
-  }, [view, aspect, reducedMotion])
+  }, [view, aspect, reducedMotion, invalidate])
 
   return <CameraControls ref={controls} makeDefault />
 }

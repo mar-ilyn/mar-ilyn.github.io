@@ -14,11 +14,29 @@ export interface CameraPose {
 const NO_OFFSET: Vec3 = [0, 0, 0]
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 
-export const INTRO_POSE: CameraPose = {
-  position: [INTRO_X, 2.15, 3.8],
-  target: [INTRO_X, 2.3, ROOM.wallZ],
-  offset: NO_OFFSET,
+// Pared de la intro, relativa a INTRO_X: textos alineados a la izquierda y el cuadro con la foto a la derecha.
+export const INTRO_LAYOUT = {
+  // Ancho del panel especial de la intro: sus bordes coinciden con columnas de la pared (ver wallGeometry).
+  bay: 6.8,
+  textLeft: -2.6,
+  frameX: 1.3,
+  frame: { width: 1.55, height: 1.8, y: 2.25 },
+  halfWidth: 2.6,
+  centerX: 0,
+} as const
+
+// Mantiene la composición entera en pantalla: en vertical la cámara retrocede lo necesario.
+export function introPose(aspect: number): CameraPose {
+  const { halfWidth, centerX } = INTRO_LAYOUT
+  const distance = Math.max(6.8, (halfWidth + 0.3) / (halfTan * aspect))
+  return {
+    position: [INTRO_X + centerX, 2.15, ROOM.wallZ + distance],
+    target: [INTRO_X + centerX, 2.3, ROOM.wallZ],
+    offset: NO_OFFSET,
+  }
 }
+
+export const INTRO_POSE = introPose(16 / 9)
 
 // En horizontal, frente a la fila y lo bastante lejos para que entre a lo ancho.
 // En vertical, en diagonal: la fila se escorza y entra completa sin alejarse demasiado.
@@ -38,12 +56,11 @@ export function galleryPose(aspect: number, rowHalfWidth: number): CameraPose {
   }
 }
 
-// En horizontal el objeto queda a la derecha (panel a la izquierda); en vertical, arriba (panel abajo).
-// camera-controls invierte el eje Y del focal offset: positivo baja la vista y el objeto sube en pantalla.
+// El objeto queda en la mitad derecha de la pantalla y el panel de texto a la izquierda, en cualquier orientación.
 function sideOffset(position: Vec3, target: Vec3, aspect: number): Vec3 {
   const distance = Math.hypot(position[0] - target[0], position[1] - target[1], position[2] - target[2])
-  const halfHeight = distance * halfTan
-  return aspect >= 1 ? [-0.5 * halfHeight * aspect, 0, 0] : [0, 0.5 * halfHeight, 0]
+  const halfWidth = distance * halfTan * aspect
+  return [-(aspect >= 1 ? 0.3 : 0.55) * halfWidth, 0, 0]
 }
 
 // Las vistas de datos están pensadas para pantallas horizontales: en vertical la cámara retrocede.
@@ -60,7 +77,7 @@ export function poseFor(view: ViewState, aspect: number, projects: readonly Proj
   const rowHalfWidth = Math.max(...projects.map((p) => Math.abs(p.pedestal[0])), 0)
   switch (view.name) {
     case 'intro':
-      return INTRO_POSE
+      return introPose(aspect)
     case 'toGallery':
     case 'gallery':
       return galleryPose(aspect, rowHalfWidth)

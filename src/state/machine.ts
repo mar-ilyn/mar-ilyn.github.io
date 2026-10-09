@@ -30,6 +30,7 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
 
     case 'gallery':
       if (event.type === 'OPEN') return { name: 'project', slug: event.slug }
+      if (event.type === 'STEP_UP') return { name: 'intro' }
       return state
 
     case 'project':

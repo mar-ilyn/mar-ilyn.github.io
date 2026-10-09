@@ -1,43 +1,46 @@
 import { expect, test, type Page } from '@playwright/test'
 
-const waitForGallery = async (page: Page) => {
+// El vuelo de cámara dura ~2 s en un dispositivo real; con WebGL por software va a pocos cuadros
+// por segundo, así que el test con movimiento espera la llegada con más margen.
+const waitForGallery = async (page: Page, arrivalTimeout = 15_000) => {
   await expect(page).toHaveURL(/\/proyectos$/)
-  // El vuelo de cámara dura ~2 s; con WebGL por software y tests en paralelo puede tardar bastante más.
-  await expect(page.getByRole('heading', { name: 'Elegí un proyecto' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'Elegí un proyecto' })).toBeVisible({ timeout: arrivalTimeout })
 }
 
-test('recorrido completo: intro → galería → proyecto → placa y vuelta', async ({ page, isMobile }) => {
-  await page.goto('/')
-  await expect(page.locator('canvas')).toBeVisible()
-  const verProyectos = page.getByRole('button', { name: 'Ver los proyectos' })
-  await expect(verProyectos).toBeVisible()
+test.describe('con movimiento', () => {
+  test('recorrido completo: intro → galería → proyecto → placa y vuelta', { tag: '@motion' }, async ({ page, isMobile }) => {
+    await page.goto('/')
+    await expect(page.locator('canvas')).toBeVisible()
+    const verProyectos = page.getByRole('button', { name: 'Ver los proyectos' })
+    await expect(verProyectos).toBeVisible()
 
-  if (isMobile) {
-    await verProyectos.tap()
-  } else {
-    await page.mouse.move(400, 400)
-    await page.mouse.wheel(0, 200)
-  }
-  await waitForGallery(page)
+    if (isMobile) {
+      await verProyectos.tap()
+    } else {
+      await page.mouse.move(400, 400)
+      await page.mouse.wheel(0, 200)
+    }
+    await waitForGallery(page, 45_000)
 
-  // Capa de botones para teclado sobre los pedestales.
-  await page.getByRole('button', { name: 'Abrir TurnApp' }).focus()
-  await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
-  await expect(page.getByRole('heading', { level: 2, name: 'TurnApp' })).toBeVisible()
-  await expect(page).toHaveTitle(/^TurnApp/)
+    // Capa de botones para teclado sobre los pedestales.
+    await page.getByRole('button', { name: 'Abrir TurnApp' }).focus()
+    await page.keyboard.press('Enter')
+    await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'TurnApp' })).toBeVisible()
+    await expect(page).toHaveTitle(/^TurnApp/)
 
-  await page.getByRole('button', { name: 'Ver más información' }).click()
-  await expect(page).toHaveURL(/\/proyecto\/turnapp\/placa$/)
-  await expect(page.getByText('Placa', { exact: true })).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Tecnologías de TurnApp' })).toBeVisible()
+    await page.getByRole('button', { name: 'Ver más información' }).click()
+    await expect(page).toHaveURL(/\/proyecto\/turnapp\/placa$/)
+    await expect(page.getByText('Placa', { exact: true })).toBeVisible()
+    await expect(page.getByRole('list', { name: 'Tecnologías de TurnApp' })).toBeVisible()
 
-  await page.goBack()
-  await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
-  await expect(page.getByRole('button', { name: 'Ver más información' })).toBeVisible()
+    await page.goBack({ waitUntil: 'commit' })
+    await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
+    await expect(page.getByRole('button', { name: 'Ver más información' })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Volver a los proyectos' }).click()
-  await waitForGallery(page)
+    await page.getByRole('button', { name: 'Volver a los proyectos' }).click()
+    await waitForGallery(page, 45_000)
+  })
 })
 
 test('click en un pedestal abre su proyecto', async ({ page, isMobile }) => {
@@ -84,4 +87,13 @@ test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
   for (const name of [/CV/, /GitHub/, /LinkedIn/]) {
     await expect(header.getByRole('link', { name })).toBeInViewport()
   }
+})
+
+test('subir desde la galería vuelve a la intro', async ({ page }) => {
+  await page.goto('/proyectos')
+  await waitForGallery(page)
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true')
+  await page.keyboard.press('ArrowUp')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('button', { name: 'Ver los proyectos' })).toBeVisible()
 })

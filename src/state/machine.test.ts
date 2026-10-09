@@ -24,11 +24,11 @@ describe('máquina de estados de la vista', () => {
     expect(run([{ type: 'STEP_DOWN' }, { type: 'SKIP_INTRO' }])).toEqual({ name: 'gallery' })
   })
 
-  it('bloquea el scroll en la galería', () => {
+  it('en la galería, bajar está bloqueado y subir vuelve a la intro', () => {
     const gallery: ViewState = { name: 'gallery' }
     expect(transition(gallery, { type: 'STEP_DOWN' })).toBe(gallery)
-    expect(transition(gallery, { type: 'STEP_UP' })).toBe(gallery)
     expect(transition(gallery, { type: 'BACK' })).toBe(gallery)
+    expect(transition(gallery, { type: 'STEP_UP' })).toEqual({ name: 'intro' })
   })
 
   it('ignora eventos que no corresponden al estado y devuelve la misma referencia', () => {
