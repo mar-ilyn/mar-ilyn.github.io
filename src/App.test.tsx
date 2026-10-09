@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 import { projects } from './data/projects'
 
-describe('<App />', () => {
+// jsdom no tiene WebGL: la app cae en la vista de lista, que es el contenido HTML completo.
+describe('<App /> sin WebGL', () => {
   it('muestra nombre, rol y un único h1', () => {
     render(<App />)
     expect(screen.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeInTheDocument()

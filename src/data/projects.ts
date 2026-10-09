@@ -8,7 +8,7 @@ const img = (slug: string, alt: string) => ({
 })
 
 // Textos de ejemplo: se reemplazan por el contenido final de cada proyecto.
-// Las posiciones de cámara se ajustan en el hito 2, cuando existan los pedestales.
+// pedestal: posición en la sala (x a lo largo de la galería). Las vistas de cámara miran al objeto (detail) y a la placa (plaque).
 export const projects: readonly Project[] = [
   {
     slug: 'turnapp',
@@ -23,9 +23,10 @@ export const projects: readonly Project[] = [
     ],
     links: {},
     image: img('turnapp', 'Ilustración de una agenda semanal con turnos marcados'),
+    pedestal: [-4, 0, 0],
     camera: {
-      detail: { position: [-4, 1.6, 2.2], target: [-4, 1.2, 0] },
-      plaque: { position: [-4, 0.7, 1.4], target: [-4, 0.6, 0.4] },
+      detail: { position: [-4, 1.65, 2.7], target: [-4, 1.2, 0] },
+      plaque: { position: [-4, 1.0, 1.75], target: [-4, 0.78, 0.36] },
     },
   },
   {
@@ -41,9 +42,10 @@ export const projects: readonly Project[] = [
     ],
     links: {},
     image: img('panel-logistico', 'Ilustración de un tablero con rutas de envío y gráficos de estado'),
+    pedestal: [0, 0, 0],
     camera: {
-      detail: { position: [0, 1.6, 2.2], target: [0, 1.2, 0] },
-      plaque: { position: [0, 0.7, 1.4], target: [0, 0.6, 0.4] },
+      detail: { position: [0, 1.65, 2.7], target: [0, 1.2, 0] },
+      plaque: { position: [0, 1.0, 1.75], target: [0, 0.78, 0.36] },
     },
   },
   {
@@ -59,9 +61,10 @@ export const projects: readonly Project[] = [
     ],
     links: {},
     image: img('docu-tool', 'Ilustración de documentos apilados saliendo de una planilla'),
+    pedestal: [4, 0, 0],
     camera: {
-      detail: { position: [4, 1.6, 2.2], target: [4, 1.2, 0] },
-      plaque: { position: [4, 0.7, 1.4], target: [4, 0.6, 0.4] },
+      detail: { position: [4, 1.65, 2.7], target: [4, 1.2, 0] },
+      plaque: { position: [4, 1.0, 1.75], target: [4, 0.78, 0.36] },
     },
   },
 ]

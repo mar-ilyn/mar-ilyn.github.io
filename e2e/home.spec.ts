@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test('la home muestra identidad, contacto y proyectos', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/lista')
   await expect(page).toHaveTitle(/Marilyn Diaz/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
 
@@ -15,13 +15,13 @@ test('la home muestra identidad, contacto y proyectos', async ({ page }) => {
 })
 
 test('el contacto sigue visible al bajar hasta el final', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/lista')
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect(page.getByRole('banner').getByRole('link', { name: /LinkedIn/ })).toBeInViewport()
 })
 
 test('el CV y las imágenes de proyectos se sirven', async ({ page, request }) => {
-  await page.goto('/')
+  await page.goto('/lista')
   const cv = await page.getByRole('banner').getByRole('link', { name: /CV/ }).getAttribute('href')
   expect((await request.get(cv ?? '')).status()).toBe(200)
 
@@ -32,7 +32,7 @@ test('el CV y las imágenes de proyectos se sirven', async ({ page, request }) =
 })
 
 test('sin desbordamiento horizontal', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/lista')
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
   expect(overflow).toBeLessThanOrEqual(0)
 })

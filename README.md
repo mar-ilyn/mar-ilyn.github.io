@@ -9,7 +9,7 @@ Portfolio de Marilyn Diaz, desarrolladora Full Stack. El objetivo final es una g
 | # | Hito | Estado |
 |---|------|--------|
 | 1 | Página base en HTML real, Open Graph, CI y despliegue | ✅ |
-| 2 | Prototipo con cajas grises: cinco estados y cámara | ⏳ |
+| 2 | Prototipo con cajas grises: cinco estados y cámara | ✅ |
 | 3 | Entorno: galería sin final visible, techo, piso, paredes, luz | ⏳ |
 | 4 | Interacciones: hover, zoom, paneles, placa | ⏳ |
 | 5 | Rendimiento: Draco/meshopt, KTX2, carga progresiva, Lighthouse | ⏳ |
@@ -41,6 +41,28 @@ La primera vez que se corre Playwright hay que instalar Chromium: `npx playwrigh
 - **Fuentes self-hosted** con Fontsource (Cormorant Garamond e Inter, variables). Sin pedidos a terceros y el navegador solo descarga los subsets que usa.
 - **GitHub Pages + Actions.** Un solo workflow: lint, tipos, tests unitarios, build y e2e; si todo pasa en `main`, publica `dist/`. Los PR corren los mismos chequeos sin publicar.
 - **Base configurable.** `BASE_PATH` cambia la base de Vite si el sitio se publica en un subpath; `VITE_SITE_URL` (en `.env`) define las URLs absolutas de Open Graph.
+
+## Cómo funciona la galería (hito 2)
+
+```
+intro ──scroll / "Ver los proyectos"──▶ toGallery ──(la cámara llega)──▶ gallery
+  │                                                                       │
+  └──────────────"Saltar intro"──────────────────────────────────────────▶│
+                                                                  click / Enter
+                                                                          ▼
+                    gallery ◀──"Volver a los proyectos" / Esc── project ──scroll / "Ver más información"──▶ plaque
+                                                                   ▲                                       │
+                                                                   └────────scroll arriba / Esc / "Volver"──┘
+```
+
+- **Máquina de estados pura** (`src/state/machine.ts`): `transition(estado, evento)` sin efectos secundarios. Un evento que no corresponde devuelve el mismo estado, así que un scroll en la galería no hace nada (el scroll queda bloqueado) sin condicionales repartidos por los componentes.
+- **La URL es la fuente de verdad compartible** (`src/state/routes.ts`): `/`, `/proyectos`, `/proyecto/:slug`, `/proyecto/:slug/placa` y `/lista`. Cada paso hace `pushState`, así que "atrás" deshace un paso; `popstate` vuelve a leer la URL. Un slug inexistente cae en la galería.
+- **Zustand** guarda la ruta y si la cámara se está moviendo. La cámara (`CameraRig`) solo lee el estado y lo traduce a una pose; el estado no conoce a la cámara.
+- **Poses calculadas, no fijas** (`src/experience/layout.ts`): la galería se aleja según el aspecto de la pantalla para que entren todos los pedestales; en vertical usa un encuadre en diagonal. En el detalle, un *focal offset* deja el objeto a la derecha (o arriba en vertical) y deja lugar al panel HTML.
+- **Scroll por pasos** (`useStepInput`): rueda, gesto táctil y teclado se convierten en un paso discreto, con umbral, enfriamiento y bloqueo mientras la cámara se mueve, para que la inercia del trackpad no saltee estados.
+- **Carga diferida**: three.js y la escena viven en un chunk aparte que se pide solo si hay WebGL. Sin WebGL se muestra la lista en HTML.
+- **GitHub Pages y rutas profundas**: Pages no tiene rewrites, así que el build copia `index.html` a `404.html` y la app resuelve la ruta al cargar. Contra: esas URLs responden con estado 404 aunque se vean bien.
+- **e2e con WebGL en CI**: Playwright corre Chromium con SwiftShader (WebGL por software). `data-ready` en `.experience` indica cuándo la escena está lista para interactuar.
 
 ## Contenido
 

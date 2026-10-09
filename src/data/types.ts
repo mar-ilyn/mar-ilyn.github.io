@@ -27,6 +27,7 @@ export interface Project {
   details: readonly string[]
   links: ProjectLinks
   image: ProjectImage
+  pedestal: Vec3
   camera: {
     detail: CameraView
     plaque: CameraView
