@@ -21,11 +21,11 @@ export const projects: readonly Project[] = [
       'Texto de ejemplo: reserva de turnos en tres pasos, con disponibilidad en tiempo real.',
       'Texto de ejemplo: panel para el negocio con agenda semanal, clientes y cobro de señas.',
     ],
-    links: { demo: 'https://github.com/mar-ilyn' },
+    links: {},
     image: img('turnapp', 'Ilustración de una agenda semanal con turnos marcados'),
     camera: {
-      detail: { position: [-6, 1.6, 2.2], target: [-6, 1.2, 0] },
-      plaque: { position: [-6, 0.7, 1.4], target: [-6, 0.6, 0.4] },
+      detail: { position: [-4, 1.6, 2.2], target: [-4, 1.2, 0] },
+      plaque: { position: [-4, 0.7, 1.4], target: [-4, 0.6, 0.4] },
     },
   },
   {
@@ -42,8 +42,8 @@ export const projects: readonly Project[] = [
     links: {},
     image: img('panel-logistico', 'Ilustración de un tablero con rutas de envío y gráficos de estado'),
     camera: {
-      detail: { position: [-2, 1.6, 2.2], target: [-2, 1.2, 0] },
-      plaque: { position: [-2, 0.7, 1.4], target: [-2, 0.6, 0.4] },
+      detail: { position: [0, 1.6, 2.2], target: [0, 1.2, 0] },
+      plaque: { position: [0, 0.7, 1.4], target: [0, 0.6, 0.4] },
     },
   },
   {
@@ -60,26 +60,8 @@ export const projects: readonly Project[] = [
     links: {},
     image: img('docu-tool', 'Ilustración de documentos apilados saliendo de una planilla'),
     camera: {
-      detail: { position: [2, 1.6, 2.2], target: [2, 1.2, 0] },
-      plaque: { position: [2, 0.7, 1.4], target: [2, 0.6, 0.4] },
-    },
-  },
-  {
-    slug: 'galeria-3d',
-    title: 'Galería 3D',
-    year: 2026,
-    role: 'Diseño y desarrollo',
-    stack: ['React', 'TypeScript', 'React Three Fiber', 'Zustand', 'Playwright'],
-    summary: 'Este portfolio: una galería clásica navegable en el navegador, con estado sincronizado con la URL.',
-    details: [
-      'Máquina de estados para la cámara, carga progresiva y calidad adaptativa según el dispositivo.',
-      'Versión en HTML accesible, navegación por teclado y tests automatizados en CI.',
-    ],
-    links: { repo: 'https://github.com/mar-ilyn' },
-    image: img('galeria-3d', 'Ilustración de una sala de galería con pedestales'),
-    camera: {
-      detail: { position: [6, 1.6, 2.2], target: [6, 1.2, 0] },
-      plaque: { position: [6, 0.7, 1.4], target: [6, 0.6, 0.4] },
+      detail: { position: [4, 1.6, 2.2], target: [4, 1.2, 0] },
+      plaque: { position: [4, 0.7, 1.4], target: [4, 0.6, 0.4] },
     },
   },
 ]

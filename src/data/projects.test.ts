@@ -17,7 +17,10 @@ describe('datos de proyectos', () => {
     expect(p.summary.length).toBeLessThanOrEqual(140)
     expect(p.stack.length).toBeGreaterThan(0)
     expect(p.image.alt.trim().length).toBeGreaterThan(10)
-    for (const href of Object.values(p.links)) expect(href).toMatch(/^https:\/\//)
+    for (const href of Object.values(p.links)) {
+      expect(href).toMatch(/^https:\/\//)
+      expect(href, 'el link debe ir al proyecto, no al perfil').not.toMatch(/^https:\/\/github\.com\/[^/]+\/?$/)
+    }
   })
 
   it.each(projects)('$slug tiene vistas de cámara válidas', (p) => {
