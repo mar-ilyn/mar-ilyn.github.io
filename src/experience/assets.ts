@@ -17,7 +17,8 @@ export const TEXTURES = {
   },
 } as const
 
-export const HDRI = `${BASE}ballroom_512.hdr`
+// Entorno de reflejos ya prefiltrado (scripts/bake-environment.mjs), a partir del HDRI "ballroom".
+export const ENVIRONMENT = `${BASE}ballroom_pmrem.png`
 
 export function tile(texture: Texture, repeatX: number, repeatY: number, srgb = false): Texture {
   texture.wrapS = RepeatWrapping

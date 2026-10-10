@@ -1,6 +1,9 @@
 import { Environment, Lightformer } from '@react-three/drei'
-import { Suspense } from 'react'
-import { HDRI } from './assets'
+import { useLoader } from '@react-three/fiber'
+import type { Scene } from 'three'
+import { AssetBoundary } from './AssetBoundary'
+import { ENVIRONMENT } from './assets'
+import { PrebakedEnvironmentLoader } from './prebakedEnvironment'
 import type { Quality } from './quality'
 
 // Color de la niebla y del fondo: el marfil de la pared, para que la galería se funda a lo lejos
@@ -18,6 +21,23 @@ function StudioEnvironment() {
   )
 }
 
+// Reflejos del HDRI "ballroom" ya prefiltrados: se aplican sin generar nada en la GPU.
+function BallroomEnvironment({ intensity }: { intensity: number }) {
+  const texture = useLoader(PrebakedEnvironmentLoader, ENVIRONMENT)
+  return (
+    <primitive
+      object={texture}
+      attach={(scene: Scene) => {
+        scene.environment = texture
+        scene.environmentIntensity = intensity
+        return () => {
+          scene.environment = null
+        }
+      }}
+    />
+  )
+}
+
 interface Props {
   quality: Quality
 }
@@ -30,15 +50,11 @@ export function Atmosphere({ quality }: Props) {
       {/* Luz que rebota del piso: cálida pero clara, para que el techo no se tiña de marrón. */}
       <hemisphereLight args={['#fff6e8', '#d9c3a5', 0.6]} />
       <directionalLight position={[4, 8, 6]} intensity={1.1} color="#fff1dc" />
-      {/* HDRI de un salón de baile (Poly Haven, CC0): reflejos suaves y cálidos en dorados y piso.
-          En calidad baja no se descarga (~320 KB): el entorno generado alcanza en una pantalla chica. */}
-      {quality === 'high' ? (
-        <Suspense fallback={<StudioEnvironment />}>
-          <Environment files={HDRI} environmentIntensity={0.85} />
-        </Suspense>
-      ) : (
-        <StudioEnvironment />
-      )}
+      {/* Reflejos del HDRI de un salón de baile (Poly Haven, CC0), prefiltrados en el build.
+          Si no cargan, se usa el entorno generado en la escena. */}
+      <AssetBoundary fallback={<StudioEnvironment />}>
+        <BallroomEnvironment intensity={quality === 'high' ? 0.85 : 0.75} />
+      </AssetBoundary>
     </>
   )
 }

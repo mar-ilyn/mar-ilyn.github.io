@@ -1,6 +1,6 @@
 // Descarga las fuentes CC0 (Poly Haven) y genera los assets optimizados en public/.
 //   - Texturas JPG → KTX2 (Basis Universal ETC1S con mipmaps): mucho más livianas en GPU y en red.
-//   - HDRI 1k → 512×256 en formato Radiance plano: solo se usa para reflejos difusos.
+//   - HDRI 1k → 256×128 en assets-src/: base para hornear el entorno (npm run bake:env).
 // Las fuentes quedan en assets-src/ (ignorado por git); en el repo solo viven los resultados.
 // Uso: npm run assets
 import { existsSync } from 'node:fs'
@@ -22,7 +22,7 @@ const TEXTURES = [
   { file: 'painted_plaster_wall_nor_gl_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_normal.ktx2', kind: 'normal' },
   { file: 'painted_plaster_wall_arm_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_arm.ktx2', kind: 'linear' },
 ]
-const HDRI = { file: 'ballroom_1k.hdr', path: 'HDRIs/hdr/1k', out: 'ballroom_512.hdr', width: 512 }
+const HDRI = { file: 'ballroom_1k.hdr', path: 'HDRIs/hdr/1k', out: 'ballroom_256.hdr', width: 256 }
 
 async function fetchSource({ file, path }) {
   const dest = join(SRC, file)
@@ -140,5 +140,5 @@ for (const t of TEXTURES) {
 }
 
 const hdr = downsampleHDR(readHDR(await fetchSource(HDRI)), HDRI.width)
-await writeFile(join(OUT, HDRI.out), hdr)
+await writeFile(join(SRC, HDRI.out), hdr)
 console.log(`${HDRI.out}: ${(hdr.length / 1024).toFixed(0)} KB`)

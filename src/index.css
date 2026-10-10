@@ -573,13 +573,18 @@ html.is-gallery body {
   justify-content: flex-start;
 }
 
-/* Viñeta en CSS para calidad baja (sin postprocesado en GPU). */
-.experience--low::after {
+/* Viñeta y grano sobre el canvas, en CSS: el postprocesado en GPU (EffectComposer) obligaba a
+   compilar otra versión de cada material (~1 s en GPU integrada) y encarecía cada cuadro. */
+.experience::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 55%, rgb(40 30 20 / 0.28) 100%);
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgb(40 30 20 / 0.26) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.55;
+  mix-blend-mode: multiply;
 }
 
 .debug-stats {
@@ -592,4 +597,42 @@ html.is-gallery body {
 .experience .overlay,
 .experience .panel {
   z-index: 2;
+}
+
+/* Pantalla de carga de la galería: sobre el canvas, debajo del header. */
+.loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.9rem;
+  background: var(--wall);
+  transition: opacity 400ms ease, visibility 0s linear 0s;
+}
+.loading-screen--done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 400ms ease, visibility 0s linear 400ms;
+}
+.loading-screen p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  color: var(--ink-soft);
+}
+.loading-screen__bar {
+  width: min(240px, 60vw);
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.loading-screen__bar span {
+  display: block;
+  height: 100%;
+  background: var(--wood);
+  transform-origin: left;
+  transition: transform 200ms ease;
 }

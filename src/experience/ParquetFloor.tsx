@@ -1,7 +1,8 @@
-import { MeshReflectorMaterial, useKTX2 } from '@react-three/drei'
+import { useKTX2 } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { Suspense, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Vector2, type MeshStandardMaterial } from 'three'
+import { AssetBoundary } from './AssetBoundary'
 import { BASIS_PATH, TEXTURES, tile } from './assets'
 import type { Quality } from './quality'
 
@@ -40,54 +41,38 @@ function TexturedFloor({ length, depth, quality }: Props) {
     const ry = depth / TILE_METERS
     for (const t of [color, normal, arm]) {
       tile(t, rx, ry, t === color)
-      t.anisotropy = Math.min(quality === 'high' ? 8 : 4, anisotropy)
+      t.anisotropy = Math.min(4, anisotropy)
     }
     return { color, normal, arm }
-  }, [color, normal, arm, length, depth, quality, anisotropy])
+  }, [color, normal, arm, length, depth, anisotropy])
 
   const normalScale = useMemo(() => new Vector2(0.6, 0.6), [])
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} name="floor">
       <planeGeometry args={[length, depth]} />
-      {quality === 'high' ? (
-        // Reflejo suave y difuso, como un parquet encerado. Solo en equipos potentes.
-        <MeshReflectorMaterial
-          map={maps.color}
-          normalMap={maps.normal}
-          normalScale={normalScale}
-          roughnessMap={maps.arm}
-          aoMap={maps.arm}
-          roughness={1}
-          metalness={0}
-          blur={[400, 120]}
-          resolution={512}
-          mixBlur={1}
-          mixStrength={0.55}
-          mixContrast={1}
-          mirror={0}
-          depthScale={0.6}
-          minDepthThreshold={0.5}
-          maxDepthThreshold={1.2}
-        />
-      ) : (
-        <meshStandardMaterial
-          map={maps.color}
-          normalMap={maps.normal}
-          normalScale={normalScale}
-          roughnessMap={maps.arm}
-          aoMap={maps.arm}
-          onUpdate={addMacroVariation}
-        />
-      )}
+      {/* Brillo de piso encerado: en calidad alta la madera es menos rugosa y refleja el entorno
+          prefiltrado. Un reflejo con espejo (MeshReflectorMaterial) volvía a dibujar la escena en
+          cada cuadro y obligaba a compilar otra versión de cada material (~1 s en GPU integrada). */}
+      <meshStandardMaterial
+        map={maps.color}
+        normalMap={maps.normal}
+        normalScale={normalScale}
+        roughnessMap={maps.arm}
+        roughness={quality === 'high' ? 0.62 : 1}
+        aoMap={maps.arm}
+        envMapIntensity={quality === 'high' ? 1.25 : 1}
+        onUpdate={addMacroVariation}
+      />
     </mesh>
   )
 }
 
-// Mientras llegan las texturas, un piso liso del mismo tono: la escena se ve desde el primer cuadro.
+// Las texturas se esperan en el Suspense de la escena (una sola compilación de shaders).
+// Si no cargan, queda un piso liso del mismo tono.
 export function ParquetFloor(props: Props) {
   return (
-    <Suspense
+    <AssetBoundary
       fallback={
         <mesh rotation={[-Math.PI / 2, 0, 0]} name="floor-fallback">
           <planeGeometry args={[props.length, props.depth]} />
@@ -96,6 +81,6 @@ export function ParquetFloor(props: Props) {
       }
     >
       <TexturedFloor {...props} />
-    </Suspense>
+    </AssetBoundary>
   )
 }

@@ -1,6 +1,7 @@
 import { useKTX2 } from '@react-three/drei'
-import { Suspense, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Vector2 } from 'three'
+import { AssetBoundary } from './AssetBoundary'
 import { BASIS_PATH, TEXTURES, tile } from './assets'
 import { ivory } from './ornament'
 
@@ -38,7 +39,7 @@ function TexturedPlaster({ width, height, position }: Props) {
 
 export function PlasterSurface(props: Props) {
   return (
-    <Suspense
+    <AssetBoundary
       fallback={
         <mesh position={props.position} material={ivory} name="wall-fallback">
           <planeGeometry args={[props.width, props.height]} />
@@ -46,6 +47,6 @@ export function PlasterSurface(props: Props) {
       }
     >
       <TexturedPlaster {...props} />
-    </Suspense>
+    </AssetBoundary>
   )
 }
