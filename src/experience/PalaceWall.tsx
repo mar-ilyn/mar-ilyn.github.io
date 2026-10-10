@@ -1,8 +1,6 @@
-import { useKTX2 } from '@react-three/drei'
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Matrix4, MeshStandardMaterial, Vector2, type BufferGeometry, type InstancedMesh, type Material } from 'three'
-import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, TEXTURES, tile } from './assets'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { Matrix4, MeshStandardMaterial, type BufferGeometry, type InstancedMesh, type Material } from 'three'
+import { createMarbleTexture } from './marbleTexture'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { gold, ivoryTrim } from './ornament'
 import { PlasterSurface } from './PlasterSurface'
@@ -13,10 +11,11 @@ interface RowProps {
   material: Material
   xs: readonly number[]
   y?: number
+  name?: string
 }
 
 // Una pieza repetida a lo largo de la pared: un solo draw call para todas sus copias.
-function Row({ geometry, material, xs, y = 0 }: RowProps) {
+function Row({ geometry, material, xs, y = 0, name }: RowProps) {
   const ref = useRef<InstancedMesh>(null)
   useLayoutEffect(() => {
     const mesh = ref.current
@@ -26,39 +25,21 @@ function Row({ geometry, material, xs, y = 0 }: RowProps) {
     mesh.instanceMatrix.needsUpdate = true
     mesh.computeBoundingSphere()
   }, [xs, y])
-  return <instancedMesh ref={ref} args={[geometry, material, xs.length]} />
+  return <instancedMesh ref={ref} name={name} args={[geometry, material, xs.length]} />
 }
 
 // Las cámaras recorren x ∈ [-10, 4] y la niebla cierra a ~30 m: más allá la pared sigue lisa
 // (con zócalo y cornisa continuos), así nunca se ve un final pero no se dibujan ornamentos invisibles.
 const ORNAMENT_RANGE = { from: -30, to: 22 } as const
 
-// Mármol blanco apenas veteado para los fustes y zócalos de las columnas.
+// Mármol marfil apenas veteado para los fustes y pedestales de las columnas.
 function MarbleColumns({ geometry, xs }: { geometry: BufferGeometry; xs: readonly number[] }) {
-  const [color, normal, arm] = useKTX2([TEXTURES.marble.color, TEXTURES.marble.normal, TEXTURES.marble.arm], BASIS_PATH)
-  const material = useMemo(() => {
-    for (const t of [color, normal, arm]) tile(t, 1, 1, t === color)
-    const material = new MeshStandardMaterial({
-      color: '#f6f2ea',
-      map: color,
-      normalMap: normal,
-      normalScale: new Vector2(0.4, 0.4),
-      roughnessMap: arm,
-      roughness: 0.55,
-      envMapIntensity: 0.9,
-    })
-    // La textura es un mármol crema: se desatura y aclara para un blanco apenas veteado.
-    material.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <map_fragment>',
-        `#include <map_fragment>
-        float marbleLum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-        diffuseColor.rgb = mix(vec3(marbleLum), diffuseColor.rgb, 0.18) * 1.12;`,
-      )
-    }
-    return material
-  }, [color, normal, arm])
-  return <Row geometry={geometry} material={material} xs={xs} />
+  const material = useMemo(
+    () => new MeshStandardMaterial({ map: createMarbleTexture(), roughness: 0.42, envMapIntensity: 0.9 }),
+    [],
+  )
+  useEffect(() => () => material.map?.dispose(), [material])
+  return <Row geometry={geometry} material={material} xs={xs} name="wall-columns-marble" />
 }
 
 const PANEL_Y = (WALL.panel.bottom + WALL.panel.top) / 2
@@ -89,12 +70,10 @@ export function PalaceWall() {
       columnIvory: column.ivory,
       columnGold: column.gold,
       wide: goldPanel(WALL.wide - 0.45, PANEL_H),
-      narrow: goldPanel(WALL.narrow - 0.4, PANEL_H, 0.55),
       intro: goldPanel(introBay - 0.5, PANEL_H, 1.15),
       frieze: friezeSegment(),
       trim: trimGeometry(length),
       lowerWide: lowerPanel(WALL.wide - 0.45),
-      lowerNarrow: lowerPanel(WALL.narrow - 0.4),
       lowerIntro: lowerPanel(introBay - 0.5),
     }
   }, [length, introBay])
@@ -104,17 +83,13 @@ export function PalaceWall() {
       <PlasterSurface width={length} height={height} position={[0, height / 2, 0]} />
       <mesh geometry={geo.trim} material={ivoryTrim} />
 
-      <AssetBoundary fallback={<Row geometry={geo.columnIvory} material={ivoryTrim} xs={layout.columns} />}>
-        <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />
-      </AssetBoundary>
-      <Row geometry={geo.columnGold} material={gold} xs={layout.columns} />
+      <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />
+      <Row geometry={geo.columnGold} material={gold} xs={layout.columns} name="wall-columns-gold" />
 
       <Row geometry={geo.wide} material={gold} xs={layout.wideBays} y={PANEL_Y} />
-      <Row geometry={geo.narrow} material={gold} xs={layout.narrowBays} y={PANEL_Y} />
       <mesh geometry={geo.intro} material={gold} position={[INTRO_X, PANEL_Y, 0]} />
 
       <Row geometry={geo.lowerWide} material={ivoryTrim} xs={layout.wideBays} y={WALL.lowerPanel.y} />
-      <Row geometry={geo.lowerNarrow} material={ivoryTrim} xs={layout.narrowBays} y={WALL.lowerPanel.y} />
       <mesh geometry={geo.lowerIntro} material={ivoryTrim} position={[INTRO_X, WALL.lowerPanel.y, 0]} />
 
       <Row geometry={geo.frieze} material={gold} xs={friezeXs} />

@@ -29,11 +29,6 @@ export const TEXTURES = {
     normal: `${BASE}plaster_normal.ktx2`,
     arm: `${BASE}plaster_arm.ktx2`,
   },
-  marble: {
-    color: `${BASE}marble_color.ktx2`,
-    normal: `${BASE}marble_normal.ktx2`,
-    arm: `${BASE}marble_arm.ktx2`,
-  },
 } as const
 
 // Marco tallado (fancy_picture_frame_02, Poly Haven CC0): geometría meshopt y texturas KTX2.

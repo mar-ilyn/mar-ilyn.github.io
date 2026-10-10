@@ -4,18 +4,17 @@ import { place, ring, scroll } from './ornament'
 import { flute, lathe } from './pedestalGeometry'
 
 // Pared de palacio modular: columnas adosadas, boiserie con molduras doradas y friso.
-// Ritmo de 4 m: panel ancho centrado en 4n (detrás de cada pedestal) y panel angosto en 4n + 2.
+// Ritmo de 4 m: un panel centrado en 4n (detrás de cada pedestal) y una columna en 4n + 2.
 // Coordenadas: x a lo largo de la pared, y desde el piso, z = 0 en la cara de la pared.
 
 export const WALL = {
   period: 4,
-  columnOffset: 1.4,
-  wide: 2.8,
-  narrow: 1.2,
+  // Ancho libre del panel entre dos columnas (el resto lo ocupa el pedestal de la columna).
+  wide: 3.35,
   dadoTop: 0.9,
   panel: { bottom: 1.1, top: 3.4 },
   lowerPanel: { y: 0.45, height: 0.55 },
-  shaft: { bottom: 1.02, goldTop: 1.65, top: 3.33, radius: 0.16 },
+  shaft: { bottom: 1.06, top: 3.3, radius: 0.16 },
   columnZ: 0.14,
   frieze: { y: 3.915 },
 } as const
@@ -28,23 +27,19 @@ export interface Bay {
 export interface WallLayout {
   columns: number[]
   wideBays: number[]
-  narrowBays: number[]
 }
 
 // Posiciones de columnas y paneles entre `from` y `to`, dejando libre el tramo de la intro
 // (sus bordes coinciden con columnas, así queda un panel ancho especial para textos y foto).
 export function wallLayout(from: number, to: number, intro: Bay): WallLayout {
   const inside = (x: number) => x > intro.left + 1e-6 && x < intro.right - 1e-6
-  const layout: WallLayout = { columns: [], wideBays: [], narrowBays: [] }
-  const { period, columnOffset } = WALL
+  const layout: WallLayout = { columns: [], wideBays: [] }
+  const { period } = WALL
   for (let n = Math.ceil((from - period) / period); n * period <= to + period; n++) {
     const c = n * period
-    for (const x of [c - columnOffset, c + columnOffset]) {
-      if (x >= from && x <= to && !inside(x)) layout.columns.push(x)
-    }
+    const column = c + period / 2
+    if (column >= from && column <= to && !inside(column)) layout.columns.push(column)
     if (c >= from && c <= to && !inside(c)) layout.wideBays.push(c)
-    const narrow = c + period / 2
-    if (narrow >= from && narrow <= to && !inside(narrow)) layout.narrowBays.push(narrow)
   }
   layout.columns.sort((a, b) => a - b)
   return layout
@@ -77,7 +72,7 @@ function shaftSection(bottom: number, top: number, radius: number, taper: number
     points.push([radius * (1 - taper * t), bottom + (top - bottom) * t])
   }
   points.push([0, top])
-  return flute(lathe(points, 64), 16, 0.016, bottom + 0.01, top - 0.01)
+  return flute(lathe(points, 96), 20, 0.03, bottom + 0.03, top - 0.03)
 }
 
 export interface ColumnGeometries {
@@ -85,68 +80,109 @@ export interface ColumnGeometries {
   gold: BufferGeometry
 }
 
-// Columna corintia adosada: zócalo y fuste superior en marfil; tercio inferior estriado y capitel en dorado.
+// Columna corintia adosada, como la referencia: pedestal cuadrado de mármol con panel rehundido,
+// base dorada con toros, fuste estriado de mármol en toda su altura y capitel corintio dorado con
+// dos coronas de acanto, volutas en las esquinas y flor en el ábaco.
 export function columnGeometries(): ColumnGeometries {
   const { shaft, dadoTop, columnZ } = WALL
+  const W = 0.5
+  const D = 0.38
 
-  const ivoryRoot = new Group()
-  place(ivoryRoot, new BoxGeometry(0.46, dadoTop, 0.34), { position: [0, dadoTop / 2, 0.17] })
-  place(ivoryRoot, new BoxGeometry(0.52, 0.05, 0.38), { position: [0, dadoTop + 0.025, 0.19] })
+  const marble = new Group()
+  // Pedestal: zócalo, dado con panel rehundido al frente y cornisa.
+  place(marble, new BoxGeometry(W + 0.06, 0.08, D + 0.04), { position: [0, 0.04, (D + 0.04) / 2] })
+  place(marble, new BoxGeometry(W, dadoTop - 0.14, D), { position: [0, 0.08 + (dadoTop - 0.14) / 2, D / 2] })
+  place(marble, ring(W - 0.1, dadoTop - 0.34, W - 0.16, dadoTop - 0.4, 0.012, 0.004), {
+    position: [0, 0.08 + (dadoTop - 0.14) / 2, D],
+  })
+  place(marble, new BoxGeometry(W + 0.05, 0.035, D + 0.035), { position: [0, dadoTop - 0.04, (D + 0.035) / 2] })
+  place(marble, new BoxGeometry(W + 0.08, 0.025, D + 0.05), { position: [0, dadoTop - 0.01, (D + 0.05) / 2] })
+  // Fuste estriado en toda su altura, con éntasis suave.
+  place(marble, shaftSection(shaft.bottom, shaft.top, shaft.radius, 0.08), { position: [0, 0, columnZ] })
+
+  const gold = new Group()
+  // Base ática dorada: plinto, toro inferior, escocia y toro superior.
+  place(gold, new BoxGeometry(0.42, 0.04, 0.42 * 0.62 + columnZ), { position: [0, dadoTop + 0.02, (0.42 * 0.62 + columnZ) / 2] })
   place(
-    ivoryRoot,
-    lathe([
-      [0, dadoTop + 0.05],
-      [0.22, dadoTop + 0.05],
-      [0.22, dadoTop + 0.08],
-      [0.2, dadoTop + 0.1],
-      [0.18, shaft.bottom],
-      [0, shaft.bottom],
-    ], 48),
+    gold,
+    lathe(
+      [
+        [0, dadoTop + 0.04],
+        [0.2, dadoTop + 0.04],
+        [0.205, dadoTop + 0.06],
+        [0.195, dadoTop + 0.08],
+        [0.172, dadoTop + 0.095],
+        [0.178, dadoTop + 0.11],
+        [0.185, dadoTop + 0.125],
+        [0.172, dadoTop + 0.145],
+        [shaft.radius + 0.005, shaft.bottom],
+        [0, shaft.bottom],
+      ],
+      48,
+    ),
     { position: [0, 0, columnZ] },
   )
-  place(ivoryRoot, shaftSection(shaft.goldTop, shaft.top, shaft.radius * 0.99, 0.06), { position: [0, 0, columnZ] })
-
-  const goldRoot = new Group()
-  place(goldRoot, shaftSection(shaft.bottom, shaft.goldTop, shaft.radius, 0.01), { position: [0, 0, columnZ] })
-  place(goldRoot, new TorusGeometry(shaft.radius + 0.005, 0.014, 5, 32), {
-    position: [0, shaft.goldTop, columnZ],
+  // Astrágalo bajo el capitel.
+  place(gold, new TorusGeometry(shaft.radius * 0.93, 0.013, 6, 36), {
+    position: [0, shaft.top - 0.015, columnZ],
     rotation: [Math.PI / 2, 0, 0],
   })
+  // Campana del capitel.
+  const top = shaft.top
   place(
-    goldRoot,
-    lathe([
-      [0, shaft.top],
-      [0.16, shaft.top],
-      [0.172, shaft.top + 0.02],
-      [0.16, shaft.top + 0.03],
-      [0.18, shaft.top + 0.12],
-      [0.22, shaft.top + 0.22],
-      [0.27, shaft.top + 0.29],
-      [0, shaft.top + 0.29],
-    ], 48),
+    gold,
+    lathe(
+      [
+        [0, top],
+        [0.15, top],
+        [0.155, top + 0.06],
+        [0.17, top + 0.16],
+        [0.2, top + 0.26],
+        [0.235, top + 0.32],
+        [0, top + 0.32],
+      ],
+      40,
+    ),
     { position: [0, 0, columnZ] },
   )
-  const leaf = new SphereGeometry(0.06, 6, 5)
-  for (let i = 0; i < 16; i++) {
-    const lower = i % 2 === 0
-    const angle = (i / 16) * Math.PI * 2
-    const r = lower ? 0.18 : 0.21
-    place(goldRoot, leaf, {
-      position: [Math.cos(angle) * r, shaft.top + (lower ? 0.09 : 0.18), columnZ + Math.sin(angle) * r],
-      rotation: [0, -angle, lower ? 0.35 : 0.5],
-      scale: [0.45, lower ? 1 : 0.85, 0.9],
-    })
+  // Dos coronas de hojas de acanto: hojas alargadas que se curvan hacia afuera en la punta.
+  const leaf = new SphereGeometry(0.06, 10, 8)
+  const tip = new TorusGeometry(0.026, 0.01, 6, 12, Math.PI * 1.3)
+  for (const [row, count, r, y, h] of [
+    [0, 10, 0.165, top + 0.07, 1.25],
+    [1, 10, 0.195, top + 0.17, 1.1],
+  ] as const) {
+    for (let i = 0; i < count; i++) {
+      const angle = ((i + row * 0.5) / count) * Math.PI * 2
+      const x = Math.cos(angle) * r
+      const z = columnZ + Math.sin(angle) * r
+      // Hoja alta y fina, inclinada hacia afuera, con la punta enrulada.
+      place(gold, leaf, { position: [x, y, z], rotation: [0, -angle, 0.22], scale: [0.3, h * 1.15, 0.38] })
+      place(gold, tip, {
+        position: [Math.cos(angle) * (r + 0.035), y + 0.075 * h, columnZ + Math.sin(angle) * (r + 0.035)],
+        rotation: [0, -angle + Math.PI / 2, 0.3],
+      })
+    }
   }
-  const volute = new TorusGeometry(0.045, 0.015, 5, 14)
+  // Volutas en las cuatro esquinas, bajo el ábaco, y caulículos entre ellas.
+  const volute = new TorusGeometry(0.065, 0.019, 6, 18, Math.PI * 1.7)
   for (const angle of [0.25, 0.75, 1.25, 1.75].map((t) => t * Math.PI)) {
-    place(goldRoot, volute, {
-      position: [Math.cos(angle) * 0.26, shaft.top + 0.25, columnZ + Math.sin(angle) * 0.26],
-      rotation: [0, -angle + Math.PI / 2, 0],
+    place(gold, volute, {
+      position: [Math.cos(angle) * 0.255, top + 0.265, columnZ + Math.sin(angle) * 0.255],
+      rotation: [0, -angle + Math.PI / 2, -0.4],
     })
   }
-  place(goldRoot, concaveSquare(0.32, 0.06, 0.06, 8), { position: [0, shaft.top + 0.29, columnZ] })
+  // Ábaco de lados cóncavos con una flor al centro de cada cara.
+  place(gold, concaveSquare(0.3, 0.06, 0.055, 10), { position: [0, top + 0.32, columnZ] })
+  const flower = new SphereGeometry(0.03, 8, 6)
+  for (const angle of [0, 0.5, 1, 1.5].map((t) => t * Math.PI)) {
+    place(gold, flower, {
+      position: [Math.cos(angle) * 0.255, top + 0.35, columnZ + Math.sin(angle) * 0.255],
+      scale: [1, 1, 0.7],
+    })
+  }
 
-  return { ivory: bake(ivoryRoot), gold: bake(goldRoot) }
+  return { ivory: bake(marble), gold: bake(gold) }
 }
 
 interface Ornaments {

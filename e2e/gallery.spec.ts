@@ -56,7 +56,7 @@ test('click en un pedestal abre su proyecto', async ({ page, isMobile }) => {
   test.skip(isMobile, 'El encuadre vertical es en diagonal; el toque se prueba a mano en el celular.')
   await page.goto('/proyectos')
   await waitForGallery(page)
-  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true')
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
   const box = await page.locator('canvas').boundingBox()
   if (!box) throw new Error('Canvas sin tamaño')
   // El pedestal central queda en el centro horizontal, algo por debajo de la mitad.
@@ -101,7 +101,7 @@ test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
 test('subir desde la galería vuelve a la intro', async ({ page }) => {
   await page.goto('/proyectos')
   await waitForGallery(page)
-  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true')
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible()

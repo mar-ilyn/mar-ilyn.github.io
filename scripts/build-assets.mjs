@@ -26,9 +26,6 @@ const TEXTURES = [
   { file: 'herringbone_parquet_arm_1k.jpg', path: 'Textures/jpg/1k/herringbone_parquet', out: 'parquet_arm.ktx2', kind: 'linear' },
   { file: 'painted_plaster_wall_nor_gl_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_normal.ktx2', kind: 'normal' },
   { file: 'painted_plaster_wall_arm_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_arm.ktx2', kind: 'linear' },
-  { file: 'marble_01_diff_1k.jpg', path: 'Textures/jpg/1k/marble_01', out: 'marble_color.ktx2', kind: 'color' },
-  { file: 'marble_01_nor_gl_1k.jpg', path: 'Textures/jpg/1k/marble_01', out: 'marble_normal.ktx2', kind: 'normal' },
-  { file: 'marble_01_arm_1k.jpg', path: 'Textures/jpg/1k/marble_01', out: 'marble_arm.ktx2', kind: 'linear' },
 ]
 
 // Marco tallado (fancy_picture_frame_02). La pintura que trae se descarta: el lienzo es nuestro.

@@ -25,7 +25,7 @@ AO_TARGETS = {"floor": (2048, 1024), "wall": (4096, 256), "ceiling": (1024, 512)
 LIGHT_TARGETS = {"floor": (2048, 1024), "wall": (4096, 256)}
 AO_SAMPLES = 96
 LIGHT_SAMPLES = 128
-AO_DISTANCE = 1.2
+AO_DISTANCE = 0.5
 
 # Coordenadas de la escena web (three.js, Y arriba) → Blender (Z arriba): (x, y, z) → (x, -z, y).
 def b(x, y, z):
@@ -153,14 +153,24 @@ scales = {}
 
 # 1. Oclusión ambiental (sin luces: solo geometría).
 scene.cycles.samples = AO_SAMPLES
+columns = [o for o in bpy.data.objects if o.name.startswith("wall-columns")]
+if not columns:
+    raise SystemExit("No se encontraron las columnas de la pared (wall-columns-*) en la escena exportada")
 for name, (w, h) in AO_TARGETS.items():
     start = time.time()
+    # Las columnas no oscurecen la pared: dejaban manchas anchas a cada lado. Sí cuentan para el
+    # piso (contacto del pedestal) y el techo.
+    for col in columns:
+        col.hide_render = name == "wall"
     image = bake_target(find(name), f"{name}_ao", w, h, False)
     bpy.ops.object.bake(type="AO", use_clear=True)
     image.filepath_raw = f"{OUT}/{name}_ao.png"
     image.file_format = "PNG"
     image.save()
     print(f"[bake] {name} AO: {w}x{h} en {time.time() - start:.0f} s", flush=True)
+
+for col in columns:
+    col.hide_render = False
 
 # 2. Luz directa: sol por las ventanas y luz del retrato.
 build_window_wall()

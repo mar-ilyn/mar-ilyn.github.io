@@ -17,7 +17,7 @@ const halfTan = Math.tan((FOV * Math.PI) / 360)
 // Pared de la intro, relativa a INTRO_X: textos alineados a la izquierda y el cuadro con la foto a la derecha.
 export const INTRO_LAYOUT = {
   // Ancho del panel especial de la intro: sus bordes coinciden con columnas de la pared (ver wallGeometry).
-  bay: 6.8,
+  bay: 8,
   textLeft: -2.6,
   frameX: 1.3,
   frame: { width: 1.55, height: 1.8, y: 2.25 },
