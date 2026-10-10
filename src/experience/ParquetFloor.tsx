@@ -5,7 +5,7 @@ import { Vector2, type MeshStandardMaterial } from 'three'
 import { AssetBoundary } from './AssetBoundary'
 import { BASIS_PATH, LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
 import bakedLighting from './bakedLighting.json'
-import { SUN_GAIN } from './lighting'
+import { FLOOR_SUN_GAIN } from './lighting'
 import type { Quality } from './quality'
 
 interface Props {
@@ -65,7 +65,7 @@ function TexturedFloor({ length, depth, quality }: Props) {
         // Oclusión horneada (pared, pedestales) en lugar de la micro-oclusión de la textura.
         aoMap={maps.ao}
         lightMap={maps.light}
-        lightMapIntensity={bakedLighting.lightScale.floor * SUN_GAIN}
+        lightMapIntensity={bakedLighting.lightScale.floor * FLOOR_SUN_GAIN}
         envMapIntensity={quality === 'high' ? 1.25 : 1}
         onUpdate={addMacroVariation}
       />

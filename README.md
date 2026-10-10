@@ -112,7 +112,8 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 
 ### Luz de la intro
 
-- **Sol de tarde horneado**: `bake_lightmaps.py` agrega, solo para el horneado, una pared con tres ventanas fuera de cuadro a la izquierda y un sol bajo y cálido. Cycles hornea la luz directa sobre la pared y el piso (`*_light.ktx2`, ~18 KB): los haces de las ventanas cruzan el panel de la intro y el piso. Una luz rectangular sobre el cuadro deja un halo suave sobre el retrato. En tiempo real hay un sol débil con la misma dirección, para las piezas sin lightmap.
+- **Sol de tarde horneado**: `bake_lightmaps.py` agrega, solo para el horneado, una pared con dos ventanas fuera de cuadro a la izquierda y un sol bajo y cálido. Cycles hornea la luz directa (`*_light.ktx2`, ~12 KB): los dos haces entran en diagonal sobre la franja de piso que se ve en la intro, y en la pared solo llegan al zócalo, sin tocar el panel del texto. Los centros de las ventanas se calculan a partir de la dirección del sol (ver el comentario en el script). Fuera de la sala, la luz se anula en el propio mapa. En tiempo real hay un sol débil con la misma dirección, para las piezas sin lightmap.
+- **Lámpara de cuadro** (`PictureLamp.tsx`): barra de bronce con brazo, sobre el marco. Un foco cerrado y de alcance corto (1,25 m) ilumina solo la parte superior del cuadro.
 - **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
 
 ### Horneado de la oclusión ambiental

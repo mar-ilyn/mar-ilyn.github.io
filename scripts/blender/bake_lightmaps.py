@@ -33,23 +33,27 @@ def b(x, y, z):
 
 
 # Sol de tarde: viaja hacia +x (entra por la izquierda), bajo, y hacia la pared del fondo.
-SUN_DIR = Vector((1.0, -0.18, -0.55)).normalized()  # en coordenadas web
+SUN_DIR = Vector((1.0, -0.35, -0.55)).normalized()  # en coordenadas web
 SUN_COLOR = (1.0, 0.8, 0.58)
 SUN_STRENGTH = 10.0
 SUN_SOFTNESS = math.radians(1.2)
 
 # Pared con ventanas fuera de cuadro, a la izquierda (x = -19), perpendicular a la pared del fondo.
-# Centros elegidos para que cada ventana proyecte su luz sobre el panel de la intro:
-# z = -3 + 0.55 · (x + 15.5) para x = -12, -9 y -6 (dirección del sol de arriba). Cerca de la sala
-# para que, con un sol tan bajo, la luz llegue a la pared antes de tocar el piso.
+# Dos ventanas y un sol de tarde rasante: los haces entran largos y en diagonal sobre la franja de
+# piso que se ve en la intro (junto a la pared, x entre -12 y -7,5). Un rayo que pasa por la ventana
+# a altura y recorre t = y / 0,35 hasta el piso y se acerca 0,55·t a la pared; con estos centros,
+# solo la punta de cada haz llega a la pared, en el zócalo (por debajo de ~0,9 m), sin tocar el
+# panel del texto.
 WINDOW_WALL_X = -15.5
-WINDOWS_Z = (-1.07, 0.58, 2.23)
-WINDOW_W, WINDOW_BOTTOM, WINDOW_TOP = 0.9, 1.0, 4.0
+WINDOWS_Z = (-0.025, 1.35)
+WINDOW_W, WINDOW_BOTTOM, WINDOW_TOP = 0.9, 1.2, 2.8
 # Sala cerrada solo para el horneado: el sol únicamente entra por las ventanas.
 ROOM_Z_MAX, ROOM_TOP = 22.0, 4.2
 
 # Luz del retrato: arriba del cuadro, apuntando a la pared y hacia abajo.
-PICTURE_LIGHT = {"pos": (-8.7, 3.45, -2.55), "dir": (0.0, -0.6, -0.8), "power": 22.0, "color": (1.0, 0.85, 0.65)}
+# Lámpara de cuadro (PictureLamp.tsx): justo debajo de la pantalla de bronce, apuntando hacia
+# abajo y a la pared con un haz cerrado, para iluminar solo la parte de arriba del cuadro.
+PICTURE_LIGHT = {"pos": (-8.7, 3.1, -2.72), "dir": (0.0, -1.0, -0.7), "power": 9.0, "color": (1.0, 0.82, 0.58)}
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=GLB)
@@ -96,13 +100,8 @@ def build_window_wall():
     for zc in WINDOWS_Z:
         box("window_sill", (WINDOW_WALL_X, WINDOW_BOTTOM / 2, zc), (0.3, WINDOW_BOTTOM, WINDOW_W))
         box("window_lintel", (WINDOW_WALL_X, (WINDOW_TOP + 4.4) / 2, zc), (0.3, 4.4 - WINDOW_TOP, WINDOW_W))
-        # Parteluz y travesaño: dibujan la cruz de la ventana en la luz.
+        # Parteluz: divide cada haz en dos hojas, como una ventana de dos batientes.
         box("window_mullion", (WINDOW_WALL_X, (WINDOW_BOTTOM + WINDOW_TOP) / 2, zc), (0.1, WINDOW_TOP - WINDOW_BOTTOM, 0.06))
-        box("window_transom", (WINDOW_WALL_X, 2.9, zc), (0.1, 0.06, WINDOW_W))
-    # Más allá de la pared de ventanas la pared del fondo sigue: ahí tampoco tiene que pegar el sol.
-    # A la altura de x = -26 los rayos que entran por las ventanas pasan por z >= 4,1 y los que
-    # llegarían a esa parte exterior por z <= 2,8: este bloque frena solo a los segundos.
-    box("outer_block", (-26.0, 4.0, 0.15), (0.5, 8.0, 6.7))
     # Techo-oclusor desde la pared de ventanas hacia adentro de la sala.
     x0, x1 = WINDOW_WALL_X, 40.0
     box("room_roof", ((x0 + x1) / 2, ROOM_TOP + 0.15, (z_min + z_max) / 2), (x1 - x0, 0.3, z_max - z_min))
@@ -120,7 +119,8 @@ def add_lights():
 
     lamp_data = bpy.data.lights.new("picture_light", type="AREA")
     lamp_data.shape = "RECTANGLE"
-    lamp_data.size, lamp_data.size_y = 0.7, 0.12
+    lamp_data.size, lamp_data.size_y = 0.45, 0.04
+    lamp_data.spread = math.radians(55)
     lamp_data.energy = PICTURE_LIGHT["power"]
     lamp_data.color = PICTURE_LIGHT["color"]
     lamp = bpy.data.objects.new("picture_light", lamp_data)
@@ -177,6 +177,10 @@ for name, (w, h) in LIGHT_TARGETS.items():
     image = bake_target(find(name), f"{name}_light", w, h, True)
     bpy.ops.object.bake(type="DIFFUSE", pass_filter={"DIRECT"}, use_clear=True)
     pixels = np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    # Del otro lado de la pared de ventanas (afuera de la sala) no puede haber sol: se anula.
+    # En el piso y la pared, u recorre x de -40 a 40.
+    xs = -40.0 + (np.arange(w) + 0.5) / w * 80.0
+    pixels[:, xs < WINDOW_WALL_X, :3] = 0.0
     peak = float(np.percentile(pixels[..., :3], 99.9)) or 1.0
     pixels[..., :3] = np.clip(pixels[..., :3] / peak, 0, 1)
     out = bpy.data.images.new(f"{name}_light_8bit", width=w, height=h, alpha=False, float_buffer=False)

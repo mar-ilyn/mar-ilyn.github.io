@@ -1,5 +1,6 @@
 import { Ceiling } from './Ceiling'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
+import { PictureLamp } from './PictureLamp'
 import { PortraitFrame } from './PortraitFrame'
 import { PalaceWall } from './PalaceWall'
 import { ParquetFloor } from './ParquetFloor'
@@ -22,6 +23,7 @@ export function Room({ quality }: Props) {
 
       <group position={[INTRO_X, 0, wallZ]}>
         <PortraitFrame width={frame.width} height={frame.height} position={[frameX, frame.y, 0.01]} />
+        <PictureLamp x={frameX} frameTop={frame.y + frame.height / 2} frameWidth={frame.width} />
       </group>
     </group>
   )
