@@ -153,15 +153,21 @@ scales = {}
 
 # 1. Oclusión ambiental (sin luces: solo geometría).
 scene.cycles.samples = AO_SAMPLES
-columns = [o for o in bpy.data.objects if o.name.startswith("wall-columns")]
+# El importador de glTF deja el nombre en un objeto contenedor y las mallas instanciadas como hijas
+# con otro nombre: se toman el contenedor y todos sus descendientes.
+columns = []
+for o in bpy.data.objects:
+    if o.name.startswith("wall-columns"):
+        columns += [o, *o.children_recursive]
+print(f"[bake] columnas a ocultar en pared y techo: {len(columns)} objetos", flush=True)
 if not columns:
     raise SystemExit("No se encontraron las columnas de la pared (wall-columns-*) en la escena exportada")
 for name, (w, h) in AO_TARGETS.items():
     start = time.time()
-    # Las columnas no oscurecen la pared: dejaban manchas anchas a cada lado. Sí cuentan para el
-    # piso (contacto del pedestal) y el techo.
+    # Las columnas no oscurecen pared ni techo: dejaban manchas anchas alrededor. Sí cuentan para el
+    # piso (contacto del pedestal).
     for col in columns:
-        col.hide_render = name == "wall"
+        col.hide_render = name in ("wall", "ceiling")
     image = bake_target(find(name), f"{name}_ao", w, h, False)
     bpy.ops.object.bake(type="AO", use_clear=True)
     image.filepath_raw = f"{OUT}/{name}_ao.png"

@@ -7,6 +7,8 @@ import { flute, lathe } from './pedestalGeometry'
 // Ritmo de 4 m: un panel centrado en 4n (detrás de cada pedestal) y una columna en 4n + 2.
 // Coordenadas: x a lo largo de la pared, y desde el piso, z = 0 en la cara de la pared.
 
+const WALL_HEIGHT = 4.2
+
 export const WALL = {
   period: 4,
   // Ancho libre del panel entre dos columnas (el resto lo ocupa el pedestal de la columna).
@@ -14,11 +16,14 @@ export const WALL = {
   dadoTop: 0.9,
   panel: { bottom: 1.1, top: 3.4 },
   lowerPanel: { y: 0.45, height: 0.55 },
-  shaft: { bottom: 1.06, top: 3.3, radius: 0.21 },
+  // El capitel termina justo bajo la cornisa (capitalTop): la columna llega al techo.
+  shaft: { bottom: 1.06, top: 3.6, radius: 0.21 },
+  capitalTop: 4.05,
+  // Arquitrabe bajo el friso, fijo (no depende de la altura de la columna).
+  architrave: 3.69,
   // Pedestal de la columna (ancho × profundidad); el fuste va centrado sobre su cara superior.
   pedestal: { width: 0.62, depth: 0.42 },
   columnZ: 0.235,
-  frieze: { y: 3.915 },
 } as const
 
 export interface Bay {
@@ -47,25 +52,6 @@ export function wallLayout(from: number, to: number, intro: Bay): WallLayout {
   return layout
 }
 
-function concaveSquare(half: number, sag: number, depth: number, curveSegments = 16) {
-  const shape = new Shape()
-  shape.moveTo(-half, -half)
-  shape.quadraticCurveTo(0, -half + sag, half, -half)
-  shape.quadraticCurveTo(half - sag, 0, half, half)
-  shape.quadraticCurveTo(0, half - sag, -half, half)
-  shape.quadraticCurveTo(-half + sag, 0, -half, -half)
-  const g = new ExtrudeGeometry(shape, {
-    depth,
-    bevelEnabled: true,
-    bevelThickness: 0.01,
-    bevelSize: 0.01,
-    bevelSegments: 1,
-    curveSegments,
-  })
-  g.rotateX(-Math.PI / 2)
-  return g
-}
-
 function shaftSection(bottom: number, top: number, radius: number, taper: number) {
   const points: [number, number][] = [[0, bottom]]
   const steps = 3
@@ -74,7 +60,7 @@ function shaftSection(bottom: number, top: number, radius: number, taper: number
     points.push([radius * (1 - taper * t), bottom + (top - bottom) * t])
   }
   points.push([0, top])
-  return flute(lathe(points, 96), 20, 0.03, bottom + 0.03, top - 0.03)
+  return flute(lathe(points, 96), 20, 0.036, bottom + 0.03, top - 0.03)
 }
 
 export interface ColumnGeometries {
@@ -82,9 +68,9 @@ export interface ColumnGeometries {
   gold: BufferGeometry
 }
 
-// Columna corintia adosada, como la referencia: pedestal cuadrado de mármol con panel rehundido,
-// base dorada con toros, fuste estriado de mármol en toda su altura y capitel corintio dorado con
-// dos coronas de acanto, volutas en las esquinas y flor en el ábaco.
+// Columna adosada, como la referencia: pedestal cuadrado de mármol con panel rehundido, base dorada
+// con toros, fuste estriado de mármol en toda su altura y capitel simple (cuerpo dorado con relieves
+// ovalados, molduras escalonadas y placa) que llega hasta la cornisa.
 export function columnGeometries(): ColumnGeometries {
   const { shaft, dadoTop, columnZ } = WALL
   const W = WALL.pedestal.width
@@ -93,7 +79,7 @@ export function columnGeometries(): ColumnGeometries {
   // tienen exactamente este tamaño, así los cuadrados de arriba y abajo coinciden.
   const TOP_W = W + 0.08
   const TOP_D = D + 0.05
-  // Las proporciones de base y capital se diseñaron para un fuste de radio 0,16.
+  // Las proporciones de la base se diseñaron para un fuste de radio 0,16.
   const k = shaft.radius / 0.16
 
   const marble = new Group()
@@ -130,69 +116,57 @@ export function columnGeometries(): ColumnGeometries {
     ),
     { position: [0, 0, columnZ] },
   )
-  // Astrágalo bajo el capitel.
-  place(gold, new TorusGeometry(shaft.radius * 0.93, 0.015, 6, 40), {
-    position: [0, shaft.top - 0.015, columnZ],
+  // Capitel simple, como la referencia: astrágalo, cuerpo dorado apenas cónico con relieves
+  // ovalados y, arriba, dos molduras escalonadas y una placa cuadrada de mármol bajo la cornisa.
+  const top = shaft.top
+  const R = shaft.radius
+  place(gold, new TorusGeometry(R * 1.02, 0.018, 8, 48), {
+    position: [0, top + 0.012, columnZ],
     rotation: [Math.PI / 2, 0, 0],
   })
-  // Campana del capitel.
-  const top = shaft.top
-  const capH = 0.32 * k
+  const bodyBottom = top + 0.03
+  const bodyTop = WALL.capitalTop - 0.16
+  const bodyR0 = R * 1.02
+  const bodyR1 = R * 1.28
   place(
     gold,
     lathe(
       [
-        [0, top],
-        [0.15 * k, top],
-        [0.155 * k, top + 0.06 * k],
-        [0.17 * k, top + 0.16 * k],
-        [0.2 * k, top + 0.26 * k],
-        [0.235 * k, top + capH],
-        [0, top + capH],
+        [0, bodyBottom],
+        [bodyR0, bodyBottom],
+        [bodyR0 + (bodyR1 - bodyR0) * 0.35, bodyBottom + (bodyTop - bodyBottom) * 0.5],
+        [bodyR1, bodyTop - 0.02],
+        [bodyR1 + 0.012, bodyTop],
+        [0, bodyTop],
       ],
-      48,
+      56,
     ),
     { position: [0, 0, columnZ] },
   )
-  // Dos coronas de hojas de acanto: hojas altas y finas, inclinadas hacia afuera, con la punta enrulada.
-  const leaf = new SphereGeometry(0.06 * k, 10, 8)
-  const tip = new TorusGeometry(0.026 * k, 0.01 * k, 6, 12, Math.PI * 1.3)
-  for (const [row, count, r, y, h] of [
-    [0, 12, 0.165 * k, top + 0.07 * k, 1.25],
-    [1, 12, 0.195 * k, top + 0.17 * k, 1.1],
-  ] as const) {
-    for (let i = 0; i < count; i++) {
-      const angle = ((i + row * 0.5) / count) * Math.PI * 2
-      const x = Math.cos(angle) * r
-      const z = columnZ + Math.sin(angle) * r
-      place(gold, leaf, { position: [x, y, z], rotation: [0, -angle, 0.22], scale: [0.3, h * 1.15, 0.38] })
-      place(gold, tip, {
-        position: [Math.cos(angle) * (r + 0.035 * k), y + 0.075 * h * k, columnZ + Math.sin(angle) * (r + 0.035 * k)],
-        rotation: [0, -angle + Math.PI / 2, 0.3],
-      })
-    }
-  }
-  // Volutas en las cuatro esquinas, bajo el ábaco.
-  const volute = new TorusGeometry(0.065 * k, 0.019 * k, 6, 18, Math.PI * 1.7)
-  for (const angle of [0.25, 0.75, 1.25, 1.75].map((t) => t * Math.PI)) {
-    place(gold, volute, {
-      position: [Math.cos(angle) * 0.255 * k, top + 0.265 * k, columnZ + Math.sin(angle) * 0.255 * k],
-      rotation: [0, -angle + Math.PI / 2, -0.4],
+  // Relieves ovalados repartidos en la mitad visible (la otra mitad queda contra la pared).
+  const oval = new SphereGeometry(0.05, 14, 10)
+  const ovalY = (bodyBottom + bodyTop) / 2 + 0.01
+  const ovalR = bodyR0 + (bodyR1 - bodyR0) * 0.4
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI * (0.08 + (i / 5) * 0.84)
+    place(gold, oval, {
+      position: [Math.cos(angle) * ovalR, ovalY, columnZ + Math.sin(angle) * ovalR],
+      rotation: [0, -angle + Math.PI / 2, 0],
+      scale: [0.75, 1.35, 0.55],
     })
   }
-  // Ábaco: mismo tamaño que la cornisa del pedestal, con lados apenas cóncavos y una flor al centro
-  // de cada cara.
-  const abacus = concaveSquare(0.5, 0.06, 0.055, 10)
-  abacus.scale(TOP_W, 1, TOP_D)
-  place(gold, abacus, { position: [0, top + capH, columnZ] })
-  const flower = new SphereGeometry(0.03 * k, 8, 6)
-  for (const [fx, fz] of [
-    [TOP_W / 2 - 0.04, 0],
-    [-TOP_W / 2 + 0.04, 0],
-    [0, TOP_D / 2 - 0.04],
-  ]) {
-    place(gold, flower, { position: [fx, top + capH + 0.03, columnZ + fz], scale: [1, 1, 0.7] })
+  // Molduras escalonadas y placa cuadrada (mármol), del ancho de la cornisa del pedestal.
+  const steps: [number, number, number][] = [
+    [bodyR1 * 2 + 0.02, 0.035, bodyTop + 0.0175],
+    [TOP_W - 0.06, 0.04, bodyTop + 0.055],
+  ]
+  for (const [w, h, y] of steps) {
+    place(marble, new BoxGeometry(w, h, w * 0.5 + columnZ), { position: [0, y, (w * 0.5 + columnZ) / 2] })
   }
+  const plateH = WALL.capitalTop - (bodyTop + 0.075)
+  place(marble, new BoxGeometry(TOP_W, plateH, TOP_D + 0.06), {
+    position: [0, bodyTop + 0.075 + plateH / 2, (TOP_D + 0.06) / 2],
+  })
 
   return { ivory: bake(marble), gold: bake(gold) }
 }
@@ -228,15 +202,43 @@ function crest(parent: Group, o: Ornaments, x: number, y: number, flip: boolean,
   place(parent, o.leaf, { position: [x - 0.32 * k, y, 0.005], scale: [2.2, 0.45, 0.4] })
 }
 
-// Moldura dorada de boiserie: marco fino, floreos en las esquinas y crestas arriba y abajo.
+// Moldura dorada de boiserie con detalle de marco tallado: moldura principal biselada, fila de
+// perlas, relieve de hojas alternadas, filete interior, floreos en las esquinas y cartela arriba.
 export function goldPanel(width: number, height: number, k = 1): BufferGeometry {
   const o = ornaments(k)
   const root = new Group()
-  const t = 0.045
-  place(root, ring(width, height, width - 2 * t, height - 2 * t, 0.02, 0.008), { position: [0, 0, 0] })
-  place(root, ring(width - 0.16, height - 0.16, width - 0.16 - 0.03, height - 0.16 - 0.03, 0.01, 0.004), {
+  const t = 0.07
+  place(root, ring(width, height, width - 2 * t, height - 2 * t, 0.025, 0.014), { position: [0, 0, 0] })
+  place(root, ring(width - 2 * t + 0.02, height - 2 * t + 0.02, width - 2 * t - 0.01, height - 2 * t - 0.01, 0.035, 0.005), {
     position: [0, 0, 0],
   })
+  place(root, ring(width - 0.24, height - 0.24, width - 0.24 - 0.025, height - 0.24 - 0.025, 0.012, 0.004), {
+    position: [0, 0, 0],
+  })
+
+  // Perlas sobre el canto interior y hojas sobre la moldura principal.
+  const bead = new SphereGeometry(0.011, 6, 4)
+  const leafRun = new SphereGeometry(0.026, 6, 4)
+  const perimeter = (w: number, h: number, spacing: number, fn: (x: number, y: number, along: number, i: number) => void) => {
+    let i = 0
+    const side = (x0: number, y0: number, x1: number, y1: number, rot: number) => {
+      const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / spacing))
+      for (let j = 0; j < n; j++) fn(x0 + ((x1 - x0) * j) / n, y0 + ((y1 - y0) * j) / n, rot, i++)
+    }
+    side(-w / 2, -h / 2, w / 2, -h / 2, 0)
+    side(w / 2, -h / 2, w / 2, h / 2, Math.PI / 2)
+    side(w / 2, h / 2, -w / 2, h / 2, 0)
+    side(-w / 2, h / 2, -w / 2, -h / 2, Math.PI / 2)
+  }
+  perimeter(width - 2 * t + 0.005, height - 2 * t + 0.005, 0.03, (x, y) => place(root, bead, { position: [x, y, 0.036] }))
+  perimeter(width - t, height - t, 0.065, (x, y, rot, i) =>
+    place(root, leafRun, {
+      position: [x, y, 0.03],
+      rotation: [0, 0, rot + (i % 2 === 0 ? 0.55 : -0.55)],
+      scale: [1.5, 0.6, 0.7],
+    }),
+  )
+
   const hw = width / 2 - t
   const hh = height / 2 - t
   for (const [sx, sy] of [
@@ -246,52 +248,52 @@ export function goldPanel(width: number, height: number, k = 1): BufferGeometry 
     [-1, -1],
   ] as const) {
     const angle = Math.atan2(sy, sx)
-    place(root, o.curl, { position: [sx * (hw - 0.05), sy * (hh - 0.05), 0.02], ...scroll(angle + Math.PI) })
+    // Floreo de esquina: voluta y dos hojas que siguen los lados.
+    place(root, o.curl, { position: [sx * (hw - 0.05), sy * (hh - 0.05), 0.03], ...scroll(angle + Math.PI) })
     place(root, o.leaf, {
-      position: [sx * (hw - 0.12), sy * (hh - 0.03), 0.015],
+      position: [sx * (hw - 0.13), sy * (hh - 0.03), 0.02],
       rotation: [0, 0, sx * sy * 0.25],
-      scale: [1.8, 0.4, 0.4],
+      scale: [2, 0.45, 0.45],
     })
     place(root, o.leaf, {
-      position: [sx * (hw - 0.03), sy * (hh - 0.12), 0.015],
+      position: [sx * (hw - 0.03), sy * (hh - 0.13), 0.02],
       rotation: [0, 0, Math.PI / 2 - sx * sy * 0.25],
-      scale: [1.8, 0.4, 0.4],
+      scale: [2, 0.45, 0.45],
     })
   }
-  crest(root, o, 0, height / 2 + 0.02, false, k)
+  // Cartela arriba (más grande y elaborada) y un remate chico abajo.
+  crest(root, o, 0, height / 2 + 0.03, false, k * 1.35)
+  crest(root, o, -0.42 * k, height / 2 + 0.01, false, k * 0.55)
+  crest(root, o, 0.42 * k, height / 2 + 0.01, false, k * 0.55)
   crest(root, o, 0, -height / 2 - 0.02, true, k * 0.7)
   return bake(root)
 }
 
-// Tramo de friso dorado de un período (se repite sin cortes): filetes arriba y abajo,
-// concha central y volutas en C encadenadas con hojas entre ellas.
-export function friezeSegment(): BufferGeometry {
-  const o = ornaments(1.15)
-  const root = new Group()
-  const { y } = WALL.frieze
-  const { period } = WALL
-  for (const dy of [-0.13, 0.13]) {
-    place(root, new BoxGeometry(period, 0.018, 0.016), { position: [0, y + dy, 0.008] })
+// Cornisa de yeso hasta el techo, como en las salas clásicas: filetes escalonados que avanzan,
+// una media caña cóncava y un último escalón contra el techo. Es un perfil (profundidad × altura)
+// extruido a lo largo de toda la pared, así las sombras corren continuas.
+function corniceGeometry(length: number): BufferGeometry {
+  const y0 = WALL.architrave - 0.04
+  const shape = new Shape()
+  shape.moveTo(0, y0)
+  const step = (d: number, y: number) => {
+    shape.lineTo(d, shape.currentPoint.y)
+    shape.lineTo(d, y)
   }
-  place(root, o.shell, { position: [0, y, 0.01], rotation: [Math.PI / 2, 0, 0], scale: [1.4, 0.65, 1] })
-  place(root, o.knob, { position: [0, y + 0.09, 0.03] })
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < 6; i++) {
-      const x = side * (0.27 + i * 0.32)
-      const up = i % 2 === 0
-      place(root, o.cScroll, {
-        position: [x, y + (up ? 0.025 : -0.025), 0.01],
-        ...scroll((up ? 0.15 : 1.15) * Math.PI, 1, side < 0),
-      })
-      place(root, o.curl, { position: [x + side * 0.1, y + (up ? -0.04 : 0.04), 0.012], ...scroll(up ? Math.PI : 0, 0.8, side < 0) })
-      place(root, o.leaf, {
-        position: [x + side * 0.17, y, 0.006],
-        rotation: [0, 0, up ? 0.5 : -0.5],
-        scale: [2.1, 0.5, 0.45],
-      })
-    }
-  }
-  return bake(root)
+  step(0.03, y0 + 0.05)
+  step(0.05, y0 + 0.1)
+  step(0.075, y0 + 0.13)
+  step(0.09, y0 + 0.17)
+  // Media caña: curva cóncava que sale hacia adelante y arriba.
+  shape.quadraticCurveTo(0.1, y0 + 0.36, 0.25, y0 + 0.38)
+  step(0.27, y0 + 0.43)
+  step(0.3, WALL_HEIGHT)
+  shape.lineTo(0, WALL_HEIGHT)
+  shape.closePath()
+  const geometry = new ExtrudeGeometry(shape, { depth: length, bevelEnabled: false, curveSegments: 12 })
+  geometry.rotateY(-Math.PI / 2)
+  geometry.translate(length / 2, 0, 0)
+  return geometry
 }
 
 // Zócalo, moldura del dado, arquitrabe y cornisa a lo largo de toda la pared.
@@ -302,10 +304,7 @@ export function trimGeometry(length: number): BufferGeometry {
   box(0.12, 0.04, 0.06)
   box(0.05, 0.05, WALL.dadoTop)
   box(0.03, 0.035, WALL.dadoTop - 0.035)
-  box(0.08, 0.08, WALL.shaft.top + 0.36)
-  box(0.04, 0.11, WALL.shaft.top + 0.42)
-  box(0.1, 0.16, 4.1)
-  box(0.05, 0.22, 4.175)
+  place(root, corniceGeometry(length), { position: [0, 0, 0] })
   return bake(root)
 }
 

@@ -3,6 +3,8 @@ import { ExtrudeGeometry, Mesh, MeshStandardMaterial, Shape, type BufferGeometry
 // Materiales y piezas compartidas por el marco, la pared y los pedestales.
 // Paleta: marfil cálido, beige envejecido y oro antiguo (menos saturado y menos brillante).
 export const gold = new MeshStandardMaterial({ color: '#c9a35e', metalness: 0.8, roughness: 0.38 })
+// Oro envejecido de las columnas: más mate y menos saturado, con reflejos suaves.
+export const agedGold = new MeshStandardMaterial({ color: '#b89652', metalness: 0.7, roughness: 0.48 })
 export const goldDeep = new MeshStandardMaterial({ color: '#9c7a3e', metalness: 0.75, roughness: 0.5 })
 export const ivory = new MeshStandardMaterial({ color: '#e8dcc6', roughness: 0.85 })
 export const ivoryTrim = new MeshStandardMaterial({ color: '#f0e7d6', roughness: 0.7 })

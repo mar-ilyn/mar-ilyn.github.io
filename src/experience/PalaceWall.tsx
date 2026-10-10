@@ -2,9 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Matrix4, MeshStandardMaterial, type BufferGeometry, type InstancedMesh, type Material } from 'three'
 import { createMarbleTexture } from './marbleTexture'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
-import { gold, ivoryTrim } from './ornament'
+import { agedGold, gold, ivoryTrim } from './ornament'
 import { PlasterSurface } from './PlasterSurface'
-import { columnGeometries, friezeSegment, goldPanel, lowerPanel, trimGeometry, WALL, wallLayout } from './wallGeometry'
+import { columnGeometries, goldPanel, lowerPanel, trimGeometry, WALL, wallLayout } from './wallGeometry'
 
 interface RowProps {
   geometry: BufferGeometry
@@ -58,12 +58,6 @@ export function PalaceWall() {
     [introBay],
   )
 
-  const friezeXs = useMemo(() => {
-    const xs: number[] = []
-    for (let x = ORNAMENT_RANGE.from; x <= ORNAMENT_RANGE.to; x += WALL.period) xs.push(x)
-    return xs
-  }, [])
-
   const geo = useMemo(() => {
     const column = columnGeometries()
     return {
@@ -71,7 +65,6 @@ export function PalaceWall() {
       columnGold: column.gold,
       wide: goldPanel(WALL.wide - 0.45, PANEL_H),
       intro: goldPanel(introBay - 0.95, PANEL_H, 1.15),
-      frieze: friezeSegment(),
       trim: trimGeometry(length),
       lowerWide: lowerPanel(WALL.wide - 0.45),
       lowerIntro: lowerPanel(introBay - 0.95),
@@ -84,7 +77,7 @@ export function PalaceWall() {
       <mesh geometry={geo.trim} material={ivoryTrim} />
 
       <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />
-      <Row geometry={geo.columnGold} material={gold} xs={layout.columns} name="wall-columns-gold" />
+      <Row geometry={geo.columnGold} material={agedGold} xs={layout.columns} name="wall-columns-gold" />
 
       <Row geometry={geo.wide} material={gold} xs={layout.wideBays} y={PANEL_Y} />
       <mesh geometry={geo.intro} material={gold} position={[INTRO_X, PANEL_Y, 0]} />
@@ -92,7 +85,6 @@ export function PalaceWall() {
       <Row geometry={geo.lowerWide} material={ivoryTrim} xs={layout.wideBays} y={WALL.lowerPanel.y} />
       <mesh geometry={geo.lowerIntro} material={ivoryTrim} position={[INTRO_X, WALL.lowerPanel.y, 0]} />
 
-      <Row geometry={geo.frieze} material={gold} xs={friezeXs} />
     </group>
   )
 }
