@@ -1,4 +1,4 @@
-import { ContactShadows, Stats } from '@react-three/drei'
+import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useCallback, useState } from 'react'
 import { projects } from '../data/projects'
@@ -7,6 +7,7 @@ import { useViewStore } from '../state/store'
 import { Atmosphere } from './Atmosphere'
 import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
+import { DevSceneExport } from './DevSceneExport'
 import { FOV, INTRO_POSE } from './layout'
 import { LightBeam } from './LightBeam'
 import { LoadingScreen } from './LoadingScreen'
@@ -67,8 +68,6 @@ export default function Experience({ view }: Props) {
         <Suspense fallback={null}>
           <Atmosphere quality={quality} />
           <Room quality={quality} />
-          {/* Sombras de contacto bajo los pedestales, calculadas una sola vez (la escena es estática). */}
-          <ContactShadows position={[0, 0.003, 0]} scale={[14, 5]} resolution={512} blur={2.4} opacity={0.5} far={1.6} frames={1} />
           {projects.map((p) => (
             <Pedestal
               key={p.slug}
@@ -91,6 +90,7 @@ export default function Experience({ view }: Props) {
         </Suspense>
         <CameraRig view={view} />
         {debug && <Stats className="debug-stats" />}
+        {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
       <LoadingScreen done={ready} />
       <Overlays view={view} />

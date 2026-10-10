@@ -30,6 +30,7 @@ npm run test:e2e     # Playwright contra el build (desktop + móvil)
 npm run og:image     # regenera public/og-image.png
 npm run assets       # descarga las fuentes CC0 y regenera las texturas KTX2
 npm run bake:env     # hornea el entorno de reflejos (después de npm run assets)
+npm run bake:lightmaps  # hornea la oclusión ambiental con Blender 4.5 LTS (ver abajo)
 ```
 
 La primera vez que se corre Playwright hay que instalar Chromium: `npx playwright install chromium`.
@@ -85,7 +86,7 @@ intro ──scroll / "Ver los proyectos"──▶ toGallery ──(la cámara ll
   - En las dos: viñeta y grano en CSS, sobre el canvas, sin costo de GPU.
   - `?calidad=alta|baja` fuerza el nivel; `?debug` muestra un medidor de fps y dibuja todos los cuadros para que la medición sea real.
 - **Carga en una sola etapa**: la escena espera texturas y entorno dentro de un único `Suspense`, compila todos los shaders con `compileAsync` (fuera del hilo principal) y recién ahí dibuja el primer cuadro. Mientras tanto se muestra una pantalla de carga con progreso. Si una textura o el entorno fallan, esa pieza usa un material liso (`AssetBoundary`).
-- **Sombras de contacto** bajo los pedestales, calculadas una sola vez: la escena es estática.
+- **Oclusión ambiental horneada en Blender** (`npm run bake:lightmaps`): piso, pared y techo llevan un lightmap con el contacto de molduras, columnas, cornisa, cuadro y pedestales. Se calcula una vez con Cycles y en tiempo real no cuesta nada (reemplazó a N8AO y a las sombras de contacto en tiempo real).
 - **Techo**: una emisión cálida imita la luz que rebota del piso y las paredes (nada lo ilumina de frente).
 
 ### Rendimiento de carga: qué pesaba y qué se cambió
@@ -98,14 +99,26 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 | Recompilar materiales al llegar cada textura | ~1 s | Un solo `Suspense` + `compileAsync` |
 | Postprocesado (EffectComposer) | ~1 s | Viñeta y grano en CSS |
 | Reflejo con espejo del piso (MeshReflectorMaterial) | ~0,8 s | Brillo con el entorno |
-| Oclusión ambiental en tiempo real (N8AO) | ~0,3 s | Se hornea en lightmaps (pendiente) |
+| Oclusión ambiental en tiempo real (N8AO) | ~0,3 s | Horneada en lightmaps con Blender |
+| Sombras de contacto en tiempo real | 4 programas y una pasada extra | Incluidas en el lightmap del piso |
 
 | Calidad alta, Intel UHD 620 | Antes | Después |
 |---|---|---|
-| Bloqueo por compilación de shaders | 3.073 ms | 75 ms |
-| Tareas largas en total | 4.494 ms | 761 ms |
-| Mayor congelamiento | 1.182 ms | 208 ms |
+| Programas de shaders | 31 | 5 |
+| Bloqueo por compilación de shaders | 3.073 ms | 38 ms |
+| Tareas largas en total | 4.494 ms | 413 ms |
+| Mayor congelamiento | 1.182 ms | 201 ms |
 | Fps en la galería | 41 | 60 |
+
+### Horneado de la oclusión ambiental
+
+`npm run bake:lightmaps` levanta la app en modo desarrollo y exporta la geometría estática real a GLB (`DevSceneExport`, que no llega al build de producción). Después corre Blender sin ventana con `scripts/blender/bake_lightmaps.py`, hornea la oclusión con Cycles sobre piso, pared y techo, y comprime los resultados a KTX2. Así el horneado siempre coincide con lo que se ve y no hay una segunda copia de la escena. Tarda unos 4 minutos en un i7 de 4 núcleos sin GPU compatible. `--solo-comprimir` reutiliza los PNG ya horneados.
+
+| Superficie | Horneado | En el sitio |
+|---|---|---|
+| Piso (80 × 40 m) | 2048 × 1024 | KTX2 ETC1S, 43 KB |
+| Pared (80 × 4,2 m) | 4096 × 256 | 2048 × 128, KTX2 ETC1S, 47 KB |
+| Techo | 1024 × 512 | 512 × 256, KTX2 ETC1S, 2 KB |
 
 ### Assets y licencias
 
@@ -124,9 +137,9 @@ Medido con `vite preview` registrando cada pedido hasta que la escena está list
 | Escenario | Comprimido | Sin comprimir |
 |---|---|---|
 | Vista lista (solo HTML) | 160 KB | 328 KB |
-| Galería, cualquier calidad | 1,48 MB | 2,72 MB |
+| Galería, cualquier calidad | 1,60 MB | 2,87 MB |
 
-Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~690 KB) y el entorno (~120 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
+Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~690 KB), el entorno (~120 KB) y los lightmaps (~92 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
 
 ## Contenido
 

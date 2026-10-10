@@ -1,3 +1,4 @@
+import { Ceiling } from './Ceiling'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { OrnateFrame } from './OrnateFrame'
 import { PalaceWall } from './PalaceWall'
@@ -15,11 +16,7 @@ export function Room({ quality }: Props) {
   return (
     <group>
       <ParquetFloor length={length} depth={depth} quality={quality} />
-      <mesh position={[0, height + 0.05, 0]}>
-        <boxGeometry args={[length, 0.1, depth]} />
-        {/* Nada ilumina el techo de frente: la emisión imita la luz que rebota del piso y las paredes. */}
-        <meshStandardMaterial color="#f4efe5" roughness={0.9} emissive="#e8dfd0" emissiveIntensity={0.55} />
-      </mesh>
+      <Ceiling width={length} depth={depth} height={height} />
       <PalaceWall />
 
       <group position={[INTRO_X, 0, wallZ]}>

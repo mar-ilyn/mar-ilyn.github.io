@@ -119,8 +119,8 @@ export function LightBeam({ position, target, reducedMotion }: Props) {
   const [x, , z] = position
   return (
     <group>
-      <mesh ref={beamMesh} geometry={beamGeometry} material={beam} position={[x, ROOM.height / 2, z]} renderOrder={2} />
-      <mesh ref={poolMesh} material={pool} position={[x, 0.004, z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+      <mesh ref={beamMesh} name="light-beam" geometry={beamGeometry} material={beam} position={[x, ROOM.height / 2, z]} renderOrder={2} />
+      <mesh ref={poolMesh} name="light-pool" material={pool} position={[x, 0.004, z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
         <planeGeometry args={[BOTTOM_RADIUS * 2.6, BOTTOM_RADIUS * 2.6]} />
       </mesh>
       <primitive object={spotTarget} />

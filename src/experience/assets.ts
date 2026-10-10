@@ -5,6 +5,13 @@ const BASE = `${import.meta.env.BASE_URL}assets/`
 
 export const BASIS_PATH = `${import.meta.env.BASE_URL}basis/`
 
+// Oclusión ambiental horneada en Blender (scripts/bake-lightmaps.mjs), una por superficie grande.
+export const LIGHTMAPS = {
+  floor: `${BASE}floor_ao.ktx2`,
+  wall: `${BASE}wall_ao.ktx2`,
+  ceiling: `${BASE}ceiling_ao.ktx2`,
+} as const
+
 export const TEXTURES = {
   parquet: {
     color: `${BASE}parquet_color.ktx2`,
