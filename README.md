@@ -28,7 +28,8 @@ npm test             # Vitest (unitarios)
 npm run build        # build de producción en dist/
 npm run test:e2e     # Playwright contra el build (desktop + móvil)
 npm run og:image     # regenera public/og-image.png
-npm run assets       # descarga las fuentes CC0 y regenera texturas KTX2 y HDRI
+npm run assets       # descarga las fuentes CC0 y regenera las texturas KTX2
+npm run bake:env     # hornea el entorno de reflejos (después de npm run assets)
 ```
 
 La primera vez que se corre Playwright hay que instalar Chromium: `npx playwright install chromium`.
@@ -75,15 +76,36 @@ intro ──scroll / "Ver los proyectos"──▶ toGallery ──(la cámara ll
 
 ## Realismo
 
-- **Materiales PBR con texturas CC0**: parquet en espiga (color, relieve, AO y rugosidad) y relieve de yeso en las paredes (el color sigue siendo marfil). El dorado usa metalness alto y rugosidad baja, y refleja un HDRI de un salón de baile.
+- **Materiales PBR con texturas CC0**: parquet en espiga (color, relieve, AO y rugosidad) y relieve de yeso en las paredes (el color sigue siendo marfil). El dorado usa metalness alto y rugosidad baja y refleja el HDRI de un salón de baile.
 - **Sin repetición visible en el piso**: el shader vuelve a muestrear el color a una escala ~14 veces mayor y lo usa como variación de tono.
+- **Entorno de reflejos horneado** (`npm run bake:env`): el prefiltrado PMREM del HDRI se calcula en el build y se sirve como PNG RGBE de 122 KB, que three.js usa directo como textura CubeUV. En el navegador no se compila ni se ejecuta el shader de prefiltrado.
 - **Calidad adaptativa** (`quality.ts`, con tests):
-  - *Alta* (escritorio con 6+ núcleos y 6+ GB): HDRI, reflejo suave del piso, oclusión ambiental (N8AO), bloom muy leve en los dorados, grano y viñeta. Resolución hasta 2×.
-  - *Baja* (celulares, pantallas chicas o equipos modestos): sin postprocesado (la viñeta es CSS), sin HDRI (entorno generado en la escena) y resolución hasta 1,5×. El chunk de efectos ni se descarga.
+  - *Alta* (escritorio con 6+ núcleos y 6+ GB): piso con brillo de encerado (menos rugoso, refleja el entorno) y resolución hasta 2×.
+  - *Baja* (celulares, pantallas chicas o equipos modestos): piso mate y resolución hasta 1,5×.
+  - En las dos: viñeta y grano en CSS, sobre el canvas, sin costo de GPU.
   - `?calidad=alta|baja` fuerza el nivel; `?debug` muestra un medidor de fps y dibuja todos los cuadros para que la medición sea real.
-- **Carga progresiva**: la escena aparece con materiales lisos y se mejora cuando llegan las texturas (`Suspense` por pieza). El transcodificador de Basis se sirve desde el propio sitio.
+- **Carga en una sola etapa**: la escena espera texturas y entorno dentro de un único `Suspense`, compila todos los shaders con `compileAsync` (fuera del hilo principal) y recién ahí dibuja el primer cuadro. Mientras tanto se muestra una pantalla de carga con progreso. Si una textura o el entorno fallan, esa pieza usa un material liso (`AssetBoundary`).
 - **Sombras de contacto** bajo los pedestales, calculadas una sola vez: la escena es estática.
 - **Techo**: una emisión cálida imita la luz que rebota del piso y las paredes (nada lo ilumina de frente).
+
+### Rendimiento de carga: qué pesaba y qué se cambió
+
+Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 620** (integrada, de rango comparable a un celular de gama media), registrando tareas largas y perfilando la CPU. La red no era el problema: todo llegaba en menos de 1 s. El cuello de botella era **compilar shaders de forma sincrónica**: en Windows, cada shader de WebGL se traduce a Direct3D y en una GPU integrada eso tarda 150–550 ms por programa.
+
+| Causa | Costo medido | Cambio |
+|---|---|---|
+| Prefiltrado del entorno (PMREM), dos veces | ~1,1 s | Horneado en el build |
+| Recompilar materiales al llegar cada textura | ~1 s | Un solo `Suspense` + `compileAsync` |
+| Postprocesado (EffectComposer) | ~1 s | Viñeta y grano en CSS |
+| Reflejo con espejo del piso (MeshReflectorMaterial) | ~0,8 s | Brillo con el entorno |
+| Oclusión ambiental en tiempo real (N8AO) | ~0,3 s | Se hornea en lightmaps (pendiente) |
+
+| Calidad alta, Intel UHD 620 | Antes | Después |
+|---|---|---|
+| Bloqueo por compilación de shaders | 3.073 ms | 75 ms |
+| Tareas largas en total | 4.494 ms | 761 ms |
+| Mayor congelamiento | 1.182 ms | 208 ms |
+| Fps en la galería | 41 | 60 |
 
 ### Assets y licencias
 
@@ -93,7 +115,7 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 |---|---|---|---|
 | Parquet en espiga (color, normal, AO+rugosidad) | [herringbone_parquet](https://polyhaven.com/a/herringbone_parquet) | 3 JPG 1k, 1,75 MB | KTX2 ETC1S, 374 KB |
 | Yeso (normal, AO+rugosidad) | [painted_plaster_wall](https://polyhaven.com/a/painted_plaster_wall) | 2 JPG 1k, 1,41 MB | KTX2 ETC1S, 311 KB |
-| HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | HDR 512×256, 512 KB (317 KB con gzip) |
+| HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | PMREM horneado, PNG RGBE 336×256, 119 KB |
 
 ### Peso de la carga inicial
 
@@ -101,11 +123,10 @@ Medido con `vite preview` registrando cada pedido hasta que la escena está list
 
 | Escenario | Comprimido | Sin comprimir |
 |---|---|---|
-| Vista lista (solo HTML) | 159 KB | 327 KB |
-| Celular (calidad baja) | 1,40 MB | 2,68 MB |
-| Escritorio (calidad alta) | 1,82 MB | 3,42 MB |
+| Vista lista (solo HTML) | 160 KB | 328 KB |
+| Galería, cualquier calidad | 1,48 MB | 2,72 MB |
 
-Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB) y las texturas (~690 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
+Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~690 KB) y el entorno (~120 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
 
 ## Contenido
 
