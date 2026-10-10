@@ -1,5 +1,8 @@
+import { useKTX2 } from '@react-three/drei'
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Matrix4, type BufferGeometry, type InstancedMesh, type Material } from 'three'
+import { Matrix4, MeshStandardMaterial, Vector2, type BufferGeometry, type InstancedMesh, type Material } from 'three'
+import { AssetBoundary } from './AssetBoundary'
+import { BASIS_PATH, TEXTURES, tile } from './assets'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { gold, ivoryTrim } from './ornament'
 import { PlasterSurface } from './PlasterSurface'
@@ -29,6 +32,34 @@ function Row({ geometry, material, xs, y = 0 }: RowProps) {
 // Las cámaras recorren x ∈ [-10, 4] y la niebla cierra a ~30 m: más allá la pared sigue lisa
 // (con zócalo y cornisa continuos), así nunca se ve un final pero no se dibujan ornamentos invisibles.
 const ORNAMENT_RANGE = { from: -30, to: 22 } as const
+
+// Mármol blanco apenas veteado para los fustes y zócalos de las columnas.
+function MarbleColumns({ geometry, xs }: { geometry: BufferGeometry; xs: readonly number[] }) {
+  const [color, normal, arm] = useKTX2([TEXTURES.marble.color, TEXTURES.marble.normal, TEXTURES.marble.arm], BASIS_PATH)
+  const material = useMemo(() => {
+    for (const t of [color, normal, arm]) tile(t, 1, 1, t === color)
+    const material = new MeshStandardMaterial({
+      color: '#f6f2ea',
+      map: color,
+      normalMap: normal,
+      normalScale: new Vector2(0.4, 0.4),
+      roughnessMap: arm,
+      roughness: 0.55,
+      envMapIntensity: 0.9,
+    })
+    // La textura es un mármol crema: se desatura y aclara para un blanco apenas veteado.
+    material.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+        float marbleLum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+        diffuseColor.rgb = mix(vec3(marbleLum), diffuseColor.rgb, 0.18) * 1.12;`,
+      )
+    }
+    return material
+  }, [color, normal, arm])
+  return <Row geometry={geometry} material={material} xs={xs} />
+}
 
 const PANEL_Y = (WALL.panel.bottom + WALL.panel.top) / 2
 const PANEL_H = WALL.panel.top - WALL.panel.bottom
@@ -73,7 +104,9 @@ export function PalaceWall() {
       <PlasterSurface width={length} height={height} position={[0, height / 2, 0]} />
       <mesh geometry={geo.trim} material={ivoryTrim} />
 
-      <Row geometry={geo.columnIvory} material={ivoryTrim} xs={layout.columns} />
+      <AssetBoundary fallback={<Row geometry={geo.columnIvory} material={ivoryTrim} xs={layout.columns} />}>
+        <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />
+      </AssetBoundary>
       <Row geometry={geo.columnGold} material={gold} xs={layout.columns} />
 
       <Row geometry={geo.wide} material={gold} xs={layout.wideBays} y={PANEL_Y} />

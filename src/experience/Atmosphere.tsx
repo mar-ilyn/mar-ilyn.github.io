@@ -4,6 +4,7 @@ import type { Scene } from 'three'
 import { AssetBoundary } from './AssetBoundary'
 import { ENVIRONMENT } from './assets'
 import { PrebakedEnvironmentLoader } from './prebakedEnvironment'
+import { SUN_COLOR, SUN_DIRECTION } from './lighting'
 import type { Quality } from './quality'
 
 // Color de la niebla y del fondo: el marfil de la pared, para que la galería se funda a lo lejos
@@ -48,12 +49,17 @@ export function Atmosphere({ quality }: Props) {
       <color attach="background" args={[AIR]} />
       <fog attach="fog" args={[AIR, 12, 34]} />
       {/* Luz que rebota del piso: cálida pero clara, para que el techo no se tiña de marrón. */}
-      <hemisphereLight args={['#fff6e8', '#d9c3a5', 0.6]} />
-      <directionalLight position={[4, 8, 6]} intensity={1.1} color="#fff1dc" />
+      <hemisphereLight args={['#fff6e8', '#d9c3a5', 0.38]} />
+      {/* Sol de tarde desde la izquierda, como el horneado: luz lateral cálida y suave. */}
+      <directionalLight
+        position={[-SUN_DIRECTION[0] * 12, -SUN_DIRECTION[1] * 12, -SUN_DIRECTION[2] * 12]}
+        intensity={0.7}
+        color={SUN_COLOR}
+      />
       {/* Reflejos del HDRI de un salón de baile (Poly Haven, CC0), prefiltrados en el build.
           Si no cargan, se usa el entorno generado en la escena. */}
       <AssetBoundary fallback={<StudioEnvironment />}>
-        <BallroomEnvironment intensity={quality === 'high' ? 0.85 : 0.75} />
+        <BallroomEnvironment intensity={quality === 'high' ? 0.7 : 0.62} />
       </AssetBoundary>
     </>
   )

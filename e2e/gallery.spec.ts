@@ -17,7 +17,7 @@ test.describe('con movimiento', () => {
   test('recorrido completo: intro → galería → proyecto → placa y vuelta', { tag: '@motion' }, async ({ page, isMobile }) => {
     await page.goto('/')
     await expect(page.locator('canvas')).toBeVisible()
-    const verProyectos = page.getByRole('button', { name: 'Ver los proyectos' })
+    const verProyectos = page.getByRole('button', { name: 'Explorar proyectos' })
     await expect(verProyectos).toBeVisible()
 
     if (isMobile) {
@@ -85,7 +85,7 @@ test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async (
   await expect(page).toHaveURL(/\/lista$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByRole('button', { name: 'Ver los proyectos' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible()
 })
 
 test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
@@ -104,7 +104,7 @@ test('subir desde la galería vuelve a la intro', async ({ page }) => {
   await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true')
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('button', { name: 'Ver los proyectos' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible()
 })
 
 test('la calidad alta carga texturas, entorno y efectos sin errores', async ({ page, isMobile }) => {

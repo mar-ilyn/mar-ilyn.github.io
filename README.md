@@ -110,6 +110,11 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 | Mayor congelamiento | 1.182 ms | 201 ms |
 | Fps en la galería | 41 | 60 |
 
+### Luz de la intro
+
+- **Sol de tarde horneado**: `bake_lightmaps.py` agrega, solo para el horneado, una pared con tres ventanas fuera de cuadro a la izquierda y un sol bajo y cálido. Cycles hornea la luz directa sobre la pared y el piso (`*_light.ktx2`, ~18 KB): los haces de las ventanas cruzan el panel de la intro y el piso. Una luz rectangular sobre el cuadro deja un halo suave sobre el retrato. En tiempo real hay un sol débil con la misma dirección, para las piezas sin lightmap.
+- **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
+
 ### Horneado de la oclusión ambiental
 
 `npm run bake:lightmaps` levanta la app en modo desarrollo y exporta la geometría estática real a GLB (`DevSceneExport`, que no llega al build de producción). Después corre Blender sin ventana con `scripts/blender/bake_lightmaps.py`, hornea la oclusión con Cycles sobre piso, pared y techo, y comprime los resultados a KTX2. Así el horneado siempre coincide con lo que se ve y no hay una segunda copia de la escena. Tarda unos 4 minutos en un i7 de 4 núcleos sin GPU compatible. `--solo-comprimir` reutiliza los PNG ya horneados.
@@ -128,6 +133,8 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 |---|---|---|---|
 | Parquet en espiga (color, normal, AO+rugosidad) | [herringbone_parquet](https://polyhaven.com/a/herringbone_parquet) | 3 JPG 1k, 1,75 MB | KTX2 ETC1S, 374 KB |
 | Yeso (normal, AO+rugosidad) | [painted_plaster_wall](https://polyhaven.com/a/painted_plaster_wall) | 2 JPG 1k, 1,41 MB | KTX2 ETC1S, 311 KB |
+| Mármol de las columnas (color, normal, AO+rugosidad) | [marble_01](https://polyhaven.com/a/marble_01), de Rob Tuytel | 3 JPG 1k, 0,47 MB | KTX2 ETC1S, 258 KB |
+| Marco tallado del retrato (sin la pintura original) | [fancy_picture_frame_02](https://polyhaven.com/a/fancy_picture_frame_02), de Rob Tuytel y Rico Cilliers | glTF 1k, 1,73 MB, 35 k triángulos | GLB meshopt simplificado al 35 % + texturas KTX2 512 px, 288 KB |
 | HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | PMREM horneado, PNG RGBE 336×256, 119 KB |
 
 ### Peso de la carga inicial
@@ -137,9 +144,9 @@ Medido con `vite preview` registrando cada pedido hasta que la escena está list
 | Escenario | Comprimido | Sin comprimir |
 |---|---|---|
 | Vista lista (solo HTML) | 160 KB | 328 KB |
-| Galería, cualquier calidad | 1,60 MB | 2,87 MB |
+| Galería, cualquier calidad | 2,19 MB | 3,57 MB |
 
-Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~690 KB), el entorno (~120 KB) y los lightmaps (~92 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
+Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~950 KB), el marco tallado (~270 KB), el entorno (~120 KB) y los lightmaps (~110 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
 
 ## Contenido
 

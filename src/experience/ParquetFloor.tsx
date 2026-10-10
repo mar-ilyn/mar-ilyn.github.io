@@ -3,7 +3,9 @@ import { useThree } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { Vector2, type MeshStandardMaterial } from 'three'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, LIGHTMAPS, TEXTURES, tile } from './assets'
+import { BASIS_PATH, LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
+import bakedLighting from './bakedLighting.json'
+import { SUN_GAIN } from './lighting'
 import type { Quality } from './quality'
 
 interface Props {
@@ -32,8 +34,8 @@ function addMacroVariation(material: MeshStandardMaterial) {
 
 function TexturedFloor({ length, depth, quality }: Props) {
   const anisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy())
-  const [color, normal, arm, ao] = useKTX2(
-    [TEXTURES.parquet.color, TEXTURES.parquet.normal, TEXTURES.parquet.arm, LIGHTMAPS.floor],
+  const [color, normal, arm, ao, light] = useKTX2(
+    [TEXTURES.parquet.color, TEXTURES.parquet.normal, TEXTURES.parquet.arm, LIGHTMAPS.floor, LIGHT_MAPS.floor],
     BASIS_PATH,
   )
   const maps = useMemo(() => {
@@ -43,8 +45,8 @@ function TexturedFloor({ length, depth, quality }: Props) {
       tile(t, rx, ry, t === color)
       t.anisotropy = Math.min(4, anisotropy)
     }
-    return { color, normal, arm, ao }
-  }, [color, normal, arm, ao, length, depth, anisotropy])
+    return { color, normal, arm, ao, light }
+  }, [color, normal, arm, ao, light, length, depth, anisotropy])
 
   const normalScale = useMemo(() => new Vector2(0.6, 0.6), [])
 
@@ -62,6 +64,8 @@ function TexturedFloor({ length, depth, quality }: Props) {
         roughness={quality === 'high' ? 0.62 : 1}
         // Oclusión horneada (pared, pedestales) en lugar de la micro-oclusión de la textura.
         aoMap={maps.ao}
+        lightMap={maps.light}
+        lightMapIntensity={bakedLighting.lightScale.floor * SUN_GAIN}
         envMapIntensity={quality === 'high' ? 1.25 : 1}
         onUpdate={addMacroVariation}
       />

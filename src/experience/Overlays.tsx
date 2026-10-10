@@ -29,19 +29,11 @@ function useFocusOnMount<T extends HTMLElement>(key: string) {
   return ref
 }
 
+// El texto y los botones de la intro viven en IntroText (anclados a la pared); acá solo la pista.
 function IntroOverlay() {
-  const send = useViewStore((s) => s.send)
   return (
-    <div className="overlay overlay--intro">
+    <div className="overlay overlay--intro-hint" aria-hidden="true">
       <p className="overlay__hint">Deslizá hacia abajo para recorrer la galería</p>
-      <div className="overlay__actions">
-        <button type="button" className="button button--primary" onClick={() => send({ type: 'STEP_DOWN' })}>
-          Ver los proyectos
-        </button>
-        <button type="button" className="button button--ghost" onClick={() => send({ type: 'SKIP_INTRO' })}>
-          Saltar intro
-        </button>
-      </div>
     </div>
   )
 }

@@ -1,10 +1,11 @@
 import { ExtrudeGeometry, Mesh, MeshStandardMaterial, Shape, type BufferGeometry, type Object3D } from 'three'
 
 // Materiales y piezas compartidas por el marco, la pared y los pedestales.
-export const gold = new MeshStandardMaterial({ color: '#e0b860', metalness: 0.75, roughness: 0.3 })
-export const goldDeep = new MeshStandardMaterial({ color: '#b48a3a', metalness: 0.7, roughness: 0.42 })
-export const ivory = new MeshStandardMaterial({ color: '#efe8da', roughness: 0.85 })
-export const ivoryTrim = new MeshStandardMaterial({ color: '#f6f1e6', roughness: 0.7 })
+// Paleta: marfil cálido, beige envejecido y oro antiguo (menos saturado y menos brillante).
+export const gold = new MeshStandardMaterial({ color: '#c9a35e', metalness: 0.8, roughness: 0.38 })
+export const goldDeep = new MeshStandardMaterial({ color: '#9c7a3e', metalness: 0.75, roughness: 0.5 })
+export const ivory = new MeshStandardMaterial({ color: '#e8dcc6', roughness: 0.85 })
+export const ivoryTrim = new MeshStandardMaterial({ color: '#f0e7d6', roughness: 0.7 })
 
 // Rectángulo con hueco extruido: la base de todas las molduras.
 export function ring(outerW: number, outerH: number, innerW: number, innerH: number, depth: number, bevel: number) {

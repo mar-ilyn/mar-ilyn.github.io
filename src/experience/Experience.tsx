@@ -1,6 +1,6 @@
 import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useCallback, useState } from 'react'
+import { Suspense, useCallback, useRef, useState } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
@@ -8,6 +8,7 @@ import { Atmosphere } from './Atmosphere'
 import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
 import { DevSceneExport } from './DevSceneExport'
+import { IntroAnchor, IntroText } from './IntroText'
 import { FOV, INTRO_POSE } from './layout'
 import { LightBeam } from './LightBeam'
 import { LoadingScreen } from './LoadingScreen'
@@ -43,6 +44,7 @@ export default function Experience({ view }: Props) {
   const [compiled, setCompiled] = useState(false)
   const onCompiled = useCallback(() => setCompiled(true), [])
   const ready = cameraPlaced && compiled
+  const introRef = useRef<HTMLDivElement>(null)
   useStepInput()
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
@@ -89,9 +91,11 @@ export default function Experience({ view }: Props) {
           <Precompile onDone={onCompiled} />
         </Suspense>
         <CameraRig view={view} />
+        <IntroAnchor target={introRef} />
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
+      <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

@@ -563,14 +563,109 @@ html.is-gallery body {
   }
 }
 
-.overlay--intro {
-  left: var(--gutter);
-  transform: none;
-  width: min(460px, calc(100% - 32px));
-  text-align: left;
+.overlay--intro-hint .overlay__hint {
+  font-size: 0.85rem;
+  opacity: 0.85;
 }
-.overlay--intro .overlay__actions {
-  justify-content: flex-start;
+
+/* Texto de la intro anclado a la pared: --intro-x/--intro-y es la esquina superior izquierda del
+   panel en pantalla y --ppm cuántos píxeles mide un metro (lo calcula IntroAnchor). */
+.intro-text {
+  --ppm: 120;
+  position: absolute;
+  z-index: 2;
+  left: var(--intro-x, 10vw);
+  top: var(--intro-y, 30vh);
+  width: calc(var(--ppm) * 2.75px);
+  color: #2f2218;
+  transition: opacity 300ms ease;
+}
+.intro-text--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.intro-text__role {
+  margin: 0;
+  font-size: clamp(0.62rem, calc(var(--ppm) * 0.075px), 0.95rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #5b4532;
+}
+.intro-text__ornament {
+  display: block;
+  width: calc(var(--ppm) * 1.05px);
+  height: auto;
+  margin: calc(var(--ppm) * 0.08px) 0 calc(var(--ppm) * 0.06px);
+  color: #9c7a3e;
+}
+.intro-text__name {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, calc(var(--ppm) * 0.37px), 5.5rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #2a1d14;
+}
+.intro-text__tagline {
+  margin: calc(var(--ppm) * 0.1px) 0 0;
+  max-width: 34ch;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1rem, calc(var(--ppm) * 0.12px), 1.5rem);
+  line-height: 1.3;
+  color: #3d2c20;
+}
+.intro-text__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.1rem;
+  margin-top: calc(var(--ppm) * 0.15px);
+}
+.intro-text__cta {
+  cursor: pointer;
+  padding: 0.75em 1.5em;
+  border: 1px solid #9c7a3e;
+  background: #3a2418;
+  color: #f4ead6;
+  font: inherit;
+  font-size: clamp(0.7rem, calc(var(--ppm) * 0.075px), 0.9rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 3px #3a2418, inset 0 0 0 4px rgb(201 163 94 / 0.55);
+  transition: background-color 160ms ease;
+}
+.intro-text__cta:hover {
+  background: #4b3021;
+}
+.intro-text__skip {
+  cursor: pointer;
+  padding: 0.3em 0;
+  border: 0;
+  background: none;
+  color: #4a3626;
+  font: inherit;
+  font-size: clamp(0.75rem, calc(var(--ppm) * 0.07px), 0.9rem);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.intro-text__stack {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  margin: calc(var(--ppm) * 0.12px) 0 0;
+  padding: 0;
+  font-family: var(--serif);
+  font-size: clamp(0.8rem, calc(var(--ppm) * 0.085px), 1.05rem);
+  color: #3d2c20;
+}
+.intro-text__stack li + li::before {
+  content: '•';
+  margin-right: 0.9rem;
+  color: #9c7a3e;
 }
 
 /* Viñeta y grano sobre el canvas, en CSS: el postprocesado en GPU (EffectComposer) obligaba a
@@ -635,4 +730,52 @@ html.is-gallery body {
   background: var(--wood);
   transform-origin: left;
   transition: transform 200ms ease;
+}
+
+/* En pantallas verticales el panel de la pared es chico: el texto de la intro pasa a una tarjeta
+   abajo (como el panel de proyecto), con tamaños fijos, y deja la pared y el cuadro a la vista. */
+@media (max-aspect-ratio: 1/1) {
+  .intro-text {
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: max(64px, env(safe-area-inset-bottom));
+    width: auto;
+    padding: 1.1rem 1.1rem 1rem;
+    background: color-mix(in srgb, #f6efe2 90%, transparent);
+    border: 1px solid rgb(156 122 62 / 0.45);
+    box-shadow: 0 18px 40px -24px rgb(42 30 20 / 0.55);
+  }
+  .intro-text__role {
+    font-size: 0.68rem;
+  }
+  .intro-text__ornament {
+    width: 7rem;
+    margin: 0.45rem 0 0.35rem;
+  }
+  .intro-text__name {
+    font-size: 2.3rem;
+  }
+  .intro-text__tagline {
+    margin-top: 0.5rem;
+    font-size: 1.02rem;
+  }
+  .intro-text__actions {
+    margin-top: 0.9rem;
+  }
+  .intro-text__cta,
+  .intro-text__skip {
+    font-size: 0.78rem;
+  }
+  .intro-text__stack {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+  .overlay--intro-hint {
+    bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .overlay--intro-hint .overlay__hint {
+    margin: 0;
+    font-size: 0.78rem;
+  }
 }

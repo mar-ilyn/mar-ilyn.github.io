@@ -19,7 +19,14 @@ const WORK = join(ROOT, 'assets-src', 'lightmaps')
 const OUT = join(ROOT, 'public', 'assets')
 const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blender 4.5/blender.exe'
 // Resolución final en el sitio. Se hornea más grande y se reduce al comprimir (suaviza el ruido).
-const SURFACES = { floor: [2048, 1024], wall: [2048, 128], ceiling: [512, 256] }
+// _ao: oclusión ambiental; _light: luz directa horneada (sol por ventanas y luz del retrato).
+const MAPS = {
+  floor_ao: [2048, 1024],
+  wall_ao: [2048, 128],
+  ceiling_ao: [512, 256],
+  floor_light: [1024, 512],
+  wall_light: [2048, 128],
+}
 const ENCODE_ONLY = process.argv.includes('--solo-comprimir')
 
 if (!ENCODE_ONLY && !existsSync(BLENDER)) {
@@ -67,8 +74,8 @@ const imageDecoder = async (buffer) => {
   const { data, info } = await sharp(buffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   return { data: new Uint8Array(data), width: info.width, height: info.height }
 }
-for (const [name, [width, height]] of Object.entries(SURFACES)) {
-  const png = await sharp(await readFile(join(WORK, `${name}_ao.png`))).resize(width, height).png().toBuffer()
+for (const [name, [width, height]] of Object.entries(MAPS)) {
+  const png = await sharp(await readFile(join(WORK, `${name}.png`))).resize(width, height).png().toBuffer()
   const ktx2 = await encodeToKTX2(new Uint8Array(png), {
     isUASTC: false,
     qualityLevel: 255,
@@ -77,6 +84,11 @@ for (const [name, [width, height]] of Object.entries(SURFACES)) {
     isPerceptual: false,
     imageDecoder,
   })
-  await writeFile(join(OUT, `${name}_ao.ktx2`), ktx2)
-  console.log(`${name}_ao.ktx2: ${(ktx2.length / 1024).toFixed(0)} KB`)
+  await writeFile(join(OUT, `${name}.ktx2`), ktx2)
+  console.log(`${name}.ktx2: ${(ktx2.length / 1024).toFixed(0)} KB`)
 }
+
+// Escala real de los mapas de luz (se guardaron normalizados a 0..1). La app la importa.
+const { lightScale } = JSON.parse(await readFile(join(WORK, 'lightmaps.json'), 'utf8'))
+await writeFile(join(ROOT, 'src/experience/bakedLighting.json'), `${JSON.stringify({ lightScale }, null, 2)}\n`)
+console.log('escalas de luz:', lightScale)
