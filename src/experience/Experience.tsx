@@ -27,7 +27,11 @@ interface Props {
 
 function initialSettings() {
   const overrides = readUrlOverrides(window.location.search)
-  return { debug: overrides.debug, quality: overrides.quality ?? detectQuality(readDeviceHints()) }
+  return {
+    debug: overrides.debug,
+    render: overrides.render,
+    quality: overrides.render ? 'high' : (overrides.quality ?? detectQuality(readDeviceHints())),
+  }
 }
 
 export default function Experience({ view }: Props) {
@@ -39,7 +43,7 @@ export default function Experience({ view }: Props) {
   // Sin hover (pantallas táctiles): todos los pedestales con un haz suave constante.
   const noHover = useMediaQuery('(hover: none)')
   const reducedMotion = usePrefersReducedMotion()
-  const [{ quality, debug }] = useState(initialSettings)
+  const [{ quality, debug, render }] = useState(initialSettings)
   // Hasta compilar los shaders el canvas no dibuja: así el primer cuadro no congela la página.
   const [compiled, setCompiled] = useState(false)
   const onCompiled = useCallback(() => setCompiled(true), [])
@@ -62,14 +66,19 @@ export default function Experience({ view }: Props) {
         dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
         // ?debug dibuja todos los cuadros para que el medidor de fps sea representativo.
         frameloop={frameloop}
-        camera={{ fov: FOV, near: 0.1, far: 60, position: [...INTRO_POSE.position] }}
+        camera={{
+          fov: FOV,
+          near: 0.1,
+          far: 60,
+          position: [...INTRO_POSE.position],
+        }}
         aria-hidden="true"
       >
         {/* Un solo Suspense: la escena aparece completa (texturas y entorno incluidos) y cada
             shader se compila una vez. La carga progresiva pieza por pieza recompilaba materiales. */}
         <Suspense fallback={null}>
           <Atmosphere quality={quality} />
-          <Room quality={quality} />
+          <Room quality={quality} bare={render === 'fondo'} />
           {projects.map((p) => (
             <Pedestal
               key={p.slug}
@@ -80,14 +89,15 @@ export default function Experience({ view }: Props) {
               onHover={setHighlighted}
             />
           ))}
-          {projects.map((p) => (
-            <LightBeam
-              key={p.slug}
-              position={p.pedestal}
-              target={beamLevel(view, p.slug, highlighted, noHover)}
-              reducedMotion={reducedMotion}
-            />
-          ))}
+          {!render &&
+            projects.map((p) => (
+              <LightBeam
+                key={p.slug}
+                position={p.pedestal}
+                target={beamLevel(view, p.slug, highlighted, noHover)}
+                reducedMotion={reducedMotion}
+              />
+            ))}
           <Precompile onDone={onCompiled} />
         </Suspense>
         <CameraRig view={view} />

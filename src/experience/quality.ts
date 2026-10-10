@@ -26,12 +26,19 @@ export function readDeviceHints(): DeviceHints {
   }
 }
 
+// Modos de render para scripts/render-images.mjs (imágenes de la vista en lista):
+//   fondo: la sala de la intro sin cuadro, lámpara ni texto.
+//   marco: solo el marco tallado y la lámpara, con fondo transparente.
+export type RenderMode = 'fondo' | 'marco'
+
 // ?debug muestra el medidor de cuadros por segundo; ?calidad=alta|baja fuerza el nivel.
-export function readUrlOverrides(search: string): { debug: boolean; quality?: Quality } {
+export function readUrlOverrides(search: string): { debug: boolean; quality?: Quality; render?: RenderMode } {
   const params = new URLSearchParams(search)
   const forced = params.get('calidad')
+  const render = params.get('render')
   return {
     debug: params.has('debug'),
     quality: forced === 'alta' ? 'high' : forced === 'baja' ? 'low' : undefined,
+    render: render === 'fondo' || render === 'marco' ? render : undefined,
   }
 }

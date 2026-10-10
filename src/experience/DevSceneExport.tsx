@@ -13,6 +13,14 @@ declare global {
   }
 }
 
+// Piezas que el horneado necesita reconocer por nombre (el cuadro de la intro y su lámpara).
+const TAGGED = new Set(['portrait-frame', 'picture-lamp'])
+
+function tagOf(node: Object3D): string {
+  for (let n: Object3D | null = node; n; n = n.parent) if (TAGGED.has(n.name)) return n.name
+  return node.name
+}
+
 function staticCopy(scene: Object3D): Group {
   scene.updateMatrixWorld(true)
   const out = new Group()
@@ -23,12 +31,12 @@ function staticCopy(scene: Object3D): Group {
       const copy = new InstancedMesh(node.geometry, plain, node.count)
       copy.instanceMatrix.copy(node.instanceMatrix)
       copy.applyMatrix4(node.matrixWorld)
-      copy.name = node.name
+      copy.name = tagOf(node)
       out.add(copy)
     } else if (node instanceof Mesh) {
       const copy = new Mesh(node.geometry, plain)
       copy.applyMatrix4(node.matrixWorld)
-      copy.name = node.name
+      copy.name = tagOf(node)
       out.add(copy)
     }
   })

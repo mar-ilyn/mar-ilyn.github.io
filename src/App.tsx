@@ -8,6 +8,9 @@ import type { Route } from './state/routes'
 import { useViewStore } from './state/store'
 
 const Experience = lazy(() => import('./experience/Experience'))
+const FrameStudio = lazy(() => import('./experience/FrameStudio'))
+// ?render=marco: solo el marco tallado, para scripts/render-images.mjs.
+const RENDER_FRAME = new URLSearchParams(window.location.search).get('render') === 'marco'
 
 const BASE_TITLE = `${profile.name} · ${profile.role}`
 
@@ -39,11 +42,25 @@ export default function App() {
     document.documentElement.classList.toggle('is-gallery', showGallery)
   }, [showGallery])
 
+  if (RENDER_FRAME) {
+    return (
+      <Suspense fallback={null}>
+        <FrameStudio />
+      </Suspense>
+    )
+  }
+
   return (
     <>
       <SiteHeader mode={showGallery ? 'gallery' : 'list'} canShowGallery={webgl} />
       {webgl && route.name !== 'list' ? (
-        <Suspense fallback={<p className="loading" role="status">Cargando la galería…</p>}>
+        <Suspense
+          fallback={
+            <p className="loading" role="status">
+              Cargando la galería…
+            </p>
+          }
+        >
           <Experience view={route} />
         </Suspense>
       ) : (

@@ -178,6 +178,26 @@ for name, (w, h) in AO_TARGETS.items():
 for col in columns:
     col.hide_render = False
 
+# 1b. Oclusión de la pared sin el cuadro ni la lámpara de la intro: la usa el render del fondo de
+# la vista en lista (scripts/render-images.mjs), donde esas piezas no están.
+intro_pieces = []
+for o in bpy.data.objects:
+    if o.name.startswith(("portrait-frame", "picture-lamp")):
+        intro_pieces += [o, *o.children_recursive]
+print(f"[bake] piezas de la intro a ocultar: {len(intro_pieces)} objetos", flush=True)
+for o in intro_pieces + columns:
+    o.hide_render = True
+start = time.time()
+w, h = AO_TARGETS["wall"]
+image = bake_target(find("wall"), "wall_ao_bare", w, h, False)
+bpy.ops.object.bake(type="AO", use_clear=True)
+image.filepath_raw = f"{OUT}/wall_ao_bare.png"
+image.file_format = "PNG"
+image.save()
+print(f"[bake] wall AO sin cuadro: {w}x{h} en {time.time() - start:.0f} s", flush=True)
+for o in intro_pieces:
+    o.hide_render = False
+
 # 2. Luz directa: sol por las ventanas y luz del retrato.
 build_window_wall()
 add_lights()

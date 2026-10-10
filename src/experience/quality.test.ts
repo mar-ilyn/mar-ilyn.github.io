@@ -20,7 +20,9 @@ describe('calidad adaptativa', () => {
   })
 
   it('lee ?debug y fuerza la calidad desde la URL', () => {
-    expect(readUrlOverrides('?debug')).toEqual({ debug: true, quality: undefined })
+    expect(readUrlOverrides('?debug')).toEqual({ debug: true, quality: undefined, render: undefined })
+    expect(readUrlOverrides('?render=fondo').render).toBe('fondo')
+    expect(readUrlOverrides('?render=otro').render).toBeUndefined()
     expect(readUrlOverrides('?calidad=baja').quality).toBe('low')
     expect(readUrlOverrides('?calidad=alta').quality).toBe('high')
     expect(readUrlOverrides('').debug).toBe(false)

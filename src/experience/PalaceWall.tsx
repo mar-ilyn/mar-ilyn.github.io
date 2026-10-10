@@ -45,7 +45,7 @@ function MarbleColumns({ geometry, xs }: { geometry: BufferGeometry; xs: readonl
 const PANEL_Y = (WALL.panel.bottom + WALL.panel.top) / 2
 const PANEL_H = WALL.panel.top - WALL.panel.bottom
 
-export function PalaceWall() {
+export function PalaceWall({ bare = false }: { bare?: boolean }) {
   const { length, height, wallZ } = ROOM
   const introBay = INTRO_LAYOUT.bay
 
@@ -73,7 +73,7 @@ export function PalaceWall() {
 
   return (
     <group position={[0, 0, wallZ]} name="palace-wall">
-      <PlasterSurface width={length} height={height} position={[0, height / 2, 0]} />
+      <PlasterSurface width={length} height={height} position={[0, height / 2, 0]} bare={bare} />
       <mesh geometry={geo.trim} material={ivoryTrim} />
 
       <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />

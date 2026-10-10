@@ -171,118 +171,222 @@ a {
   font-size: 1rem;
 }
 
-/* Hero */
-main {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
+/* Vista en lista: estética de galería, como la escena 3D */
+.list-view {
+  --gold: #a8843f;
+  --gold-soft: #c9a35e;
+  --walnut: #4a3424;
+  --paper-warm: #efe6d6;
+  background: var(--paper-warm);
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(1.5rem, 5vw, 4rem);
-  padding: clamp(3rem, 10vw, 7rem) 0 clamp(3rem, 8vw, 5rem);
+/* Siempre 16:9, como el render: así los porcentajes del texto y el marco caen sobre el panel. */
+.list-hero {
+  container-type: inline-size;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  color: #2a1d14;
+  border-bottom: 1px solid #d6c7ad;
 }
-.hero__frame {
-  aspect-ratio: 4 / 5;
-  border: 14px solid var(--wood);
-  outline: 1px solid var(--line);
-  outline-offset: 6px;
-  background: linear-gradient(160deg, var(--paper), var(--wall-deep));
+.list-hero__bg,
+.list-hero__bg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.list-hero__bg img {
+  object-fit: cover;
+  object-position: center 55%;
+}
+/* Texto dentro del panel de la pared (el panel ocupa ~15–85 % del ancho en el render). */
+/* El panel del render va de ~34 % a ~75 % del alto: el bloque se centra en ese tramo. */
+.list-hero__content {
+  position: absolute;
+  left: 22%;
+  top: 54%;
+  transform: translateY(-50%);
+  width: 34%;
+}
+.list-hero__role {
+  margin: 0;
+  font-size: max(0.68rem, 0.62cqw);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6b5234;
+}
+.list-hero__ornament {
+  display: block;
+  width: 6.5cqw;
+  margin: 0.5cqw 0 0.4cqw;
+  color: var(--gold);
+}
+.list-hero h1 {
+  font-size: 3.9cqw;
+  line-height: 1;
+  color: #2a1d14;
+}
+.list-hero__tagline {
+  margin: 0.6cqw 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: max(0.95rem, 1.12cqw);
+  line-height: 1.35;
+  color: #3d2c20;
+}
+.list-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.2cqw;
+  padding: 0.65em 1.5em;
+  background: #5a4128;
+  color: #f5ecd9;
+  font-family: var(--serif);
+  font-size: max(0.85rem, 0.95cqw);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: 1px solid #3b2a1b;
+  box-shadow: inset 0 0 0 3px #5a4128, inset 0 0 0 4px rgb(201 163 94 / 0.5);
+  transition: background-color 160ms ease;
+}
+.list-hero__cta:hover {
+  background: #47331f;
+}
+.list-hero__stack {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  margin: 0.9cqw 0 0;
+  padding: 0;
+  font-size: max(0.78rem, 0.78cqw);
+  letter-spacing: 0.04em;
+  color: #4a3626;
+}
+.list-hero__stack li + li::before {
+  content: '·';
+  margin-right: 0.6rem;
+  color: var(--gold);
+}
+
+/* Marco tallado (render con transparencia) y la foto dentro de su apertura. */
+.list-hero__portrait {
+  position: absolute;
+  left: 59%;
+  top: 53%;
+  transform: translateY(-50%);
+  width: 16.5%;
+  filter: drop-shadow(0 18px 24px rgb(40 26 14 / 0.35));
+}
+.list-hero__frame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+}
+.list-hero__photo {
+  position: absolute;
+  z-index: 2;
+  left: 22%;
+  top: 29%;
+  width: 56%;
+  height: 53%;
   display: grid;
   place-items: center;
-  box-shadow: 0 18px 40px -20px rgb(42 36 32 / 0.45);
+  background: radial-gradient(ellipse at 50% 35%, #6a4a30, #2f2117 75%);
+  box-shadow: inset 0 0 0 2px rgb(30 20 12 / 0.6), inset 0 6px 14px rgb(0 0 0 / 0.45);
 }
-.hero__frame span {
+.list-hero__photo span {
   font-family: var(--serif);
-  font-size: clamp(3rem, 8vw, 5rem);
-  color: var(--wood);
-  letter-spacing: 0.05em;
-}
-.eyebrow {
-  margin: 0 0 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.hero h1 {
-  font-size: clamp(3rem, 9vw, 6.5rem);
-}
-.hero__tagline {
-  margin: 1.25rem 0 0;
-  max-width: 38ch;
-  font-size: clamp(1.05rem, 2vw, 1.25rem);
-  color: var(--ink-soft);
+  font-size: 2.6cqw;
+  letter-spacing: 0.06em;
+  color: #e7cf9a;
 }
 
 /* Proyectos */
-.projects {
-  padding: clamp(2rem, 6vw, 4rem) 0 clamp(3rem, 8vw, 6rem);
-  border-top: 1px solid var(--line);
-  scroll-margin-top: 80px;
+.works {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter) clamp(2.5rem, 6vw, 4rem);
+  scroll-margin-top: 70px;
 }
-.projects:focus {
+.works:focus {
   outline: none;
 }
-.projects > h2 {
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+.works__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.6rem, 4vw, 2.6rem);
 }
-.projects__list {
+.works__eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8a6a3e;
+}
+.works h2 {
+  font-size: clamp(2.1rem, 4.6vw, 3.2rem);
+  color: #2a1d14;
+}
+.works__gallery-link,
+.about a {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: #3d2c20;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 5px;
+}
+.works__list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: clamp(2.5rem, 6vw, 4.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(2rem, 4vw, 3rem);
 }
 .project {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: clamp(1.25rem, 4vw, 3rem);
-  align-items: start;
   scroll-margin-top: 90px;
 }
-.project:nth-child(even) .project__image {
-  order: 2;
+/* Marco dorado de cuadro: moldura con degradé metálico, filete oscuro y paspartú fino. */
+.gilt-frame {
+  padding: 12px;
+  background:
+    linear-gradient(135deg, #f2d48a 0%, #b88a3c 22%, #7a5626 45%, #d9b36a 62%, #8c6530 82%, #e6c47c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 240 200 / 0.6),
+    inset 0 0 0 4px rgb(90 60 25 / 0.55),
+    0 14px 26px -16px rgb(40 26 14 / 0.6);
 }
 .project__image {
   width: 100%;
-  border: 1px solid var(--line);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 3px solid #3b2a1b;
   background: var(--paper);
-  padding: 10px;
-}
-.project__meta {
-  margin: 0 0 0.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  font-size: 0.8rem;
-  color: var(--ink-soft);
-  letter-spacing: 0.04em;
-}
-.project__meta span:first-child {
-  color: var(--accent);
-  font-weight: 600;
 }
 .project h3 {
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  margin-top: 1.1rem;
+  font-size: clamp(1.6rem, 2.6vw, 1.95rem);
+  color: #2a1d14;
 }
 .project__summary {
-  margin: 0.75rem 0 0.5rem;
-  font-size: 1.08rem;
-}
-.project__detail {
-  margin: 0.4rem 0 0;
-  color: var(--ink-soft);
-  max-width: 60ch;
+  margin: 0.45rem 0 0;
+  color: #4a3626;
+  max-width: 42ch;
 }
 .tags {
   list-style: none;
-  margin: 1.1rem 0 0;
+  margin: 0.9rem 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -290,20 +394,124 @@ main {
 }
 .tags li {
   font-size: 0.78rem;
-  padding: 0.2rem 0.65rem;
-  border: 1px solid var(--line);
+  padding: 0.18rem 0.7rem;
+  border: 1px solid #cbb48c;
   border-radius: 999px;
-  background: var(--paper);
+  background: #f7f0e3;
+  color: #4a3626;
 }
 .project__links {
-  margin: 1.1rem 0 0;
+  margin: 1rem 0 0;
   display: flex;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
 }
 .project__links a {
-  font-weight: 500;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  color: #3d2c20;
   text-underline-offset: 4px;
-  text-decoration-color: var(--accent);
+  text-decoration-color: var(--gold);
+}
+
+/* Un poco sobre mí */
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  align-items: center;
+  gap: 1rem 2.5rem;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(2rem, 4vw, 2.8rem) var(--gutter);
+  border-top: 1px solid #d6c7ad;
+}
+.about h2 {
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  color: #2a1d14;
+  padding-right: 2.5rem;
+  border-right: 1px solid var(--gold);
+}
+.about p {
+  margin: 0;
+  color: #4a3626;
+}
+
+/* Debajo de 1100 px el texto no entra legible dentro del panel: la sala va arriba y el texto debajo. */
+@media (max-width: 1100px) {
+  .list-hero {
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .list-hero__bg {
+    position: relative;
+    inset: auto;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+  .list-hero__portrait {
+    left: 59%;
+    top: calc(100cqw * 9 / 16 * 0.53);
+    transform: translateY(-50%);
+    width: 16.5%;
+  }
+  .list-hero__bg img {
+    object-position: center 52%;
+  }
+  .list-hero__content h1 {
+    font-size: clamp(2.4rem, 8vw, 3.6rem);
+  }
+  .list-hero__role {
+    font-size: 0.72rem;
+  }
+  .list-hero__ornament {
+    width: 6.5rem;
+    margin: 0.5rem 0 0.4rem;
+  }
+  .list-hero__tagline {
+    margin-top: 0.6rem;
+    font-size: 1.1rem;
+  }
+  .list-hero__cta {
+    margin-top: 1.1rem;
+    font-size: 1rem;
+  }
+  .list-hero__stack {
+    margin-top: 0.9rem;
+    font-size: 0.9rem;
+  }
+  .list-hero__content {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: auto;
+    padding: 1.8rem var(--gutter) 2.2rem;
+    background: var(--paper-warm);
+  }
+}
+
+@media (max-width: 760px) {
+  .list-hero__bg {
+    aspect-ratio: 9 / 10;
+  }
+  .list-hero__portrait {
+    left: 50%;
+    top: calc(100cqw * 10 / 9 * 0.45);
+    transform: translate(-50%, -50%);
+    width: 42%;
+  }
+  .list-hero__photo span {
+    font-size: 9cqw;
+  }
+  .about {
+    grid-template-columns: 1fr;
+  }
+  .about h2 {
+    border-right: 0;
+    padding-right: 0;
+  }
 }
 
 /* Footer */
@@ -328,19 +536,6 @@ main {
 }
 
 @media (max-width: 720px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-  .hero__frame {
-    width: 150px;
-    border-width: 10px;
-  }
-  .project {
-    grid-template-columns: 1fr;
-  }
-  .project:nth-child(even) .project__image {
-    order: 0;
-  }
   .site-header__name {
     font-size: 1.15rem;
   }
@@ -778,4 +973,10 @@ html.is-gallery body {
     margin: 0;
     font-size: 0.78rem;
   }
+}
+
+/* Render del marco suelto (scripts/render-images.mjs): lienzo cuadrado, fondo transparente. */
+.frame-studio {
+  position: fixed;
+  inset: 0;
 }

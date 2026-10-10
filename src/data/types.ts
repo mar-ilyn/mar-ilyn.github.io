@@ -46,5 +46,6 @@ export interface Profile {
   role: string
   tagline: string
   stack: readonly string[]
+  about: string
   contacts: readonly ContactLink[]
 }

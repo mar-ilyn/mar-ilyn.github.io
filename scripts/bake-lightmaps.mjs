@@ -23,6 +23,7 @@ const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blen
 const MAPS = {
   floor_ao: [2048, 1024],
   wall_ao: [2048, 128],
+  wall_ao_bare: [2048, 128],
   ceiling_ao: [512, 256],
   floor_light: [1024, 512],
   wall_light: [2048, 128],

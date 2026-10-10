@@ -41,13 +41,15 @@ function BallroomEnvironment({ intensity }: { intensity: number }) {
 
 interface Props {
   quality: Quality
+  // Sin fondo ni niebla: para renderizar piezas sueltas con transparencia.
+  transparent?: boolean
 }
 
-export function Atmosphere({ quality }: Props) {
+export function Atmosphere({ quality, transparent = false }: Props) {
   return (
     <>
-      <color attach="background" args={[AIR]} />
-      <fog attach="fog" args={[AIR, 12, 34]} />
+      {!transparent && <color attach="background" args={[AIR]} />}
+      {!transparent && <fog attach="fog" args={[AIR, 12, 34]} />}
       {/* Luz que rebota del piso: cálida pero clara, para que el techo no se tiña de marrón. */}
       <hemisphereLight args={['#fff6e8', '#d9c3a5', 0.38]} />
       {/* Sol de tarde desde la izquierda, como el horneado: luz lateral cálida y suave. */}

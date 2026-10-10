@@ -116,6 +116,15 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 - **Lámpara de cuadro** (`PictureLamp.tsx`): barra de bronce con brazo, sobre el marco. Un foco cerrado y de alcance corto (1,25 m) ilumina solo la parte superior del cuadro.
 - **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
 
+### Vista en lista (`/lista`)
+
+Mismo contenido en HTML con la estética de la galería. La portada usa imágenes **renderizadas desde la propia escena 3D**, no generadas con IA (`npm run build && npm run render:images`):
+
+- `hero-h` y `hero-v` (16:9 y 9:16, AVIF y WebP con `<picture>`): la sala de la intro con `?render=fondo`, sin cuadro, lámpara ni texto. Usa una oclusión de pared horneada sin el cuadro (`wall_ao_bare`), así no queda su sombra.
+- `frame.webp`: el marco tallado y la lámpara solos (`?render=marco`), con fondo transparente y el hueco del lienzo abierto para la foto en HTML.
+
+Encima van el texto, el botón y el stack en HTML. En pantallas anchas se ubican sobre el panel de la pared y escalan con el ancho (unidades de contenedor). Por debajo de 1100 px pasan abajo de la imagen. Los proyectos se muestran en marcos dorados hechos con CSS.
+
 ### Horneado de la oclusión ambiental
 
 `npm run bake:lightmaps` levanta la app en modo desarrollo y exporta la geometría estática real a GLB (`DevSceneExport`, que no llega al build de producción). Después corre Blender sin ventana con `scripts/blender/bake_lightmaps.py`, hornea la oclusión con Cycles sobre piso, pared y techo, y comprime los resultados a KTX2. Así el horneado siempre coincide con lo que se ve y no hay una segunda copia de la escena. Tarda unos 4 minutos en un i7 de 4 núcleos sin GPU compatible. `--solo-comprimir` reutiliza los PNG ya horneados.

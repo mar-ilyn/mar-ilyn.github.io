@@ -11,13 +11,15 @@ interface Props {
   width: number
   height: number
   position: [number, number, number]
+  // Oclusión sin el cuadro de la intro (render del fondo de la vista en lista).
+  bare?: boolean
 }
 
 const TILE_METERS = 2
 
-function TexturedPlaster({ width, height, position }: Props) {
+function TexturedPlaster({ width, height, position, bare = false }: Props) {
   const [normal, arm, ao, light] = useKTX2(
-    [TEXTURES.plaster.normal, TEXTURES.plaster.arm, LIGHTMAPS.wall, LIGHT_MAPS.wall],
+    [TEXTURES.plaster.normal, TEXTURES.plaster.arm, bare ? LIGHTMAPS.wallBare : LIGHTMAPS.wall, LIGHT_MAPS.wall],
     BASIS_PATH,
   )
   const maps = useMemo(() => {

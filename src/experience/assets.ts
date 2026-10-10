@@ -9,6 +9,8 @@ export const BASIS_PATH = `${import.meta.env.BASE_URL}basis/`
 export const LIGHTMAPS = {
   floor: `${BASE}floor_ao.ktx2`,
   wall: `${BASE}wall_ao.ktx2`,
+  // Sin el cuadro ni la lámpara de la intro: solo para el render del fondo de la vista en lista.
+  wallBare: `${BASE}wall_ao_bare.ktx2`,
   ceiling: `${BASE}ceiling_ao.ktx2`,
 } as const
 

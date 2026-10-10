@@ -10,21 +10,25 @@ import type { Quality } from './quality'
 // es HTML anclado a la pared (IntroText).
 interface Props {
   quality: Quality
+  // Sin cuadro ni lámpara (render del fondo de la vista en lista).
+  bare?: boolean
 }
 
-export function Room({ quality }: Props) {
+export function Room({ quality, bare = false }: Props) {
   const { length, depth, height, wallZ } = ROOM
   const { frameX, frame } = INTRO_LAYOUT
   return (
     <group>
       <ParquetFloor length={length} depth={depth} quality={quality} />
       <Ceiling width={length} depth={depth} height={height} />
-      <PalaceWall />
+      <PalaceWall bare={bare} />
 
-      <group position={[INTRO_X, 0, wallZ]}>
-        <PortraitFrame width={frame.width} height={frame.height} position={[frameX, frame.y, 0.01]} />
-        <PictureLamp x={frameX} frameTop={frame.y + frame.height / 2} frameWidth={frame.width} />
-      </group>
+      {!bare && (
+        <group position={[INTRO_X, 0, wallZ]}>
+          <PortraitFrame width={frame.width} height={frame.height} position={[frameX, frame.y, 0.01]} />
+          <PictureLamp x={frameX} frameTop={frame.y + frame.height / 2} frameWidth={frame.width} />
+        </group>
+      )}
     </group>
   )
 }

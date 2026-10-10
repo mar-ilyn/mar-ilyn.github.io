@@ -12,6 +12,8 @@ interface Props {
   width: number
   height: number
   position: [number, number, number]
+  // Sin lienzo: el hueco queda abierto (para el render con transparencia de la vista en lista).
+  showCanvas?: boolean
 }
 
 // Lienzo liso y cálido, reservado para la foto de presentación.
@@ -21,7 +23,7 @@ const CANVAS_RATIO = { width: 0.392 / 0.66, height: 0.5 / 0.771 }
 
 let ktx2Loader: KTX2Loader | null = null
 
-function CarvedFrame({ height, position }: Props) {
+function CarvedFrame({ height, position, showCanvas = true }: Props) {
   const gl = useThree((s) => s.gl)
   const gltf = useLoader(GLTFLoader, FRAME_MODEL, (loader) => {
     ktx2Loader ??= new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(gl)
@@ -63,10 +65,12 @@ function CarvedFrame({ height, position }: Props) {
   return (
     <group position={position} name="portrait-frame">
       <primitive object={frame} scale={scale} />
-      <mesh position={[0, 0, 0.012 * scale]} name="photo">
-        <planeGeometry args={[canvasW + 0.04, canvasH + 0.04]} />
-        <meshStandardMaterial color={CANVAS_COLOR} roughness={0.95} />
-      </mesh>
+      {showCanvas && (
+        <mesh position={[0, 0, 0.012 * scale]} name="photo">
+          <planeGeometry args={[canvasW + 0.04, canvasH + 0.04]} />
+          <meshStandardMaterial color={CANVAS_COLOR} roughness={0.95} />
+        </mesh>
+      )}
     </group>
   )
 }
