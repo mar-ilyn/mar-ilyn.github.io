@@ -64,6 +64,8 @@ function TexturedFloor({ length, depth, quality }: Props) {
         roughness={quality === 'high' ? 0.62 : 1}
         // Oclusión horneada (pared, pedestales) en lugar de la micro-oclusión de la textura.
         aoMap={maps.ao}
+        // Sobre el parquet oscuro el contacto al 100 % se ve negro: se deja en un tono suave.
+        aoMapIntensity={0.5}
         lightMap={maps.light}
         lightMapIntensity={bakedLighting.lightScale.floor * FLOOR_SUN_GAIN}
         envMapIntensity={quality === 'high' ? 1.25 : 1}

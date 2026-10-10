@@ -39,6 +39,7 @@ function TexturedPlaster({ width, height, position, bare = false }: Props) {
         roughnessMap={maps.arm}
         // Oclusión horneada en Blender: contacto de molduras, columnas y cornisa.
         aoMap={maps.ao}
+        aoMapIntensity={0.75}
         lightMap={maps.light}
         lightMapIntensity={bakedLighting.lightScale.wall * SUN_GAIN}
       />

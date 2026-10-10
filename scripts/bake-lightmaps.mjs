@@ -76,7 +76,11 @@ const imageDecoder = async (buffer) => {
   return { data: new Uint8Array(data), width: info.width, height: info.height }
 }
 for (const [name, [width, height]] of Object.entries(MAPS)) {
-  const png = await sharp(await readFile(join(WORK, `${name}.png`))).resize(width, height).png().toBuffer()
+  // La oclusión horneada con pocas muestras trae ruido (manchas sobre la pared lisa): se suaviza
+  // con un desenfoque leve antes de reducir y comprimir.
+  const source = sharp(await readFile(join(WORK, `${name}.png`)))
+  const smooth = name.endsWith('_ao') ? source.blur(2.2) : source
+  const png = await smooth.resize(width, height).png().toBuffer()
   const ktx2 = await encodeToKTX2(new Uint8Array(png), {
     isUASTC: false,
     qualityLevel: 255,

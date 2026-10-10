@@ -23,7 +23,7 @@ GLB, OUT = argv[0], argv[1]
 # Superficie → resolución. Las UV de cada plano ya van de 0 a 1 sin solaparse.
 AO_TARGETS = {"floor": (2048, 1024), "wall": (4096, 256), "ceiling": (1024, 512)}
 LIGHT_TARGETS = {"floor": (2048, 1024), "wall": (4096, 256)}
-AO_SAMPLES = 96
+AO_SAMPLES = 256
 LIGHT_SAMPLES = 128
 AO_DISTANCE = 0.5
 
