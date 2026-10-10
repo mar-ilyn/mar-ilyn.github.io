@@ -1,13 +1,19 @@
-import { Environment, Lightformer } from '@react-three/drei'
+import { ContactShadows, Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
+import { lazy, Suspense, useState } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import { CameraRig } from './CameraRig'
-import { GreyboxRoom } from './GreyboxRoom'
+import { Atmosphere } from './Atmosphere'
+import { Room } from './Room'
 import { FOV, INTRO_POSE } from './layout'
 import { Overlays } from './Overlays'
+import { beamLevel } from './beam'
+import { LightBeam } from './LightBeam'
 import { Pedestal } from './Pedestal'
+import { detectQuality, readDeviceHints, readUrlOverrides } from './quality'
+import { useMediaQuery } from './useMediaQuery'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 import { useStepInput } from './useStepInput'
 
@@ -15,33 +21,46 @@ interface Props {
   view: ViewState
 }
 
+// El postprocesado (AO, bloom, grano) va en su propio chunk: solo lo descarga la calidad alta.
+const Effects = lazy(() => import('./Effects').then((m) => ({ default: m.Effects })))
+
+function initialSettings() {
+  const overrides = readUrlOverrides(window.location.search)
+  return { debug: overrides.debug, quality: overrides.quality ?? detectQuality(readDeviceHints()) }
+}
+
 export default function Experience({ view }: Props) {
   const send = useViewStore((s) => s.send)
   const ready = useViewStore((s) => s.sceneReady)
   const moving = useViewStore((s) => s.cameraMoving)
+  const highlighted = useViewStore((s) => s.highlighted)
+  const setHighlighted = useViewStore((s) => s.setHighlighted)
+  // Sin hover (pantallas táctiles): todos los pedestales con un haz suave constante.
+  const noHover = useMediaQuery('(hover: none)')
   const reducedMotion = usePrefersReducedMotion()
+  const [{ quality, debug }] = useState(initialSettings)
   useStepInput()
 
   return (
-    <div className="experience" data-view={view.name} data-ready={ready} data-moving={moving}>
+    <div
+      className={`experience experience--${quality}`}
+      data-view={view.name}
+      data-ready={ready}
+      data-moving={moving}
+      data-quality={quality}
+    >
       <Canvas
         className="experience__canvas"
-        dpr={[1, 2]}
-        frameloop="demand"
+        dpr={quality === 'high' ? [1, 2] : [1, 1.5]}
+        // ?debug dibuja todos los cuadros para que el medidor de fps sea representativo.
+        frameloop={debug ? 'always' : 'demand'}
         camera={{ fov: FOV, near: 0.1, far: 60, position: [...INTRO_POSE.position] }}
         aria-hidden="true"
       >
-        <color attach="background" args={['#cfcfcf']} />
-        <fog attach="fog" args={['#cfcfcf', 12, 34]} />
-        <ambientLight intensity={1.1} />
-        <directionalLight position={[4, 8, 6]} intensity={1.4} />
-        {/* Entorno generado en la escena (sin descargar HDR) para que el dorado tenga qué reflejar. */}
-        <Environment resolution={64} frames={1} environmentIntensity={1}>
-          <Lightformer intensity={3} position={[0, 4, 6]} scale={[12, 3, 1]} color="#fff4e0" />
-          <Lightformer intensity={1.5} position={[-6, 2, 2]} rotation-y={Math.PI / 2} scale={[6, 3, 1]} />
-          <Lightformer intensity={0.6} position={[6, 1, -2]} rotation-y={-Math.PI / 2} scale={[6, 2, 1]} color="#ffe2b0" />
-        </Environment>
-        <GreyboxRoom />
+        <Atmosphere quality={quality} />
+        <Room quality={quality} />
+        {/* Sombras de contacto bajo los pedestales, calculadas una sola vez (la escena es estática). */}
+        <ContactShadows position={[0, 0.003, 0]} scale={[14, 5]} resolution={512} blur={2.4} opacity={0.5} far={1.6} frames={1} />
         {projects.map((p) => (
           <Pedestal
             key={p.slug}
@@ -49,9 +68,19 @@ export default function Experience({ view }: Props) {
             interactive={view.name === 'gallery'}
             reducedMotion={reducedMotion}
             onOpen={(slug) => send({ type: 'OPEN', slug })}
+            onHover={setHighlighted}
           />
         ))}
+        {projects.map((p) => (
+          <LightBeam key={p.slug} position={p.pedestal} target={beamLevel(view, p.slug, highlighted, noHover)} reducedMotion={reducedMotion} />
+        ))}
         <CameraRig view={view} />
+        {quality === 'high' && (
+          <Suspense fallback={null}>
+            <Effects />
+          </Suspense>
+        )}
+        {debug && <Stats className="debug-stats" />}
       </Canvas>
       <Overlays view={view} />
     </div>

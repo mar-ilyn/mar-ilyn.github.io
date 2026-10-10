@@ -9,11 +9,14 @@ interface ViewStore {
   route: Route
   cameraMoving: boolean
   sceneReady: boolean
+  // Pedestal bajo el mouse o con foco de teclado: enciende su haz de luz.
+  highlighted: string | null
   send: (event: ViewEvent) => void
   navigate: (route: Route) => void
   syncFromLocation: () => void
   setCameraMoving: (moving: boolean) => void
   setSceneReady: () => void
+  setHighlighted: (slug: string | null) => void
 }
 
 const readLocation = (): Route => pathToRoute(window.location.pathname, (s) => !!getProject(s), BASE)
@@ -29,6 +32,7 @@ export const useViewStore = create<ViewStore>((set, get) => ({
   route: readLocation(),
   cameraMoving: false,
   sceneReady: false,
+  highlighted: null,
 
   send: (event) => {
     const { route } = get()
@@ -36,7 +40,7 @@ export const useViewStore = create<ViewStore>((set, get) => ({
     const next = transition(route, event)
     if (next === route) return
     commit(next, 'push')
-    set({ route: next })
+    set({ route: next, highlighted: null })
   },
 
   navigate: (route) => {
@@ -52,4 +56,5 @@ export const useViewStore = create<ViewStore>((set, get) => ({
 
   setCameraMoving: (cameraMoving) => set({ cameraMoving }),
   setSceneReady: () => set({ sceneReady: true }),
+  setHighlighted: (highlighted) => set({ highlighted }),
 }))

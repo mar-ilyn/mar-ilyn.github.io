@@ -419,7 +419,12 @@ html.is-gallery body {
   pointer-events: auto;
 }
 .overlay__hint {
+  display: inline-block;
   margin: 0 0 0.9rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
+  backdrop-filter: blur(6px);
   font-family: var(--sans);
   font-size: 0.95rem;
   font-weight: 500;
@@ -566,4 +571,25 @@ html.is-gallery body {
 }
 .overlay--intro .overlay__actions {
   justify-content: flex-start;
+}
+
+/* Viñeta en CSS para calidad baja (sin postprocesado en GPU). */
+.experience--low::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgb(40 30 20 / 0.28) 100%);
+}
+
+.debug-stats {
+  top: auto !important;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.experience .overlay,
+.experience .panel {
+  z-index: 2;
 }

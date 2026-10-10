@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Matrix4, type BufferGeometry, type InstancedMesh, type Material } from 'three'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
-import { gold, ivory, ivoryTrim } from './ornament'
+import { gold, ivoryTrim } from './ornament'
+import { PlasterSurface } from './PlasterSurface'
 import { columnGeometries, friezeSegment, goldPanel, lowerPanel, trimGeometry, WALL, wallLayout } from './wallGeometry'
 
 interface RowProps {
@@ -69,9 +70,7 @@ export function PalaceWall() {
 
   return (
     <group position={[0, 0, wallZ]} name="palace-wall">
-      <mesh position={[0, height / 2, -0.1]} material={ivory}>
-        <boxGeometry args={[length, height, 0.2]} />
-      </mesh>
+      <PlasterSurface width={length} height={height} position={[0, height / 2, 0]} />
       <mesh geometry={geo.trim} material={ivoryTrim} />
 
       <Row geometry={geo.columnIvory} material={ivoryTrim} xs={layout.columns} />

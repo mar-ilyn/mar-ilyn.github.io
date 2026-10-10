@@ -48,6 +48,7 @@ function IntroOverlay() {
 
 function GalleryOverlay() {
   const send = useViewStore((s) => s.send)
+  const setHighlighted = useViewStore((s) => s.setHighlighted)
   const heading = useFocusOnMount<HTMLHeadingElement>('gallery')
   return (
     <nav className="overlay overlay--gallery" aria-labelledby="gallery-title">
@@ -57,7 +58,13 @@ function GalleryOverlay() {
       <ul className="pedestal-nav">
         {projects.map((p) => (
           <li key={p.slug}>
-            <button type="button" className="pedestal-nav__button" onClick={() => send({ type: 'OPEN', slug: p.slug })}>
+            <button
+              type="button"
+              className="pedestal-nav__button"
+              onClick={() => send({ type: 'OPEN', slug: p.slug })}
+              onFocus={() => setHighlighted(p.slug)}
+              onBlur={() => setHighlighted(null)}
+            >
               Abrir {p.title}
             </button>
           </li>

@@ -1,17 +1,5 @@
-import { useSyncExternalStore } from 'react'
-
-const QUERY = '(prefers-reduced-motion: reduce)'
-
-const subscribe = (cb: () => void) => {
-  const mql = window.matchMedia(QUERY)
-  mql.addEventListener('change', cb)
-  return () => mql.removeEventListener('change', cb)
-}
+import { useMediaQuery } from './useMediaQuery'
 
 export function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(QUERY).matches,
-    () => false,
-  )
+  return useMediaQuery('(prefers-reduced-motion: reduce)')
 }

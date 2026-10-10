@@ -10,6 +10,7 @@ interface Props {
   interactive: boolean
   reducedMotion: boolean
   onOpen: (slug: string) => void
+  onHover: (slug: string | null) => void
 }
 
 const OBJECT_SIZE = 0.3
@@ -17,7 +18,7 @@ export const FLOAT_Y = TOP_Y + 0.12 + OBJECT_SIZE / 2
 
 const stone = new MeshStandardMaterial({ color: '#e8e0cc', roughness: 0.75 })
 
-export function Pedestal({ project, interactive, reducedMotion, onOpen }: Props) {
+export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover }: Props) {
   const [hovered, setHovered] = useState(false)
   const exhibit = useRef<Mesh>(null)
   useCursor(interactive && hovered)
@@ -46,8 +47,12 @@ export function Pedestal({ project, interactive, reducedMotion, onOpen }: Props)
       onPointerOver={(e) => {
         e.stopPropagation()
         setHovered(true)
+        if (e.pointerType === 'mouse') onHover(project.slug)
       }}
-      onPointerOut={() => setHovered(false)}
+      onPointerOut={() => {
+        setHovered(false)
+        onHover(null)
+      }}
     >
       <mesh geometry={pedestalGeometry()} material={stone} />
 

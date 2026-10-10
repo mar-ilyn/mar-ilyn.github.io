@@ -1,9 +1,10 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './fixtures.ts'
 
 // El vuelo de cámara dura ~2 s en un dispositivo real; con WebGL por software va a pocos cuadros
 // por segundo, así que el test con movimiento espera la llegada con más margen.
 const waitForGallery = async (page: Page, arrivalTimeout = 15_000) => {
-  await expect(page).toHaveURL(/\/proyectos$/)
+  // Al entrar por URL conserva la consulta (?calidad=baja); al navegar dentro de la app, no.
+  await expect(page).toHaveURL(/\/proyectos(\?.*)?$/)
   await expect(page.getByRole('heading', { name: 'Elegí un proyecto' })).toBeVisible({ timeout: arrivalTimeout })
 }
 
@@ -104,4 +105,21 @@ test('subir desde la galería vuelve a la intro', async ({ page }) => {
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('button', { name: 'Ver los proyectos' })).toBeVisible()
+})
+
+test('la calidad alta carga texturas, entorno y efectos sin errores', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'La calidad alta es para escritorio.')
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text())
+  })
+  const failed: string[] = []
+  page.on('requestfailed', (r) => failed.push(r.url()))
+  await page.goto('/proyectos?calidad=alta')
+  await expect(page.locator('.experience')).toHaveAttribute('data-quality', 'high')
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
+  await page.waitForLoadState('networkidle')
+  expect(failed).toEqual([])
+  expect(errors).toEqual([])
 })

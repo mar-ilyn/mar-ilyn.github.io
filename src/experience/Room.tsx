@@ -1,20 +1,24 @@
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { OrnateFrame } from './OrnateFrame'
 import { PalaceWall } from './PalaceWall'
+import { ParquetFloor } from './ParquetFloor'
+import type { Quality } from './quality'
 
-// Piso y techo siguen como volúmenes de prototipo (hito 3); la pared ya tiene su diseño de palacio.
-export function GreyboxRoom() {
+// Sala: piso de parquet, techo y pared de palacio, con la composición de la intro (textos y foto).
+interface Props {
+  quality: Quality
+}
+
+export function Room({ quality }: Props) {
   const { length, depth, height, wallZ } = ROOM
   const { textLeft, frameX, frame } = INTRO_LAYOUT
   return (
     <group>
-      <mesh position={[0, -0.05, 0]}>
-        <boxGeometry args={[length, 0.1, depth]} />
-        <meshStandardMaterial color="#9b9b9b" />
-      </mesh>
+      <ParquetFloor length={length} depth={depth} quality={quality} />
       <mesh position={[0, height + 0.05, 0]}>
         <boxGeometry args={[length, 0.1, depth]} />
-        <meshStandardMaterial color="#c9c9c9" />
+        {/* Nada ilumina el techo de frente: la emisión imita la luz que rebota del piso y las paredes. */}
+        <meshStandardMaterial color="#f4efe5" roughness={0.9} emissive="#e8dfd0" emissiveIntensity={0.55} />
       </mesh>
       <PalaceWall />
 
