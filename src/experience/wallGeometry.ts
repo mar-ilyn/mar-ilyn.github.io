@@ -10,12 +10,14 @@ import { flute, lathe } from './pedestalGeometry'
 export const WALL = {
   period: 4,
   // Ancho libre del panel entre dos columnas (el resto lo ocupa el pedestal de la columna).
-  wide: 3.35,
+  wide: 3.2,
   dadoTop: 0.9,
   panel: { bottom: 1.1, top: 3.4 },
   lowerPanel: { y: 0.45, height: 0.55 },
-  shaft: { bottom: 1.06, top: 3.3, radius: 0.16 },
-  columnZ: 0.14,
+  shaft: { bottom: 1.06, top: 3.3, radius: 0.21 },
+  // Pedestal de la columna (ancho × profundidad); el fuste va centrado sobre su cara superior.
+  pedestal: { width: 0.62, depth: 0.42 },
+  columnZ: 0.235,
   frieze: { y: 3.915 },
 } as const
 
@@ -85,8 +87,14 @@ export interface ColumnGeometries {
 // dos coronas de acanto, volutas en las esquinas y flor en el ábaco.
 export function columnGeometries(): ColumnGeometries {
   const { shaft, dadoTop, columnZ } = WALL
-  const W = 0.5
-  const D = 0.38
+  const W = WALL.pedestal.width
+  const D = WALL.pedestal.depth
+  // Cara superior del pedestal (cornisa): el plinto dorado de la base y el ábaco del capitel
+  // tienen exactamente este tamaño, así los cuadrados de arriba y abajo coinciden.
+  const TOP_W = W + 0.08
+  const TOP_D = D + 0.05
+  // Las proporciones de base y capital se diseñaron para un fuste de radio 0,16.
+  const k = shaft.radius / 0.16
 
   const marble = new Group()
   // Pedestal: zócalo, dado con panel rehundido al frente y cornisa.
@@ -96,90 +104,94 @@ export function columnGeometries(): ColumnGeometries {
     position: [0, 0.08 + (dadoTop - 0.14) / 2, D],
   })
   place(marble, new BoxGeometry(W + 0.05, 0.035, D + 0.035), { position: [0, dadoTop - 0.04, (D + 0.035) / 2] })
-  place(marble, new BoxGeometry(W + 0.08, 0.025, D + 0.05), { position: [0, dadoTop - 0.01, (D + 0.05) / 2] })
+  place(marble, new BoxGeometry(TOP_W, 0.025, TOP_D), { position: [0, dadoTop - 0.01, TOP_D / 2] })
   // Fuste estriado en toda su altura, con éntasis suave.
   place(marble, shaftSection(shaft.bottom, shaft.top, shaft.radius, 0.08), { position: [0, 0, columnZ] })
 
   const gold = new Group()
-  // Base ática dorada: plinto, toro inferior, escocia y toro superior.
-  place(gold, new BoxGeometry(0.42, 0.04, 0.42 * 0.62 + columnZ), { position: [0, dadoTop + 0.02, (0.42 * 0.62 + columnZ) / 2] })
+  // Base ática dorada: plinto cuadrado del tamaño de la cornisa del pedestal, toros y escocia.
+  place(gold, new BoxGeometry(TOP_W, 0.04, TOP_D), { position: [0, dadoTop + 0.02, TOP_D / 2] })
   place(
     gold,
     lathe(
       [
         [0, dadoTop + 0.04],
-        [0.2, dadoTop + 0.04],
-        [0.205, dadoTop + 0.06],
-        [0.195, dadoTop + 0.08],
-        [0.172, dadoTop + 0.095],
-        [0.178, dadoTop + 0.11],
-        [0.185, dadoTop + 0.125],
-        [0.172, dadoTop + 0.145],
+        [0.2 * k, dadoTop + 0.04],
+        [0.205 * k, dadoTop + 0.06],
+        [0.195 * k, dadoTop + 0.08],
+        [0.172 * k, dadoTop + 0.095],
+        [0.178 * k, dadoTop + 0.11],
+        [0.185 * k, dadoTop + 0.125],
+        [0.172 * k, dadoTop + 0.145],
         [shaft.radius + 0.005, shaft.bottom],
         [0, shaft.bottom],
       ],
-      48,
+      56,
     ),
     { position: [0, 0, columnZ] },
   )
   // Astrágalo bajo el capitel.
-  place(gold, new TorusGeometry(shaft.radius * 0.93, 0.013, 6, 36), {
+  place(gold, new TorusGeometry(shaft.radius * 0.93, 0.015, 6, 40), {
     position: [0, shaft.top - 0.015, columnZ],
     rotation: [Math.PI / 2, 0, 0],
   })
   // Campana del capitel.
   const top = shaft.top
+  const capH = 0.32 * k
   place(
     gold,
     lathe(
       [
         [0, top],
-        [0.15, top],
-        [0.155, top + 0.06],
-        [0.17, top + 0.16],
-        [0.2, top + 0.26],
-        [0.235, top + 0.32],
-        [0, top + 0.32],
+        [0.15 * k, top],
+        [0.155 * k, top + 0.06 * k],
+        [0.17 * k, top + 0.16 * k],
+        [0.2 * k, top + 0.26 * k],
+        [0.235 * k, top + capH],
+        [0, top + capH],
       ],
-      40,
+      48,
     ),
     { position: [0, 0, columnZ] },
   )
-  // Dos coronas de hojas de acanto: hojas alargadas que se curvan hacia afuera en la punta.
-  const leaf = new SphereGeometry(0.06, 10, 8)
-  const tip = new TorusGeometry(0.026, 0.01, 6, 12, Math.PI * 1.3)
+  // Dos coronas de hojas de acanto: hojas altas y finas, inclinadas hacia afuera, con la punta enrulada.
+  const leaf = new SphereGeometry(0.06 * k, 10, 8)
+  const tip = new TorusGeometry(0.026 * k, 0.01 * k, 6, 12, Math.PI * 1.3)
   for (const [row, count, r, y, h] of [
-    [0, 10, 0.165, top + 0.07, 1.25],
-    [1, 10, 0.195, top + 0.17, 1.1],
+    [0, 12, 0.165 * k, top + 0.07 * k, 1.25],
+    [1, 12, 0.195 * k, top + 0.17 * k, 1.1],
   ] as const) {
     for (let i = 0; i < count; i++) {
       const angle = ((i + row * 0.5) / count) * Math.PI * 2
       const x = Math.cos(angle) * r
       const z = columnZ + Math.sin(angle) * r
-      // Hoja alta y fina, inclinada hacia afuera, con la punta enrulada.
       place(gold, leaf, { position: [x, y, z], rotation: [0, -angle, 0.22], scale: [0.3, h * 1.15, 0.38] })
       place(gold, tip, {
-        position: [Math.cos(angle) * (r + 0.035), y + 0.075 * h, columnZ + Math.sin(angle) * (r + 0.035)],
+        position: [Math.cos(angle) * (r + 0.035 * k), y + 0.075 * h * k, columnZ + Math.sin(angle) * (r + 0.035 * k)],
         rotation: [0, -angle + Math.PI / 2, 0.3],
       })
     }
   }
-  // Volutas en las cuatro esquinas, bajo el ábaco, y caulículos entre ellas.
-  const volute = new TorusGeometry(0.065, 0.019, 6, 18, Math.PI * 1.7)
+  // Volutas en las cuatro esquinas, bajo el ábaco.
+  const volute = new TorusGeometry(0.065 * k, 0.019 * k, 6, 18, Math.PI * 1.7)
   for (const angle of [0.25, 0.75, 1.25, 1.75].map((t) => t * Math.PI)) {
     place(gold, volute, {
-      position: [Math.cos(angle) * 0.255, top + 0.265, columnZ + Math.sin(angle) * 0.255],
+      position: [Math.cos(angle) * 0.255 * k, top + 0.265 * k, columnZ + Math.sin(angle) * 0.255 * k],
       rotation: [0, -angle + Math.PI / 2, -0.4],
     })
   }
-  // Ábaco de lados cóncavos con una flor al centro de cada cara.
-  place(gold, concaveSquare(0.3, 0.06, 0.055, 10), { position: [0, top + 0.32, columnZ] })
-  const flower = new SphereGeometry(0.03, 8, 6)
-  for (const angle of [0, 0.5, 1, 1.5].map((t) => t * Math.PI)) {
-    place(gold, flower, {
-      position: [Math.cos(angle) * 0.255, top + 0.35, columnZ + Math.sin(angle) * 0.255],
-      scale: [1, 1, 0.7],
-    })
+  // Ábaco: mismo tamaño que la cornisa del pedestal, con lados apenas cóncavos y una flor al centro
+  // de cada cara.
+  const abacus = concaveSquare(0.5, 0.06, 0.055, 10)
+  abacus.scale(TOP_W, 1, TOP_D)
+  place(gold, abacus, { position: [0, top + capH, columnZ] })
+  const flower = new SphereGeometry(0.03 * k, 8, 6)
+  for (const [fx, fz] of [
+    [TOP_W / 2 - 0.04, 0],
+    [-TOP_W / 2 + 0.04, 0],
+    [0, TOP_D / 2 - 0.04],
+  ]) {
+    place(gold, flower, { position: [fx, top + capH + 0.03, columnZ + fz], scale: [1, 1, 0.7] })
   }
 
   return { ivory: bake(marble), gold: bake(gold) }

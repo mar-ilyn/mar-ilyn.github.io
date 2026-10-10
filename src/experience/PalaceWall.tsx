@@ -70,11 +70,11 @@ export function PalaceWall() {
       columnIvory: column.ivory,
       columnGold: column.gold,
       wide: goldPanel(WALL.wide - 0.45, PANEL_H),
-      intro: goldPanel(introBay - 0.5, PANEL_H, 1.15),
+      intro: goldPanel(introBay - 0.95, PANEL_H, 1.15),
       frieze: friezeSegment(),
       trim: trimGeometry(length),
       lowerWide: lowerPanel(WALL.wide - 0.45),
-      lowerIntro: lowerPanel(introBay - 0.5),
+      lowerIntro: lowerPanel(introBay - 0.95),
     }
   }, [length, introBay])
 
