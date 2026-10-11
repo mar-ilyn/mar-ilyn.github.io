@@ -989,8 +989,12 @@ html.is-gallery body {
   pointer-events: none;
   transition: opacity 300ms ease;
 }
-.about-labels--hidden {
+.about-labels--hidden,
+.about-label--off {
   opacity: 0;
+}
+.about-label {
+  transition: opacity 300ms ease;
 }
 .about-label {
   --ppm: 120;
@@ -1001,11 +1005,15 @@ html.is-gallery body {
   color: #2f2218;
   white-space: nowrap;
 }
+/* La cartela ocupa el ancho de su columna en el estante (0,5 m) y el título corta en dos líneas. */
 .about-label--cartela {
   display: grid;
-  gap: 0.1em;
-  font-size: clamp(8px, calc(var(--ppm) * 0.042px), 20px);
+  gap: 0.15em;
+  width: calc(var(--ppm) * 0.5px);
+  white-space: normal;
+  font-size: clamp(7px, calc(var(--ppm) * 0.03px), 18px);
   line-height: 1.15;
+  text-wrap: balance;
 }
 .about-label--cartela strong {
   font-family: var(--serif);
@@ -1014,7 +1022,7 @@ html.is-gallery body {
 }
 .about-label--year {
   font-family: var(--serif);
-  font-size: clamp(8px, calc(var(--ppm) * 0.07px), 22px);
+  font-size: clamp(7px, calc(var(--ppm) * 0.032px), 18px);
   color: #6b5234;
   letter-spacing: 0.06em;
 }

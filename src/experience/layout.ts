@@ -1,6 +1,6 @@
 import type { Project, Vec3 } from '../data/types'
 import type { ViewState } from '../state/machine'
-import { ABOUT_BAY, getEntry } from '../data/timeline'
+import { CABINET, FRIEZE, getEntry, SECTIONS, type Row } from '../data/timeline'
 
 export const FOV = 45
 export const ROOM = { length: 80, depth: 40, height: 4.2, wallZ: -3 } as const
@@ -90,17 +90,28 @@ function portraitPullBack(position: Vec3, target: Vec3, aspect: number): Vec3 {
   ]
 }
 
-// Plano general de "Sobre mí": el friso y la vitrina entran a lo ancho. En vertical se recorta a la
-// mitad derecha del friso (lo más reciente); el resto se recorre entrada por entrada.
-export function aboutPose(aspect: number): CameraPose {
-  const halfWidth = (ABOUT_BAY.right - ABOUT_BAY.left) / 2 - 0.4
-  const cx = (ABOUT_BAY.left + ABOUT_BAY.right) / 2
-  if (aspect < 1) {
-    const x = cx + halfWidth * 0.45
-    return { position: [x, 2.1, ROOM.wallZ + 12], target: [x, 1.95, ROOM.wallZ], offset: NO_OFFSET }
-  }
-  const distance = Math.min(12, Math.max(5, (halfWidth + 0.5) / (halfTan * aspect)))
-  return { position: [cx, 2.05, ROOM.wallZ + distance], target: [cx, 1.95, ROOM.wallZ], offset: NO_OFFSET }
+// Vistazo al mueble entero de "Sobre mí": la cámara se corre a la derecha desde la galería, sin acercarse
+// casi, y sigue de largo hacia el compartimento de experiencia.
+export function cabinetPose(aspect: number): CameraPose {
+  const halfHeight = CABINET.crown / 2 + 0.35
+  const halfWidth = CABINET.width / 2 + 0.5
+  const distance = Math.max(7, halfHeight / halfTan, halfWidth / (halfTan * aspect))
+  const y = CABINET.crown / 2 + 0.1
+  return { position: [CABINET.cx, y + 0.25, ROOM.wallZ + distance], target: [CABINET.cx, y, ROOM.wallZ], offset: NO_OFFSET }
+}
+
+// Un compartimento: del piso (los objetos) a los años del friso, con margen para el header. En vertical
+// la cámara retrocede hasta que entra el ancho del mueble.
+export function sectionPose(section: Row, aspect: number): CameraPose {
+  const { floor } = SECTIONS[section]
+  const bottom = floor - 0.1
+  const top = floor + FRIEZE.years + 0.06
+  // Margen para el header arriba y la pista abajo.
+  const halfHeight = (top - bottom) / 2 + 0.32
+  const halfWidth = CABINET.width / 2 + 0.12
+  const distance = Math.max(halfHeight / halfTan, halfWidth / (halfTan * aspect))
+  const y = (top + bottom) / 2 - 0.02
+  return { position: [CABINET.cx, y + 0.06, ROOM.wallZ + distance], target: [CABINET.cx, y, ROOM.wallZ], offset: NO_OFFSET }
 }
 
 export function poseFor(view: ViewState, aspect: number, projects: readonly Project[]): CameraPose {
@@ -120,10 +131,10 @@ export function poseFor(view: ViewState, aspect: number, projects: readonly Proj
       return { position, target: framing.target, offset: sideOffset(position, framing.target, aspect) }
     }
     case 'about':
-      return aboutPose(aspect)
+      return sectionPose(view.section, aspect)
     case 'aboutEntry': {
       const entry = getEntry(view.slug)
-      if (!entry) return aboutPose(aspect)
+      if (!entry) return sectionPose('laboral', aspect)
       const { position: p, target } = entry.camera
       const position = portraitPullBack(p, target, aspect)
       return { position, target, offset: sideOffset(position, target, aspect) }

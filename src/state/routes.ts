@@ -3,6 +3,7 @@ import type { ViewState } from './machine'
 export type Route = ViewState | { name: 'list' }
 
 const PROJECT_PATH = /^\/proyecto\/([a-z0-9-]+)(\/placa)?$/
+// /sobre-mi es el compartimento de experiencia, /sobre-mi/estudios el de estudios; si no, una entrada.
 const ABOUT_PATH = /^\/sobre-mi(?:\/([a-z0-9-]+))?$/
 
 function stripBase(pathname: string, base: string): string {
@@ -25,7 +26,8 @@ export function pathToRoute(
   const about = ABOUT_PATH.exec(path)
   if (about) {
     const slug = about[1]
-    return slug && isKnownEntry(slug) ? { name: 'aboutEntry', slug } : { name: 'about' }
+    if (slug === 'estudios') return { name: 'about', section: 'estudios' }
+    return slug && isKnownEntry(slug) ? { name: 'aboutEntry', slug } : { name: 'about', section: 'laboral' }
   }
 
   const match = PROJECT_PATH.exec(path)
@@ -53,7 +55,7 @@ export function routeToPath(route: Route, base = '/'): string {
     case 'list':
       return `${b}/lista`
     case 'about':
-      return `${b}/sobre-mi`
+      return route.section === 'estudios' ? `${b}/sobre-mi/estudios` : `${b}/sobre-mi`
     case 'aboutEntry':
       return `${b}/sobre-mi/${route.slug}`
   }

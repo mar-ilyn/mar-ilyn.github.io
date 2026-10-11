@@ -1,8 +1,9 @@
 import { useFrame } from '@react-three/fiber'
 import type { RefObject } from 'react'
 import { Vector3 } from 'three'
-import { axisYears, entryX, formatRange, ROWS, rowOf, timeline } from '../data/timeline'
+import { axisYears, entryX, formatRange, FRIEZE, rowOf, SECTIONS, timeline, type Row } from '../data/timeline'
 import { ROOM } from './layout'
+import { BACKING_Z } from './vitrineGeometry'
 
 // Textos de la zona "Sobre mí" en HTML (cartelas y años del eje), anclados a puntos de la escena:
 // cada elemento declara su posición en metros (data-x/y/z) y el ancla lo proyecta a la pantalla.
@@ -30,28 +31,44 @@ export function AboutLabelsAnchor({ target }: { target: RefObject<HTMLDivElement
   return null
 }
 
-const WALL = ROOM.wallZ + 0.05
+// Sobre el fondo claro del mueble.
+const WALL = ROOM.wallZ + BACKING_Z + 0.01
+const ROWS: Row[] = ['laboral', 'estudios']
 
-export function AboutLabels({ anchorRef, visible }: { anchorRef: RefObject<HTMLDivElement | null>; visible: boolean }) {
+interface Props {
+  anchorRef: RefObject<HTMLDivElement | null>
+  // Compartimento a la vista; los textos del otro se ocultan. null: ninguno.
+  section: Row | null
+}
+
+export function AboutLabels({ anchorRef, section }: Props) {
   return (
-    <div ref={anchorRef} className={`about-labels ${visible ? '' : 'about-labels--hidden'}`} aria-hidden="true">
+    <div ref={anchorRef} className={`about-labels ${section ? '' : 'about-labels--hidden'}`} aria-hidden="true">
       {timeline.map((e) => (
         <div
           key={e.slug}
-          className="about-label about-label--cartela"
+          className={`about-label about-label--cartela ${rowOf(e.kind) === section ? '' : 'about-label--off'}`}
           data-x={entryX(e)}
-          data-y={ROWS[rowOf(e.kind)].band - 0.11}
+          data-y={SECTIONS[rowOf(e.kind)].floor + FRIEZE.cartela}
           data-z={WALL}
         >
           <strong>{e.title}</strong>
           <span>{formatRange(e)}</span>
         </div>
       ))}
-      {axisYears().map(({ year, x }) => (
-        <div key={year} className="about-label about-label--year" data-x={x} data-y={ROWS.laboral.band + 0.62} data-z={WALL}>
-          {year}
-        </div>
-      ))}
+      {ROWS.flatMap((row) =>
+        axisYears().map(({ year, x }) => (
+          <div
+            key={row + year}
+            className={`about-label about-label--year ${row === section ? '' : 'about-label--off'}`}
+            data-x={x}
+            data-y={SECTIONS[row].floor + FRIEZE.years}
+            data-z={WALL}
+          >
+            {year}
+          </div>
+        )),
+      )}
     </div>
   )
 }

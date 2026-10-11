@@ -12,14 +12,15 @@ describe('rutas', () => {
     ['/proyecto/turnapp', { name: 'project', slug: 'turnapp' }],
     ['/proyecto/docu-tool/placa', { name: 'plaque', slug: 'docu-tool' }],
     ['/lista', { name: 'list' }],
-    ['/sobre-mi', { name: 'about' }],
+    ['/sobre-mi', { name: 'about', section: 'laboral' }],
+    ['/sobre-mi/estudios', { name: 'about', section: 'estudios' }],
     ['/sobre-mi/forit', { name: 'aboutEntry', slug: 'forit' }],
   ])('%s', (path, route) => {
     expect(pathToRoute(path, known, '/', knownEntry)).toEqual(route)
   })
 
   it('una entrada desconocida de Sobre mí cae en la zona', () => {
-    expect(pathToRoute('/sobre-mi/no-existe', known, '/', knownEntry)).toEqual({ name: 'about' })
+    expect(pathToRoute('/sobre-mi/no-existe', known, '/', knownEntry)).toEqual({ name: 'about', section: 'laboral' })
   })
 
   it('un slug desconocido cae en la galería y una ruta desconocida en la intro', () => {
@@ -34,7 +35,8 @@ describe('rutas', () => {
       { name: 'project', slug: 'turnapp' },
       { name: 'plaque', slug: 'turnapp' },
       { name: 'list' },
-      { name: 'about' },
+      { name: 'about', section: 'laboral' },
+      { name: 'about', section: 'estudios' },
       { name: 'aboutEntry', slug: 'forit' },
     ]
     for (const r of routes) expect(pathToRoute(routeToPath(r), known, '/', knownEntry)).toEqual(r)

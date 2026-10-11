@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
-import { introWidePose, poseFor, type CameraPose } from './layout'
+import { cabinetPose, introWidePose, poseFor, type CameraPose } from './layout'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 const { ACTION } = CameraControlsImpl
@@ -77,6 +77,12 @@ export function CameraRig({ view, holdWide = false }: Props) {
         await go(pose, false, 0)
       } else {
         setCameraMoving(true)
+        if (previous?.name === 'gallery' && view.name === 'about') {
+          // Hacia "Sobre mí": primero un vistazo al mueble entero (la cámara se corre a la derecha) y,
+          // sin detenerse del todo, sigue al compartimento.
+          await Promise.race([go(cabinetPose(aspect), true, 0.4), new Promise((r) => setTimeout(r, 850))])
+          if (cancelled) return
+        }
         // Hacia la galería es un solo vuelo continuo: al salir del acercamiento la cámara ya se aleja
         // y se desplaza a la derecha a la vez.
         await go(pose, true, view.name === 'toGallery' ? 0.8 : 0.45)

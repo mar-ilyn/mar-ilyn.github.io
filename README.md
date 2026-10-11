@@ -119,7 +119,11 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 
 ### Zona "Sobre mí"
 
-A la derecha de los pedestales (se llega bajando desde la galería o desde el menú). Friso de dos filas (experiencia arriba, estudios abajo) con un eje de tiempo compartido de 2022 a hoy, y una vitrina victoriana con un estante por fila. Los datos están en `src/data/timeline.ts`. La vitrina y los objetos (teclado, guía de envío, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
+A la derecha de los pedestales, entre dos columnas de la pared: un mueble vitrina alto y angosto (1,8 × 3,1 m) con base de nogal y puertas macizas, cuerpo vidriado con marco fino de latón, fondo claro y tira de luz bajo el techo. Tiene dos compartimentos separados por un estante de vidrio: arriba la experiencia laboral, abajo estudios y certificaciones. Cada uno lleva su propio friso cronológico (eje de 2022 a hoy, una barra de duración por entrada y una línea guía en ángulo recto hasta la cartela) y sus objetos en el estante, repartidos a distancias iguales para que no se pisen aunque las fechas estén cerca.
+
+Recorrido: al bajar desde la galería la cámara se corre a la derecha y muestra el mueble entero un instante (`cabinetPose`), y sin detenerse sigue al compartimento de experiencia (`/sobre-mi`). Bajando otra vez va al de estudios (`/sobre-mi/estudios`); subir desanda el camino. Cada entrada abre su panel (`/sobre-mi/<entrada>`) y Esc vuelve a su compartimento. Con teclado, cada compartimento tiene botones para sus entradas y uno para pasar al otro.
+
+Los datos están en `src/data/timeline.ts`. El mueble y los objetos (teclado, guía de envío, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
 
 ### Molduras doradas de la pared
 
@@ -159,7 +163,7 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 | Parquet en espiga (color, normal, AO+rugosidad) | [herringbone_parquet](https://polyhaven.com/a/herringbone_parquet) | 3 JPG 1k, 1,75 MB | KTX2 ETC1S, 374 KB |
 | Yeso (normal, AO+rugosidad) | [painted_plaster_wall](https://polyhaven.com/a/painted_plaster_wall) | 2 JPG 1k, 1,41 MB | KTX2 ETC1S, 311 KB |
 | Marco tallado del retrato (sin la pintura original) | [fancy_picture_frame_02](https://polyhaven.com/a/fancy_picture_frame_02), de Rob Tuytel y Rico Cilliers | glTF 1k, 1,73 MB, 35 k triángulos | GLB meshopt simplificado al 35 % + texturas KTX2 512 px, 288 KB |
-| Nogal de la vitrina "Sobre mí" | [black_walnut_veneer_01](https://polyhaven.com/a/black_walnut_veneer_01), de Jenelle van Heerden | 3 JPG 1k, 1,81 MB | KTX2 ETC1S, 427 KB |
+| Nogal del mueble "Sobre mí" | [black_walnut_veneer_01](https://polyhaven.com/a/black_walnut_veneer_01), de Jenelle van Heerden | 3 JPG 1k, 1,81 MB | KTX2 ETC1S, 427 KB |
 | Marco con atril de los certificados (la obra se reemplaza por papel en blanco) | [standing_picture_frame_02](https://polyhaven.com/a/standing_picture_frame_02), de James Ray Cock | glTF 1k, 0,57 MB | GLB meshopt + KTX2 256 px, 87 KB |
 | HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | PMREM horneado, PNG RGBE 336×256, 119 KB |
 

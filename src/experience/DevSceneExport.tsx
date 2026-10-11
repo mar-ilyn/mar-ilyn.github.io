@@ -1,11 +1,12 @@
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
-import { Group, InstancedMesh, Mesh, MeshStandardMaterial, type Object3D } from 'three'
+import { Group, InstancedMesh, Mesh, MeshStandardMaterial, type Material, type Object3D } from 'three'
 
 // Solo en desarrollo: expone la escena para scripts/bake-lightmaps.mjs, que la exporta a GLB y la
 // hornea en Blender. Así el horneado usa exactamente la geometría que se ve, sin duplicarla.
 // Las piezas que se mueven o son efectos de luz no proyectan oclusión y se excluyen.
 // Las molduras doradas son planos con transparencia: exportadas sin ella oscurecerían todo el panel.
+// Tampoco proyectan los materiales transparentes (vidrio del mueble, manchas de luz, zonas de clic).
 const DYNAMIC = /^(exhibit|light-beam|light-pool|gilt-frames|gilt-frame-intro)$/
 
 declare global {
@@ -28,6 +29,7 @@ function staticCopy(scene: Object3D): Group {
   const plain = new MeshStandardMaterial({ color: '#bbbbbb' })
   scene.traverseVisible((node) => {
     if (DYNAMIC.test(node.name) || node.parent?.name.match(DYNAMIC)) return
+    if (node instanceof Mesh && !Array.isArray(node.material) && (node.material as Material).transparent) return
     if (node instanceof InstancedMesh) {
       const copy = new InstancedMesh(node.geometry, plain, node.count)
       copy.instanceMatrix.copy(node.instanceMatrix)

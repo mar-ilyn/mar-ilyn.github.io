@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { getProject, projects } from '../data/projects'
-import { formatRange, getEntry, KIND_LABEL, neighbours, timeline } from '../data/timeline'
+import { entriesOf, formatRange, getEntry, KIND_LABEL, neighbours, SECTION_LABEL, type Row } from '../data/timeline'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 
@@ -20,24 +20,27 @@ export function Overlays({ view }: Props) {
     case 'plaque':
       return <ProjectPanel slug={view.slug} atPlaque={view.name === 'plaque'} />
     case 'about':
-      return <AboutOverlay />
+      return <AboutOverlay section={view.section} />
     case 'aboutEntry':
       return <EntryPanel slug={view.slug} />
   }
 }
 
-// Capa de botones de la zona: Tab entre entradas (en orden cronológico), Enter abre, Esc vuelve.
-function AboutOverlay() {
+// Capa de botones de cada compartimento: Tab entre sus entradas (en orden cronológico), Enter abre, Esc
+// vuelve a la galería; el último botón pasa al otro compartimento.
+function AboutOverlay({ section }: { section: Row }) {
   const send = useViewStore((s) => s.send)
   const setHighlighted = useViewStore((s) => s.setHighlighted)
-  const heading = useFocusOnMount<HTMLHeadingElement>('about')
+  const heading = useFocusOnMount<HTMLHeadingElement>(section)
+  const other: Row = section === 'laboral' ? 'estudios' : 'laboral'
+  const hint = section === 'laboral' ? 'deslizá hacia abajo para Estudios' : 'deslizá hacia arriba para Experiencia'
   return (
     <nav className="overlay overlay--gallery" aria-labelledby="about-title">
       <h2 id="about-title" ref={heading} tabIndex={-1} className="overlay__hint">
-        Sobre mí · elegí una entrada
+        Sobre mí · {SECTION_LABEL[section]} · {hint}
       </h2>
       <ul className="pedestal-nav">
-        {timeline.map((e) => (
+        {entriesOf(section).map((e) => (
           <li key={e.slug}>
             <button
               type="button"
@@ -50,6 +53,15 @@ function AboutOverlay() {
             </button>
           </li>
         ))}
+        <li>
+          <button
+            type="button"
+            className="pedestal-nav__button"
+            onClick={() => send({ type: other === 'estudios' ? 'STEP_DOWN' : 'STEP_UP' })}
+          >
+            Ir a {SECTION_LABEL[other]}
+          </button>
+        </li>
       </ul>
     </nav>
   )

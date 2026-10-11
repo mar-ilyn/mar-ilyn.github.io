@@ -1,12 +1,12 @@
 import { BoxGeometry, CylinderGeometry, Group, type BufferGeometry } from 'three'
-import { ROWS, VITRINE } from '../data/timeline'
+import { CABINET } from '../data/timeline'
 import type { TimelineObjectKind } from '../data/types'
 import { bake } from './bake'
 import { place, ring } from './ornament'
 import { ROOM } from './layout'
 
-// Vitrina victoriana de la zona "Sobre mí" y sus objetos, modelados por código (assets propios).
-// Todo se hornea en una geometría por material: nogal, latón, fondo interior y vidrio.
+// Mueble vitrina de la zona "Sobre mí" y sus objetos, modelados por código (assets propios).
+// Todo se hornea en una geometría por material: nogal, latón, fondo claro, vidrio y luz.
 // Coordenadas de la escena; z = 0 en la cara de la pared.
 
 const WOOD_TILE = 0.9 // metros que cubre una repetición de la textura de nogal
@@ -34,93 +34,103 @@ export function woodBox(w: number, h: number, d: number): BoxGeometry {
 }
 
 const Z = ROOM.wallZ
+// El fondo claro va por delante de las molduras de la pared (sobresalen hasta 5 cm).
 export const BACKING_Z = 0.065
-const D = VITRINE.depth
-const W = VITRINE.right - VITRINE.left
-const CX = (VITRINE.left + VITRINE.right) / 2
+const D = CABINET.depth
+const W = CABINET.width
+const CX = CABINET.cx
+const L = CX - W / 2
+const R = CX + W / 2
 const box = (root: Group, w: number, h: number, d: number, x: number, y: number, z: number) =>
   place(root, woodBox(w, h, d), { position: [x, y, Z + z] })
+const plain = (root: Group, w: number, h: number, d: number, x: number, y: number, z: number) =>
+  place(root, new BoxGeometry(w, h, d), { position: [x, y, Z + z] })
 
-export interface VitrineGeometries {
+export interface CabinetGeometries {
   walnut: BufferGeometry
   brass: BufferGeometry
   backing: BufferGeometry
   glass: BufferGeometry
+  glow: BufferGeometry
 }
 
-// Tramos entre laterales y montantes (para paneles de la base, luces y vidrios).
-export function vitrineBays(): [number, number][] {
-  const edges = [VITRINE.left, ...VITRINE.mullions, VITRINE.right]
-  return edges.slice(1).map((r, i) => [edges[i], r])
-}
-
-export function vitrineGeometries(): VitrineGeometries {
+// Mueble vitrina alto: base de nogal con dos puertas de paneles, cuerpo vidriado con un marco fino de
+// latón (montantes, cantos y estante de vidrio), fondo claro, tira de luz bajo el techo y cornisa
+// escalonada de nogal.
+export function cabinetGeometries(): CabinetGeometries {
   const walnut = new Group()
   const brass = new Group()
   const backing = new Group()
   const glass = new Group()
-  const { baseTop, top } = VITRINE
+  const glow = new Group()
+  const { baseTop, shelf, top, crown } = CABINET
 
-  // Base maciza: zócalo, cuerpo con un panel clásico por tramo y moldura de remate.
-  box(walnut, W + 0.08, 0.08, D + 0.06, CX, 0.04, D / 2 + 0.03)
-  box(walnut, W, baseTop - 0.12, D, CX, 0.08 + (baseTop - 0.12) / 2, D / 2)
-  for (const [l, r] of vitrineBays()) {
-    const pw = r - l - 0.16
-    const ph = baseTop - 0.26
-    place(walnut, ring(pw, ph, pw - 0.07, ph - 0.07, 0.014, 0.006), {
-      position: [(l + r) / 2, 0.08 + (baseTop - 0.12) / 2, Z + D + 0.001],
-    })
-    place(walnut, woodBox(pw - 0.09, ph - 0.09, 0.012), {
-      position: [(l + r) / 2, 0.08 + (baseTop - 0.12) / 2, Z + D + 0.006],
+  // Base: zócalo, cuerpo con dos puertas de panel clásico y moldura de remate.
+  box(walnut, W + 0.06, 0.1, D + 0.04, CX, 0.05, D / 2 + 0.02)
+  const bodyH = baseTop - 0.14
+  const bodyY = 0.1 + bodyH / 2
+  box(walnut, W, bodyH, D, CX, bodyY, D / 2)
+  for (const s of [-1, 1]) {
+    const dx = CX + (s * W) / 4
+    const pw = W / 2 - 0.14
+    const ph = bodyH - 0.14
+    place(walnut, ring(pw, ph, pw - 0.07, ph - 0.07, 0.014, 0.006), { position: [dx, bodyY, Z + D + 0.001] })
+    place(walnut, woodBox(pw - 0.09, ph - 0.09, 0.012), { position: [dx, bodyY, Z + D + 0.006] })
+    place(brass, new CylinderGeometry(0.011, 0.011, 0.024, 14), {
+      position: [CX + s * 0.05, bodyY + 0.04, Z + D + 0.014],
+      rotation: [Math.PI / 2, 0, 0],
     })
   }
+  // Junta entre las dos puertas.
+  plain(walnut, 0.006, bodyH - 0.02, 0.004, CX, bodyY, D + 0.002)
   box(walnut, W + 0.05, 0.04, D + 0.04, CX, baseTop - 0.02, D / 2 + 0.02)
+  plain(brass, W + 0.05, 0.006, 0.006, CX, baseTop + 0.002, D + 0.042)
 
-  // Cuerpo vidriado: piso interior (estante de estudios), estante de experiencia, techo y cornisa.
-  box(walnut, W - 0.04, 0.03, D - 0.04, CX, ROWS.estudios.shelf - 0.015, D / 2)
-  box(walnut, W - 0.06, 0.025, D - 0.08, CX, ROWS.laboral.shelf - 0.0125, D / 2 - 0.01)
-  box(walnut, W + 0.02, 0.05, D + 0.02, CX, top - 0.025, D / 2 + 0.01)
-  box(walnut, W + 0.08, 0.035, D + 0.06, CX, top + 0.0175, D / 2 + 0.03)
-  box(walnut, W + 0.13, 0.03, D + 0.09, CX, top + 0.05, D / 2 + 0.045)
-
-  // Laterales y montantes finos (el marco exterior), con esquinas reforzadas.
-  const glassH = top - 0.05 - baseTop
-  for (const x of [VITRINE.left + 0.025, VITRINE.right - 0.025]) {
-    box(walnut, 0.05, glassH, D, x, baseTop + glassH / 2, D / 2)
-    box(walnut, 0.07, 0.07, 0.07, x, top - 0.02, D - 0.005)
-    box(walnut, 0.07, 0.07, 0.07, x, baseTop + 0.02, D - 0.005)
+  // Cuerpo vidriado: montantes de latón en las cuatro esquinas y travesaños arriba y abajo.
+  const glassH = top - baseTop
+  const post = 0.032
+  for (const x of [L + post / 2, R - post / 2]) {
+    for (const z of [post / 2 + 0.02, D - post / 2]) plain(brass, post, glassH, post, x, baseTop + glassH / 2, z)
   }
-  for (const x of VITRINE.mullions) box(walnut, 0.035, glassH, 0.035, x, baseTop + glassH / 2, D - 0.02)
-  // Travesaño fino a la altura del estante superior, delante del vidrio.
-  box(walnut, W - 0.05, 0.022, 0.025, CX, ROWS.laboral.shelf - 0.012, D - 0.01)
-
-  // Latón envejecido: filete bajo la cornisa, cantos de los estantes y pomos de las puertas.
-  place(brass, new BoxGeometry(W + 0.02, 0.008, 0.006), { position: [CX, top - 0.052, Z + D + 0.013] })
-  place(brass, new BoxGeometry(W - 0.06, 0.006, 0.004), { position: [CX, ROWS.laboral.shelf - 0.001, Z + D - 0.005] })
-  place(brass, new BoxGeometry(W + 0.05, 0.006, 0.006), { position: [CX, baseTop + 0.002, Z + D + 0.022] })
-  const knob = new CylinderGeometry(0.009, 0.009, 0.02, 12)
-  for (const x of VITRINE.mullions) {
-    for (const s of [-1, 1]) {
-      place(brass, knob, { position: [x + s * 0.04, (baseTop + top) / 2, Z + D + 0.012], rotation: [Math.PI / 2, 0, 0] })
-    }
+  for (const y of [baseTop + 0.012, top - 0.012]) plain(brass, W, 0.024, post, CX, y, D - post / 2)
+  for (const x of [L + post / 2, R - post / 2]) {
+    for (const y of [baseTop + 0.012, top - 0.012]) plain(brass, post, 0.024, D - 0.02, x, y, D / 2 + 0.01)
   }
-  // Focos de museo: pequeñas pastillas de latón bajo el techo, una por tramo.
-  const puck = new CylinderGeometry(0.03, 0.034, 0.018, 16)
-  for (const [l, r] of vitrineBays()) {
-    place(brass, puck, { position: [(l + r) / 2, top - 0.059, Z + D * 0.55] })
-    place(brass, puck, { position: [(l + r) / 2, ROWS.laboral.shelf - 0.034, Z + D * 0.55] })
-  }
+  // Estante de vidrio entre los dos compartimentos, con canto de latón y un travesaño al frente.
+  plain(glass, W - 2 * post, 0.012, D - 0.06, CX, shelf - 0.006, D / 2)
+  plain(brass, W - 2 * post, 0.016, 0.01, CX, shelf - 0.008, D - 0.035)
+  plain(brass, W, 0.018, post * 0.8, CX, shelf - 0.009, D - post / 2)
+  // Bisagras de la puerta vidriada (lado derecho) y un tirador de latón a la izquierda.
+  for (const y of [baseTop + 0.25, top - 0.25]) plain(brass, 0.012, 0.07, 0.012, R - 0.004, y, D + 0.004)
+  plain(brass, 0.012, 0.16, 0.014, L + 0.045, (baseTop + top) / 2, D + 0.01)
 
-  // Fondo interior oscuro (separa los objetos de la pared) y el vidrio frontal.
-  // Por delante de las molduras de la pared (sobresalen hasta 5 cm), para que no se vean a través.
-  place(backing, new BoxGeometry(W - 0.06, glassH, 0.01), { position: [CX, baseTop + glassH / 2, Z + BACKING_Z] })
-  for (const [l, r] of vitrineBays()) {
-    place(glass, new BoxGeometry(r - l - 0.04, glassH - 0.01, 0.004), {
-      position: [(l + r) / 2, baseTop + glassH / 2, Z + D - 0.006],
+  // Vidrios: frente (uno por compartimento) y laterales.
+  for (const [y0, y1] of [
+    [baseTop + 0.024, shelf - 0.018],
+    [shelf, top - 0.024],
+  ]) {
+    plain(glass, W - 2 * post, y1 - y0, 0.004, CX, (y0 + y1) / 2, D - 0.012)
+  }
+  for (const x of [L + 0.006, R - 0.006]) {
+    place(glass, new BoxGeometry(0.004, glassH - 0.05, D - 2 * post - 0.02), {
+      position: [x, baseTop + glassH / 2, Z + D / 2 + 0.01],
     })
   }
 
-  return { walnut: bake(walnut), brass: bake(brass), backing: bake(backing), glass: bake(glass) }
+  // Fondo claro de los dos compartimentos (tela de lino) y techo interior.
+  plain(backing, W - 2 * post, glassH, 0.01, CX, baseTop + glassH / 2, BACKING_Z)
+  box(walnut, W - 2 * post, 0.03, D - 0.04, CX, top - 0.039, D / 2)
+  // Tira de luz bajo el techo, al frente, y otra bajo el estante de vidrio, al fondo.
+  plain(glow, W - 0.12, 0.006, 0.02, CX, top - 0.058, D - 0.06)
+  plain(glow, W - 0.12, 0.004, 0.016, CX, shelf - 0.016, BACKING_Z + 0.04)
+
+  // Cornisa escalonada: friso liso, filete de latón y dos cornisas que vuelan cada vez más.
+  box(walnut, W + 0.02, 0.1, D + 0.02, CX, top + 0.05, D / 2 + 0.01)
+  plain(brass, W + 0.03, 0.008, 0.006, CX, top + 0.02, D + 0.024)
+  box(walnut, W + 0.08, 0.04, D + 0.05, CX, top + 0.12, D / 2 + 0.025)
+  box(walnut, W + 0.14, crown - top - 0.14, D + 0.08, CX, (top + 0.14 + crown) / 2, D / 2 + 0.04)
+
+  return { walnut: bake(walnut), brass: bake(brass), backing: bake(backing), glass: bake(glass), glow: bake(glow) }
 }
 
 // --- Objetos (centrados en x = 0, apoyados en y = 0, frente hacia +z) ---

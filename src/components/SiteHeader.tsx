@@ -19,11 +19,11 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
         : null
 
   // "Sobre mí": en la galería lleva a la zona 3D; en la lista, a su sección.
-  const aboutHref = mode === 'gallery' ? routeToPath({ name: 'about' }, import.meta.env.BASE_URL) : '#sobre-mi'
+  const aboutHref = mode === 'gallery' ? routeToPath({ name: 'about', section: 'laboral' }, import.meta.env.BASE_URL) : '#sobre-mi'
   const onAbout = (e: MouseEvent<HTMLAnchorElement>) => {
     if (mode !== 'gallery' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
     e.preventDefault()
-    navigate({ name: 'about' })
+    navigate({ name: 'about', section: 'laboral' })
   }
 
   const onToggle = (e: MouseEvent<HTMLAnchorElement>) => {

@@ -1,6 +1,7 @@
 import { formatRange, KIND_LABEL, timeline } from '../data/timeline'
 
-// "Sobre mí" en la vista en lista: la misma línea de tiempo como lista ordenada (orden cronológico).
+// "Sobre mí" en la vista en lista: la misma línea de tiempo como lista ordenada (experiencia y después
+// estudios, cada parte en orden cronológico).
 export function TimelineList() {
   return (
     <section id="sobre-mi" className="timeline" aria-labelledby="timeline-title" tabIndex={-1}>

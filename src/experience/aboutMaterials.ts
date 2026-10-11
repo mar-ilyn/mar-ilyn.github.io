@@ -10,8 +10,8 @@ import {
   type Texture,
 } from 'three'
 
-// Materiales de la zona "Sobre mí". Paleta: nogal oscuro satinado, latón envejecido, vidrio claro,
-// cuero, papel marfil. Los efectos de luz (manchas, sombras de contacto, reflejos del vidrio) son
+// Materiales de la zona "Sobre mí". Paleta: nogal oscuro satinado, latón envejecido, fondo de lino claro,
+// vidrio, cuero, papel marfil. Los efectos de luz (manchas, sombras de contacto, reflejos del vidrio) son
 // texturas de degradé sobre planos: livianos y sin luces en tiempo real.
 
 export function createWalnut(color: Texture, normal: Texture, _arm: Texture): MeshStandardMaterial {
@@ -37,7 +37,12 @@ export function createWalnut(color: Texture, normal: Texture, _arm: Texture): Me
 export const walnutPlain = new MeshStandardMaterial({ color: '#3d281c', roughness: 0.5 })
 
 export const agedBrass = new MeshStandardMaterial({ color: '#a5844c', metalness: 0.8, roughness: 0.42 })
-export const backing = new MeshStandardMaterial({ color: '#2c211a', roughness: 0.95 })
+// Fondo claro de los compartimentos: lino marfil, mate.
+export const backing = new MeshStandardMaterial({ color: '#e4dbc8', roughness: 0.95, envMapIntensity: 0.6 })
+// Líneas del friso sobre el fondo claro: bronce oscuro, para que contrasten.
+export const bronze = new MeshStandardMaterial({ color: '#6f5128', metalness: 0.6, roughness: 0.45 })
+// Tiras de luz del mueble (bajo el techo y bajo el estante de vidrio).
+export const cabinetGlow = new MeshBasicMaterial({ color: '#fff2d8' })
 export const velvet = new MeshStandardMaterial({ color: '#3e1f22', roughness: 1 })
 export const paper = new MeshStandardMaterial({ color: '#efe7d6', roughness: 0.9 })
 export const paperLabel = new MeshStandardMaterial({ color: '#f8f5ee', roughness: 0.85 })

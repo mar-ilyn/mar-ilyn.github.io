@@ -126,7 +126,7 @@ test('la calidad alta carga texturas, entorno y efectos sin errores', async ({ p
   expect(errors).toEqual([])
 })
 
-test('Sobre mí: bajar desde la galería, abrir con teclado, recorrer y volver', async ({ page }) => {
+test('Sobre mí: bajar por los compartimentos del mueble, abrir con teclado, recorrer y volver', async ({ page }) => {
   // Al llegar a la galería se descarga y monta la zona Sobre mí: con WebGL por software tarda.
   test.setTimeout(90_000)
   await page.goto('/proyectos')
@@ -134,20 +134,28 @@ test('Sobre mí: bajar desde la galería, abrir con teclado, recorrer y volver',
   await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
   await page.keyboard.press('ArrowDown')
   await expect(page).toHaveURL(/\/sobre-mi$/)
-  await expect(page.getByRole('heading', { name: /Sobre mí/ })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('heading', { name: /Sobre mí · Experiencia/ })).toBeVisible({ timeout: 30_000 })
+
+  await page.getByRole('button', { name: 'Ir a Estudios' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/sobre-mi\/estudios$/)
+  await expect(page.getByRole('heading', { name: /Sobre mí · Estudios/ })).toBeVisible()
 
   await page.getByRole('button', { name: /Abrir Estudio: Tecnicatura/ }).focus()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/sobre-mi\/tecnicatura-ifts-24$/)
   await expect(page.getByRole('heading', { level: 2, name: 'Tecnicatura en Desarrollo de Software' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Anterior' })).toBeDisabled()
 
-  await page.getByRole('button', { name: /Siguiente: Asistente/ }).click()
-  await expect(page).toHaveURL(/\/sobre-mi\/the-argentino$/)
+  await page.getByRole('button', { name: /Siguiente: Desarrollo Full Stack MERN/ }).click()
+  await expect(page).toHaveURL(/\/sobre-mi\/full-stack-mern$/)
   await page.goBack({ waitUntil: 'commit' })
   await expect(page).toHaveURL(/\/sobre-mi\/tecnicatura-ifts-24$/)
 
+  // Esc vuelve al compartimento de la entrada; subir vuelve al de experiencia.
   await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/sobre-mi\/estudios$/)
+  await page.getByRole('button', { name: 'Ir a Experiencia' }).focus()
+  await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/sobre-mi$/)
 })
 
@@ -156,5 +164,5 @@ test('la vista en lista incluye la línea de tiempo como lista ordenada', async 
   const section = page.getByRole('region', { name: 'Sobre mí' })
   await expect(section.getByRole('list')).toBeVisible()
   await expect(section.getByRole('listitem')).toHaveCount(5)
-  await expect(section.getByRole('heading', { level: 3 }).first()).toHaveText('Tecnicatura en Desarrollo de Software')
+  await expect(section.getByRole('heading', { level: 3 }).first()).toHaveText('Asistente de Documentación Internacional')
 })

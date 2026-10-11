@@ -1,32 +1,41 @@
 import type { CameraView, TimelineEntry, TimelineKind, YearMonth } from './types'
 
-// Zona "Sobre mí": friso cronológico sobre una vitrina, en el tramo de pared entre x = 10 y x = 22.
-// Dos filas comparten el eje de tiempo: arriba la experiencia laboral, abajo estudios y certificaciones.
+// Zona "Sobre mí": un mueble vitrina alto y angosto entre dos columnas de la pared (x = 14 a 18).
+// Arriba, el compartimento de experiencia laboral; abajo, el de estudios y certificaciones. Cada uno
+// tiene su friso cronológico sobre el fondo claro y sus objetos en el estante.
 // Los textos de las descripciones son de ejemplo.
 
-export const ABOUT_BAY = { left: 10, right: 22 } as const
+export const ABOUT_BAY = { left: 14, right: 18 } as const
 
-// Eje horizontal: enero de 2022 en AXIS.x0, hoy en AXIS.x1. Lo que no tiene fecha va en AXIS.undated.
-export const AXIS = { start: '2022-01' as YearMonth, x0: 11.5, x1: 19.7, undated: 20.55 } as const
-
-// Altura de la banda de cada fila (los marcos van encima y la cartela debajo) y del estante de la vitrina.
-export const ROWS = {
-  laboral: { band: 2.72, shelf: 1.1 },
-  estudios: { band: 1.98, shelf: 0.56 },
-} as const
-
-// Vitrina: base maciza de nogal hasta baseTop, cuerpo vidriado hasta top, cuatro tramos simétricos
-// separados por montantes (los objetos caen siempre dentro de un tramo).
-export const VITRINE = {
-  left: 11.0,
-  right: 21.0,
+// Mueble: base maciza con puertas hasta baseTop, cuerpo vidriado con dos compartimentos separados por
+// un estante de vidrio (shelf) y techo en top; la cornisa llega a crown.
+export const CABINET = {
+  cx: 16,
+  width: 1.8,
   depth: 0.5,
-  baseTop: 0.52,
-  top: 1.6,
-  mullions: [12.7, 16.0, 19.3],
+  baseTop: 0.74,
+  shelf: 1.83,
+  top: 2.92,
+  crown: 3.12,
 } as const
 
-export type Row = keyof typeof ROWS
+export type Row = 'laboral' | 'estudios'
+
+// Piso y techo de cada compartimento.
+export const SECTIONS: Record<Row, { floor: number; ceiling: number }> = {
+  laboral: { floor: CABINET.shelf, ceiling: CABINET.top },
+  estudios: { floor: CABINET.baseTop, ceiling: CABINET.shelf - 0.012 },
+}
+
+// Alturas del friso medidas desde el piso del compartimento: años, eje, primera barra de duración (las
+// siguientes bajan de a laneStep), quiebre de las líneas guía y centro de la cartela.
+export const FRIEZE = { years: 1.0, axis: 0.95, lane: 0.915, laneStep: 0.028, elbow: 0.74, cartela: 0.6 } as const
+
+// Eje horizontal dentro del mueble: enero de 2022 en x0, hoy en x1.
+export const AXIS = { start: '2022-01' as YearMonth, x0: CABINET.cx - 0.74, x1: CABINET.cx + 0.74 } as const
+
+// Separación entre los objetos de un estante (y sus cartelas), repartidos simétricos.
+export const SLOT_PITCH = 0.56
 
 export const rowOf = (kind: TimelineKind): Row => (kind === 'laboral' ? 'laboral' : 'estudios')
 
@@ -47,9 +56,6 @@ export function axisX(ym: YearMonth, now: YearMonth = NOW): number {
   return AXIS.x0 + t * (AXIS.x1 - AXIS.x0)
 }
 
-export const entryX = (e: Pick<TimelineEntry, 'start'>, now: YearMonth = NOW) =>
-  e.start ? axisX(e.start, now) : AXIS.undated
-
 // Extremos de la barra de duración; null si no hay fecha.
 export function durationSpan(e: Pick<TimelineEntry, 'start' | 'end'>, now: YearMonth = NOW): [number, number] | null {
   if (!e.start) return null
@@ -64,16 +70,19 @@ export function axisYears(now: YearMonth = NOW): { year: number; x: number }[] {
   return out
 }
 
-// Cámara de cada entrada: de frente a su columna, encuadrando desde el marco (arriba) hasta el
-// objeto en el estante (abajo), con margen para el header.
+// Columna i de n en un estante.
+export const slotX = (i: number, n: number) => CABINET.cx + (i - (n - 1) / 2) * SLOT_PITCH
+
+// Cámara de cada entrada: de frente a su columna, encuadrando desde la cartela hasta el objeto.
 const WALL_Z = -3
-function entryCamera(x: number, kind: TimelineKind): CameraView {
-  const row = ROWS[rowOf(kind)]
-  const top = row.band + 0.56
-  const bottom = row.shelf - 0.16
-  const y = (top + bottom) / 2 + 0.08
-  const distance = ((top - bottom) / 2 + 0.45) / Math.tan((45 * Math.PI) / 360)
-  return { position: [x, y + 0.05, WALL_Z + distance], target: [x, y, WALL_Z] }
+const HALF_TAN = Math.tan((45 * Math.PI) / 360)
+function entryCamera(x: number, row: Row): CameraView {
+  const { floor } = SECTIONS[row]
+  const top = floor + FRIEZE.cartela + 0.08
+  const bottom = floor - 0.06
+  const y = (top + bottom) / 2
+  const distance = ((top - bottom) / 2 + 0.3) / HALF_TAN
+  return { position: [x, y + 0.04, WALL_Z + distance], target: [x, y, WALL_Z] }
 }
 
 type Draft = Omit<TimelineEntry, 'camera'>
@@ -140,24 +149,46 @@ const drafts: Draft[] = [
   },
 ]
 
-const order = (a: Draft, b: Draft) =>
-  a.start && b.start ? months(a.start) - months(b.start) : a.start ? -1 : b.start ? 1 : 0
+const ROW_ORDER: Row[] = ['laboral', 'estudios']
 
-// Orden cronológico (las entradas sin fecha al final): es el orden de "Anterior / Siguiente".
-export const timeline: readonly TimelineEntry[] = [...drafts]
-  .sort(order)
-  .map((d) => ({ ...d, camera: entryCamera(entryX(d), d.kind) }))
+const order = (a: Draft, b: Draft) =>
+  ROW_ORDER.indexOf(rowOf(a.kind)) - ROW_ORDER.indexOf(rowOf(b.kind)) ||
+  (a.start && b.start ? months(a.start) - months(b.start) : a.start ? -1 : b.start ? 1 : 0)
+
+// Lugar reservado en el estante de experiencia para un objeto de un hobby (se completa más adelante).
+const HOBBY = 'hobby'
+
+// Columnas de cada estante: las entradas en orden cronológico (sin fecha al final) y el hobby al final
+// del de experiencia.
+const sorted = [...drafts].sort(order)
+const slots = new Map<string, number>()
+for (const row of ROW_ORDER) {
+  const ids = sorted.filter((d) => rowOf(d.kind) === row).map((d) => d.slug)
+  if (row === 'laboral') ids.push(HOBBY)
+  ids.forEach((id, i) => slots.set(id, slotX(i, ids.length)))
+}
+
+// Columna de la entrada en su estante: ahí van su objeto y su cartela.
+export const entryX = (e: Pick<TimelineEntry, 'slug'>) => slots.get(e.slug) ?? CABINET.cx
+
+export const HOBBY_SLOT = { x: slots.get(HOBBY) ?? CABINET.cx, row: 'laboral' as Row }
+
+// Primero la experiencia y después los estudios, cada uno en orden cronológico: es el orden de
+// "Anterior / Siguiente".
+export const timeline: readonly TimelineEntry[] = sorted.map((d) => ({
+  ...d,
+  camera: entryCamera(entryX(d), rowOf(d.kind)),
+}))
 
 export const getEntry = (slug: string) => timeline.find((e) => e.slug === slug)
+
+export const entriesOf = (row: Row) => timeline.filter((e) => rowOf(e.kind) === row)
 
 export function neighbours(slug: string): { prev?: TimelineEntry; next?: TimelineEntry } {
   const i = timeline.findIndex((e) => e.slug === slug)
   if (i < 0) return {}
   return { prev: timeline[i - 1], next: timeline[i + 1] }
 }
-
-// Espacio reservado en la vitrina para un objeto de un hobby (se completa más adelante).
-export const HOBBY_SLOT = { x: AXIS.undated, row: 'laboral' as Row }
 
 const MONTHS = [
   'enero',
@@ -187,4 +218,9 @@ export const KIND_LABEL: Record<TimelineKind, string> = {
   laboral: 'Experiencia laboral',
   estudio: 'Estudio',
   certificacion: 'Certificación',
+}
+
+export const SECTION_LABEL: Record<Row, string> = {
+  laboral: 'Experiencia',
+  estudios: 'Estudios',
 }

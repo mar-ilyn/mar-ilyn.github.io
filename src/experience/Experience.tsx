@@ -2,7 +2,7 @@ import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import { projects } from '../data/projects'
-import type { ViewState } from '../state/machine'
+import { sectionOf, type ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import { AboutLabels, AboutLabelsAnchor } from './AboutLabels'
 import { Atmosphere } from './Atmosphere'
@@ -57,7 +57,7 @@ export default function Experience({ view }: Props) {
   const aboutRef = useRef<HTMLDivElement>(null)
   const [aboutLoaded, setAboutLoaded] = useState(false)
   if (!aboutLoaded && !render && ABOUT_READY_VIEWS.has(view.name)) setAboutLoaded(true)
-  const inAbout = view.name === 'about' || view.name === 'aboutEntry'
+  const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
@@ -122,7 +122,7 @@ export default function Experience({ view }: Props) {
       </Canvas>
       {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
       <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
-      {aboutLoaded && <AboutLabels anchorRef={aboutRef} visible={inAbout} />}
+      {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

@@ -1,11 +1,24 @@
 import { useCursor, useKTX2 } from '@react-three/drei'
 import { useFrame, useLoader, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
-import { Box3, BoxGeometry, Color, Mesh, MeshStandardMaterial, type Group, type Material, type Object3D } from 'three'
+import { Box3, Color, Mesh, type Group, type Material, type MeshStandardMaterial, type Object3D } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
-import { AXIS, axisYears, durationSpan, entryX, HOBBY_SLOT, ROWS, rowOf, timeline, VITRINE } from '../data/timeline'
+import {
+  AXIS,
+  axisYears,
+  CABINET,
+  durationSpan,
+  entriesOf,
+  entryX,
+  FRIEZE,
+  HOBBY_SLOT,
+  rowOf,
+  SECTIONS,
+  timeline,
+  type Row,
+} from '../data/timeline'
 import type { TimelineEntry } from '../data/types'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
@@ -13,34 +26,43 @@ import * as M from './aboutMaterials'
 import { AssetBoundary } from './AssetBoundary'
 import { BASIS_PATH, CERT_FRAME_MODEL, WALNUT } from './assets'
 import { ROOM } from './layout'
-import { ring } from './ornament'
-import { BACKING_Z, objectGeometry, RISER, riserGeometry, vitrineBays, vitrineGeometries } from './vitrineGeometry'
+import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
 
-// Zona "Sobre mí": friso cronológico de dos filas sobre una vitrina victoriana de nogal y latón.
-// Se carga aparte (React.lazy). Los marcos del friso son más discretos que los de los proyectos.
+// Zona "Sobre mí": un mueble vitrina alto y angosto de nogal y latón. En cada compartimento, el friso
+// cronológico sobre el fondo claro y los objetos en el estante. Se carga aparte (React.lazy).
 
 const Z = ROOM.wallZ
-const FRAME = { width: 0.34, height: 0.42 } as const
-const OBJ_Z = Z + VITRINE.depth * 0.5
+const FRIEZE_Z = Z + BACKING_Z + 0.008
+const OBJ_Z = Z + CABINET.depth * 0.5
+const ROWS: Row[] = ['laboral', 'estudios']
+const LINE = 0.004
 
-// Oro apagado para los marcos y la banda del friso: más sobrio que las molduras de la pared.
-const frameGold = new MeshStandardMaterial({ color: '#a8874a', metalness: 0.7, roughness: 0.5 })
-const mat = new MeshStandardMaterial({ color: '#efe6d3', roughness: 0.95 })
+interface SegmentProps {
+  from: [number, number]
+  to: [number, number]
+  material: Material
+  thickness?: number
+}
 
-function Frieze() {
-  const years = useMemo(() => axisYears(), [])
-  const band = useMemo(() => new BoxGeometry(AXIS.undated - AXIS.x0 + 0.7, 0.026, 0.022), [])
+// Una línea del friso entre dos puntos alineados (horizontal o vertical) sobre el fondo.
+function Segment({ from, to, material, thickness = LINE }: SegmentProps) {
+  const w = Math.max(thickness, Math.abs(to[0] - from[0]))
+  const h = Math.max(thickness, Math.abs(to[1] - from[1]))
   return (
-    <group name="about-frieze">
-      {(['laboral', 'estudios'] as const).map((row) => (
-        <group key={row}>
-          <mesh geometry={band} material={frameGold} position={[(AXIS.x0 + AXIS.undated) / 2, ROWS[row].band, Z + 0.011]} />
-          {years.map(({ year, x }) => (
-            <mesh key={year} material={M.agedBrass} position={[x, ROWS[row].band, Z + 0.024]}>
-              <boxGeometry args={[0.006, 0.05, 0.006]} />
-            </mesh>
-          ))}
-        </group>
+    <mesh material={material} position={[(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, FRIEZE_Z]}>
+      <boxGeometry args={[w, h, 0.004]} />
+    </mesh>
+  )
+}
+
+function Frieze({ row }: { row: Row }) {
+  const years = useMemo(() => axisYears(), [])
+  const y = SECTIONS[row].floor + FRIEZE.axis
+  return (
+    <group name={`about-frieze-${row}`}>
+      <Segment from={[AXIS.x0 - 0.03, y]} to={[AXIS.x1 + 0.03, y]} material={M.bronze} />
+      {years.map(({ year, x }) => (
+        <Segment key={year} from={[x, y - 0.012]} to={[x, y + 0.022]} material={M.bronze} />
       ))}
     </group>
   )
@@ -51,56 +73,56 @@ function useWalnut(): Material {
   return useMemo(() => M.createWalnut(color, normal, arm), [color, normal, arm])
 }
 
-function VitrineBody({ walnut }: { walnut: Material }) {
-  const geo = useMemo(() => vitrineGeometries(), [])
-  const bays = useMemo(() => vitrineBays(), [])
-  const glassH = VITRINE.top - 0.05 - VITRINE.baseTop
+function CabinetBody({ walnut }: { walnut: Material }) {
+  const geo = useMemo(() => cabinetGeometries(), [])
   return (
-    <group name="about-vitrine">
+    <group name="about-cabinet">
       <mesh geometry={geo.walnut} material={walnut} />
       <mesh geometry={geo.brass} material={M.agedBrass} />
       <mesh geometry={geo.backing} material={M.backing} />
-      {/* Luz de los focos sobre el fondo oscuro de cada tramo y de cada estante. */}
-      {bays.map(([l, r]) =>
-        (['laboral', 'estudios'] as const).map((row) => (
-          <mesh
-            key={`${l}-${row}`}
-            material={M.lightPool}
-            position={[(l + r) / 2, ROWS[row].shelf + 0.2, Z + BACKING_Z + 0.007]}
-            scale={[(r - l) * 0.9, 0.55, 1]}
-            renderOrder={2}
-          >
-            <planeGeometry />
-          </mesh>
-        )),
-      )}
-      <mesh geometry={geo.glass} material={M.glass} renderOrder={4} />
-      {bays.map(([l, r]) => (
+      <mesh geometry={geo.glow} material={M.cabinetGlow} />
+      {/* Luz de las tiras sobre el fondo claro: más intensa arriba de cada compartimento. */}
+      {ROWS.map((row) => (
         <mesh
-          key={l}
-          material={M.glassReflection}
-          position={[(l + r) / 2, VITRINE.baseTop + glassH / 2, Z + VITRINE.depth - 0.002]}
-          scale={[r - l - 0.06, glassH - 0.02, 1]}
-          renderOrder={5}
+          key={row}
+          material={M.lightPool}
+          position={[CABINET.cx, SECTIONS[row].ceiling - 0.22, Z + BACKING_Z + 0.006]}
+          scale={[CABINET.width * 1.1, 0.9, 1]}
+          renderOrder={2}
         >
           <planeGeometry />
         </mesh>
       ))}
+      <mesh geometry={geo.glass} material={M.glass} renderOrder={4} />
+      {ROWS.map((row) => {
+        const { floor, ceiling } = SECTIONS[row]
+        return (
+          <mesh
+            key={row}
+            material={M.glassReflection}
+            position={[CABINET.cx, (floor + ceiling) / 2, Z + CABINET.depth - 0.008]}
+            scale={[CABINET.width - 0.08, ceiling - floor - 0.02, 1]}
+            renderOrder={5}
+          >
+            <planeGeometry />
+          </mesh>
+        )
+      })}
     </group>
   )
 }
 
-function Vitrine() {
+function Cabinet() {
   return (
-    <AssetBoundary fallback={<VitrineBody walnut={M.walnutPlain} />}>
-      <TexturedVitrine />
+    <AssetBoundary fallback={<CabinetBody walnut={M.walnutPlain} />}>
+      <TexturedCabinet />
     </AssetBoundary>
   )
 }
 
-function TexturedVitrine() {
+function TexturedCabinet() {
   const walnut = useWalnut()
-  return <VitrineBody walnut={walnut} />
+  return <CabinetBody walnut={walnut} />
 }
 
 const PARTS_MATERIAL: Record<string, Material> = {
@@ -165,7 +187,7 @@ function CertificateObject({ scale }: { scale: number }) {
   )
 }
 
-// Sombra de contacto y luz del foco bajo cada objeto, sobre el estante.
+// Sombra de contacto y luz de la tira bajo cada objeto, sobre el estante.
 function ShelfLight({ width }: { width: number }) {
   return (
     <>
@@ -179,10 +201,10 @@ function ShelfLight({ width }: { width: number }) {
   )
 }
 
-// Cartela de latón en el canto del estante, sin texto (el contenido real va en HTML).
+// Cartela de latón al frente del estante, sin texto (el contenido real va en HTML).
 function ShelfPlaque({ y }: { y: number }) {
   return (
-    <mesh material={M.agedBrass} position={[0, y, VITRINE.depth * 0.5 - 0.02]} rotation={[-0.5, 0, 0]}>
+    <mesh material={M.agedBrass} position={[0, y, CABINET.depth * 0.5 - 0.06]} rotation={[-0.5, 0, 0]}>
       <boxGeometry args={[0.13, 0.035, 0.003]} />
     </mesh>
   )
@@ -213,37 +235,44 @@ const OBJECT_WIDTH: Record<TimelineEntry['object']['kind'], number> = {
   certificado: 0.24,
 }
 
-// Una entrada: marco y cartela en el friso, barra de duración, línea de latón hasta la vitrina y su
-// objeto en el estante, con su cartela.
+// Los objetos se agrandan un poco respecto de su tamaño real para que se lean desde la vista del compartimento.
+const OBJECT_SCALE = 1.25
+
+// Índice de la barra de duración de cada entrada con fecha dentro de su compartimento.
+const LANES = new Map<string, number>()
+for (const row of ROWS) {
+  entriesOf(row)
+    .filter((e) => e.start)
+    .forEach((e, i) => LANES.set(e.slug, i))
+}
+
+// Una entrada: barra de duración en el friso, línea guía hasta su cartela (texto en HTML) y su objeto
+// en el estante.
 function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
   const send = useViewStore((s) => s.send)
   const highlighted = useViewStore((s) => s.highlighted)
   const setHighlighted = useViewStore((s) => s.setHighlighted)
   const [hovered, setHovered] = useState(false)
   useCursor(interactive && hovered)
-  const groups = useRef<(Group | null)[]>([])
+  const object = useRef<Group>(null)
   const scale = useRef(1)
-  const frameMat = useMemo(() => frameGold.clone(), [])
-  const frameGeo = useMemo(
-    () => ring(FRAME.width, FRAME.height, FRAME.width - 0.05, FRAME.height - 0.05, 0.016, 0.006),
-    [],
-  )
+  const lineMat = useMemo(() => M.bronze.clone() as MeshStandardMaterial, [])
 
-  const row = ROWS[rowOf(entry.kind)]
+  const { floor } = SECTIONS[rowOf(entry.kind)]
   const x = entryX(entry)
   const span = durationSpan(entry)
   const active = interactive && highlighted === entry.slug
-  const glow = active ? 0.35 : interactive && noHover ? 0.08 : 0
-  const cartelaY = row.band - 0.11
-  const lineTop = cartelaY - 0.07
-  const lineBottom = VITRINE.top + 0.07
+  const glow = active ? 0.6 : interactive && noHover ? 0.15 : 0
+  const barY = floor + FRIEZE.lane - (LANES.get(entry.slug) ?? 0) * FRIEZE.laneStep
+  const elbowY = floor + FRIEZE.elbow
+  const cartelaTop = floor + FRIEZE.cartela + 0.06
 
   useFrame(({ invalidate }, delta) => {
     const target = active ? 1.06 : 1
     const next = reducedMotion ? target : scale.current + (target - scale.current) * Math.min(1, delta * 10)
     scale.current = Math.abs(next - target) < 0.001 ? target : next
-    for (const g of groups.current) g?.scale.setScalar(scale.current)
-    frameMat.emissive.copy(GLOW).multiplyScalar(glow)
+    object.current?.scale.setScalar(scale.current)
+    lineMat.emissive.copy(GLOW).multiplyScalar(glow)
     if (scale.current !== target) invalidate()
   })
 
@@ -266,32 +295,31 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
   return (
     <group name={`entry-${entry.slug}`}>
       {span && (
-        <mesh material={M.agedBrass} position={[(span[0] + span[1]) / 2, row.band, Z + 0.026]}>
-          <boxGeometry args={[Math.max(0.02, span[1] - span[0]), 0.009, 0.006]} />
-        </mesh>
+        <>
+          <Segment from={[span[0], barY]} to={[span[1], barY]} material={lineMat} thickness={0.009} />
+          <mesh material={lineMat} position={[span[0], barY, FRIEZE_Z + 0.002]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.011, 0.011, 0.006, 16]} />
+          </mesh>
+          {/* Línea guía en ángulo recto: del inicio de la barra a la columna de la entrada. */}
+          <Segment from={[span[0], barY]} to={[span[0], elbowY]} material={lineMat} />
+          <Segment from={[span[0], elbowY]} to={[x, elbowY]} material={lineMat} />
+          <Segment from={[x, elbowY]} to={[x, cartelaTop]} material={lineMat} />
+        </>
       )}
-      <group ref={(g) => void (groups.current[0] = g)} position={[x, row.band + 0.05 + FRAME.height / 2, Z + 0.012]} {...events}>
-        <mesh geometry={frameGeo} material={frameMat} />
-        <mesh material={mat} position={[0, 0, 0.004]}>
-          <planeGeometry args={[FRAME.width - 0.04, FRAME.height - 0.04]} />
-        </mesh>
-      </group>
-      <mesh material={M.agedBrass} position={[x, cartelaY, Z + 0.006]}>
-        <boxGeometry args={[0.32, 0.1, 0.004]} />
+      {/* Zona de clic sobre la cartela (el texto es HTML y no recibe eventos). */}
+      <mesh position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events}>
+        <planeGeometry args={[0.48, 0.16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      {/* Línea fina de latón que une la entrada con su objeto en la vitrina. */}
-      <mesh material={M.agedBrass} position={[x, (lineTop + lineBottom) / 2, Z + 0.008]}>
-        <boxGeometry args={[0.003, lineTop - lineBottom, 0.003]} />
-      </mesh>
-      <group position={[x, row.shelf, OBJ_Z]}>
+      <group position={[x, floor, OBJ_Z]}>
         <ShelfLight width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.06} />
         <Riser width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.04} />
-        <group ref={(g) => void (groups.current[1] = g)} position={[0, RISER.height, 0]} {...events}>
+        <group ref={object} position={[0, RISER.height, 0]} {...events}>
           <group scale={OBJECT_SCALE}>
             <EntryObject entry={entry} />
           </group>
         </group>
-        <ShelfPlaque y={-0.005} />
+        <ShelfPlaque y={0.012} />
       </group>
     </group>
   )
@@ -300,10 +328,10 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
 // Lugar reservado para el hobby: el pedestal de exposición vacío, con su cartela.
 function HobbySlot() {
   return (
-    <group position={[HOBBY_SLOT.x, ROWS[HOBBY_SLOT.row].shelf, OBJ_Z]} name="hobby-slot">
+    <group position={[HOBBY_SLOT.x, SECTIONS[HOBBY_SLOT.row].floor, OBJ_Z]} name="hobby-slot">
       <ShelfLight width={0.28} />
       <Riser width={0.24} />
-      <ShelfPlaque y={-0.005} />
+      <ShelfPlaque y={0.012} />
     </group>
   )
 }
@@ -318,9 +346,6 @@ function Riser({ width }: { width: number }) {
   )
 }
 
-// Los objetos se agrandan un poco respecto de su tamaño real para que se lean en una vitrina tan larga.
-const OBJECT_SCALE = 1.45
-
 interface Props {
   view: ViewState
   noHover: boolean
@@ -331,8 +356,10 @@ export default function AboutZone({ view, noHover, reducedMotion }: Props) {
   const interactive = view.name === 'about' || view.name === 'aboutEntry'
   return (
     <group name="about-zone">
-      <Frieze />
-      <Vitrine />
+      <Cabinet />
+      {ROWS.map((row) => (
+        <Frieze key={row} row={row} />
+      ))}
       {timeline.map((e) => (
         <Entry key={e.slug} entry={e} interactive={interactive} noHover={noHover} reducedMotion={reducedMotion} />
       ))}
@@ -340,4 +367,3 @@ export default function AboutZone({ view, noHover, reducedMotion }: Props) {
     </group>
   )
 }
-

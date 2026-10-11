@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
-import { FOV, galleryPose, INTRO_POSE, introWidePose, poseFor } from './layout'
+import { CABINET, SECTIONS } from '../data/timeline'
+import { cabinetPose, FOV, galleryPose, INTRO_POSE, introWidePose, poseFor, ROOM } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 const detail = { name: 'project', slug: projects[0].slug } as const
@@ -53,5 +54,22 @@ describe('encuadres de cámara', () => {
   it('intro y vuelo comparten pose con sus estados de destino', () => {
     expect(poseFor({ name: 'intro' }, 16 / 9, projects)).toEqual(INTRO_POSE)
     expect(poseFor({ name: 'toGallery' }, 1.78, projects)).toEqual(poseFor({ name: 'gallery' }, 1.78, projects))
+  })
+
+  it('el vistazo al mueble lo muestra entero y cada compartimento entra a lo ancho', () => {
+    for (const aspect of [0.46, 1.33, 1.78]) {
+      const whole = cabinetPose(aspect)
+      const d = whole.position[2] - ROOM.wallZ
+      expect(d * halfTan).toBeGreaterThan(CABINET.crown / 2)
+      expect(d * halfTan * aspect).toBeGreaterThan(CABINET.width / 2)
+      for (const section of ['laboral', 'estudios'] as const) {
+        const { position, target } = poseFor({ name: 'about', section }, aspect, projects)
+        const ds = position[2] - ROOM.wallZ
+        expect(ds).toBeLessThan(d + 1e-6)
+        expect(ds * halfTan * aspect).toBeGreaterThan(CABINET.width / 2)
+        expect(target[1]).toBeGreaterThan(SECTIONS[section].floor)
+        expect(target[1]).toBeLessThan(SECTIONS[section].ceiling)
+      }
+    }
   })
 })
