@@ -1,11 +1,11 @@
-import { useKTX2 } from '@react-three/drei'
 import { useMemo } from 'react'
 import { Vector2 } from 'three'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
+import { LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
 import bakedLighting from './bakedLighting.json'
 import { SUN_GAIN } from './lighting'
 import { ivory } from './ornament'
+import { useKTX2 } from './ktx2'
 
 interface Props {
   width: number
@@ -18,10 +18,12 @@ interface Props {
 const TILE_METERS = 2
 
 function TexturedPlaster({ width, height, position, bare = false }: Props) {
-  const [normal, arm, ao, light] = useKTX2(
-    [TEXTURES.plaster.normal, TEXTURES.plaster.arm, bare ? LIGHTMAPS.wallBare : LIGHTMAPS.wall, LIGHT_MAPS.wall],
-    BASIS_PATH,
-  )
+  const [normal, arm, ao, light] = useKTX2([
+    TEXTURES.plaster.normal,
+    TEXTURES.plaster.arm,
+    bare ? LIGHTMAPS.wallBare : LIGHTMAPS.wall,
+    LIGHT_MAPS.wall,
+  ])
   const maps = useMemo(() => {
     for (const t of [normal, arm]) tile(t, width / TILE_METERS, height / TILE_METERS)
     return { normal, arm, ao, light }

@@ -1,9 +1,8 @@
-import { useCursor, useKTX2 } from '@react-three/drei'
+import { useCursor } from '@react-three/drei'
 import { useFrame, useLoader, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Box3, Color, Mesh, type Group, type Material, type MeshStandardMaterial, type Object3D } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import {
   AXIS,
@@ -23,9 +22,10 @@ import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import * as M from './aboutMaterials'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, CERT_FRAME_MODEL, WALNUT } from './assets'
+import { CERT_FRAME_MODEL, WALNUT } from './assets'
 import { ROOM } from './layout'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
+import { ktx2Loader, useKTX2 } from './ktx2'
 
 // Zona "Sobre mí": un mueble vitrina alto y angosto de nogal y latón. En cada compartimento, el friso
 // cronológico sobre el fondo claro y los objetos en el estante. Se carga aparte (React.lazy).
@@ -68,7 +68,7 @@ function Frieze({ row }: { row: Row }) {
 }
 
 function useWalnut(): Material {
-  const [color, normal, arm] = useKTX2([WALNUT.color, WALNUT.normal, WALNUT.arm], BASIS_PATH)
+  const [color, normal, arm] = useKTX2([WALNUT.color, WALNUT.normal, WALNUT.arm])
   return useMemo(() => M.createWalnut(color, normal, arm), [color, normal, arm])
 }
 
@@ -152,14 +152,11 @@ function ObjectMeshes({ kind }: { kind: Parameters<typeof objectGeometry>[0] }) 
   )
 }
 
-let ktx2Loader: KTX2Loader | null = null
-
 // Certificado: marco con atril (Poly Haven, CC0) con papel en blanco para el contenido real.
 function Certificate({ scale }: { scale: number }) {
   const gl = useThree((s) => s.gl)
   const gltf = useLoader(GLTFLoader, CERT_FRAME_MODEL, (loader) => {
-    ktx2Loader ??= new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(gl)
-    loader.setKTX2Loader(ktx2Loader)
+    loader.setKTX2Loader(ktx2Loader(gl))
     loader.setMeshoptDecoder(MeshoptDecoder)
   })
   const model = useMemo(() => {

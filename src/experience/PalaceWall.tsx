@@ -1,8 +1,7 @@
-import { useKTX2 } from '@react-three/drei'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Matrix4, MeshStandardMaterial, type BufferGeometry, type InstancedMesh, type Material } from 'three'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, GILT_FRAME } from './assets'
+import { GILT_FRAME } from './assets'
 import { giltFrameGeometry } from './giltFrameGeometry'
 import { createGiltMaterial } from './giltMaterial'
 import { createMarbleTexture } from './marbleTexture'
@@ -11,6 +10,7 @@ import { agedGold, gold, ivoryTrim } from './ornament'
 import { PlasterSurface } from './PlasterSurface'
 import { columnGeometries, goldPanel, lowerPanel, trimGeometry, WALL, wallLayout } from './wallGeometry'
 import { ABOUT_BAY } from '../data/timeline'
+import { useKTX2 } from './ktx2'
 
 interface RowProps {
   geometry: BufferGeometry
@@ -56,7 +56,7 @@ interface FrameSize {
 // Molduras de la pared con el tallado real del marco de Poly Haven (ver giltFrameGeometry.ts).
 // Sin crestería: el marco de origen no tiene una con silueta propia (ver README).
 function GiltFrames({ wide, intro, wideXs }: { wide: FrameSize; intro: FrameSize; wideXs: readonly number[] }) {
-  const [albedo, normal, orm] = useKTX2([GILT_FRAME.albedo, GILT_FRAME.normal, GILT_FRAME.orm], BASIS_PATH)
+  const [albedo, normal, orm] = useKTX2([GILT_FRAME.albedo, GILT_FRAME.normal, GILT_FRAME.orm])
   const material = useMemo(() => createGiltMaterial(albedo, normal, orm), [albedo, normal, orm])
   const geometry = useMemo(
     () => ({

@@ -1,12 +1,12 @@
-import { useKTX2 } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { Vector2, type MeshStandardMaterial } from 'three'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
+import { LIGHT_MAPS, LIGHTMAPS, TEXTURES, tile } from './assets'
 import bakedLighting from './bakedLighting.json'
 import { FLOOR_SUN_GAIN } from './lighting'
 import type { Quality } from './quality'
+import { useKTX2 } from './ktx2'
 
 interface Props {
   length: number
@@ -38,10 +38,13 @@ function addMacroVariation(material: MeshStandardMaterial) {
 
 function TexturedFloor({ length, depth, quality }: Props) {
   const anisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy())
-  const [color, normal, arm, ao, light] = useKTX2(
-    [TEXTURES.parquet.color, TEXTURES.parquet.normal, TEXTURES.parquet.arm, LIGHTMAPS.floor, LIGHT_MAPS.floor],
-    BASIS_PATH,
-  )
+  const [color, normal, arm, ao, light] = useKTX2([
+    TEXTURES.parquet.color,
+    TEXTURES.parquet.normal,
+    TEXTURES.parquet.arm,
+    LIGHTMAPS.floor,
+    LIGHT_MAPS.floor,
+  ])
   const maps = useMemo(() => {
     const rx = length / TILE_METERS
     const ry = depth / TILE_METERS

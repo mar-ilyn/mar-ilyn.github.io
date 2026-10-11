@@ -1,6 +1,6 @@
-import { useKTX2 } from '@react-three/drei'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, LIGHTMAPS } from './assets'
+import { LIGHTMAPS } from './assets'
+import { useKTX2 } from './ktx2'
 
 interface Props {
   width: number
@@ -14,7 +14,7 @@ const BOUNCE = '#e8dfd0'
 // Nada ilumina el techo de frente: la emisión imita la luz que rebota del piso y las paredes.
 // La oclusión horneada modula esa emisión, así el techo se oscurece suave cerca de la pared.
 function BakedCeiling({ width, depth, height }: Props) {
-  const ao = useKTX2(LIGHTMAPS.ceiling, BASIS_PATH)
+  const ao = useKTX2(LIGHTMAPS.ceiling)
   return (
     <mesh position={[0, height, 0]} rotation={[Math.PI / 2, 0, 0]} name="ceiling">
       <planeGeometry args={[width, depth]} />

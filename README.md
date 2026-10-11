@@ -171,12 +171,15 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 
 Medido con `vite preview` registrando cada pedido hasta que la escena está lista; tamaños comprimidos con gzip, como los sirve GitHub Pages.
 
-| Escenario | Comprimido | Sin comprimir |
-|---|---|---|
-| Vista lista (solo HTML) | 160 KB | 328 KB |
-| Galería, cualquier calidad | 2,19 MB | 3,57 MB |
+| Escenario | Comprimido |
+|---|---|
+| Vista lista (solo HTML) | 250 KB |
+| Galería, cualquier calidad (hasta la intro lista) | 2,39 MB |
+| "Sobre mí", aparte, al llegar a la galería | 520 KB |
 
-Lo más pesado: el chunk de three.js con la escena (~300 KB), el transcodificador de Basis (~240 KB), las texturas (~950 KB), el marco tallado (~270 KB), el entorno (~120 KB) y los lightmaps (~110 KB). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
+Lo más pesado de la galería: las texturas KTX2 (~1,23 MB: parquet, yeso, molduras doradas y lightmaps), el chunk de three.js con la escena (~310 KB), el marco tallado (~275 KB), el transcodificador de Basis (~260 KB) y el entorno (~120 KB). En "Sobre mí", el nogal (~430 KB) y el marco de los certificados (~90 KB).
+
+Todas las texturas KTX2, sueltas o dentro de un GLB, pasan por un único `KTX2Loader` (`ktx2.ts`): cada instancia descarga su propio transcodificador, y con dos se bajaba dos veces (~245 KB de más). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
 
 ## Contenido
 

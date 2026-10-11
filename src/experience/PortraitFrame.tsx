@@ -2,11 +2,11 @@ import { useLoader, useThree } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { Box3, Mesh, MeshStandardMaterial, Vector3, type Object3D } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { AssetBoundary } from './AssetBoundary'
-import { BASIS_PATH, FRAME_MODEL } from './assets'
+import { FRAME_MODEL } from './assets'
 import { OrnateFrame } from './OrnateFrame'
+import { ktx2Loader } from './ktx2'
 
 interface Props {
   width: number
@@ -21,13 +21,10 @@ const CANVAS_COLOR = '#ebe3d3'
 // En el modelo original (66 × 77 cm), el lienzo mide 39 × 50 cm.
 const CANVAS_RATIO = { width: 0.392 / 0.66, height: 0.5 / 0.771 }
 
-let ktx2Loader: KTX2Loader | null = null
-
 function CarvedFrame({ height, position, showCanvas = true }: Props) {
   const gl = useThree((s) => s.gl)
   const gltf = useLoader(GLTFLoader, FRAME_MODEL, (loader) => {
-    ktx2Loader ??= new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(gl)
-    loader.setKTX2Loader(ktx2Loader)
+    loader.setKTX2Loader(ktx2Loader(gl))
     loader.setMeshoptDecoder(MeshoptDecoder)
   })
 
