@@ -16,7 +16,9 @@ interface Props {
 
 // Metros reales que cubre una repetición de la textura de Poly Haven.
 const TILE_METERS = 2
-const BASE_TINT = '#9b7b5c'
+const BASE_TINT = '#b8946d'
+// Cuánto se aclara el color de la textura del parquet (1 = original).
+const FLOOR_LIGHTEN = 1.32
 
 // Rompe la repetición: vuelve a muestrear el color a una escala mucho mayor y lo usa como
 // variación de tono suave, así no aparece un patrón que se repite cada 2 m.
@@ -27,7 +29,9 @@ function addMacroVariation(material: MeshStandardMaterial) {
       `#include <map_fragment>
       vec3 macroSample = texture2D(map, vMapUv * 0.071 + vec2(0.37, 0.11)).rgb;
       float macroLum = dot(macroSample, vec3(0.299, 0.587, 0.114));
-      diffuseColor.rgb *= mix(0.84, 1.1, smoothstep(0.22, 0.5, macroLum));`,
+      diffuseColor.rgb *= mix(0.84, 1.1, smoothstep(0.22, 0.5, macroLum));
+      // Roble más claro que la textura original: aclara y lleva el tono hacia la miel.
+      diffuseColor.rgb = diffuseColor.rgb * ${FLOOR_LIGHTEN.toFixed(2)} + vec3(0.035, 0.022, 0.008);`,
     )
   }
 }
