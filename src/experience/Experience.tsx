@@ -9,7 +9,7 @@ import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
 import { DevSceneExport } from './DevSceneExport'
 import { IntroAnchor, IntroText } from './IntroText'
-import { FOV, INTRO_POSE } from './layout'
+import { FOV, INTRO_WIDE_POSE } from './layout'
 import { LightBeam } from './LightBeam'
 import { LoadingScreen } from './LoadingScreen'
 import { Overlays } from './Overlays'
@@ -70,7 +70,7 @@ export default function Experience({ view }: Props) {
           fov: FOV,
           near: 0.1,
           far: 60,
-          position: [...INTRO_POSE.position],
+          position: [...INTRO_WIDE_POSE.position],
         }}
         aria-hidden="true"
       >
@@ -100,12 +100,13 @@ export default function Experience({ view }: Props) {
             ))}
           <Precompile onDone={onCompiled} />
         </Suspense>
-        <CameraRig view={view} />
+        <CameraRig view={view} holdWide={render === 'fondo'} />
         <IntroAnchor target={introRef} />
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
-      <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
+      {/* El texto aparece cuando la cámara termina de acercarse y se va al empezar a alejarse. */}
+      <IntroText anchorRef={introRef} visible={view.name === 'intro' && ready && !moving} />
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

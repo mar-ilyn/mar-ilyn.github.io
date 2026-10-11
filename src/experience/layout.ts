@@ -25,8 +25,9 @@ export const INTRO_LAYOUT = {
   centerX: 0,
 } as const
 
-// Mantiene la composición entera en pantalla: en vertical la cámara retrocede lo necesario.
-export function introPose(aspect: number): CameraPose {
+// Plano general de la sala: con él empieza la página y por él pasa la cámara al irse a la galería.
+// En vertical la cámara retrocede lo necesario para que entre la composición.
+export function introWidePose(aspect: number): CameraPose {
   const { halfWidth, centerX } = INTRO_LAYOUT
   const distance = Math.max(6.8, (halfWidth + 0.3) / (halfTan * aspect))
   return {
@@ -36,7 +37,22 @@ export function introPose(aspect: number): CameraPose {
   }
 }
 
+// Acercamiento a la parte principal (texto y cuadro): el panel ocupa casi todo el ancho.
+export function introPose(aspect: number): CameraPose {
+  const { halfWidth, centerX } = INTRO_LAYOUT
+  const wide = introWidePose(aspect)
+  const fit = Math.max(4.2, (halfWidth + 0.75) / (halfTan * aspect))
+  // En vertical el plano general ya está ajustado a la composición: el acercamiento es más leve.
+  const distance = Math.min(fit, (wide.position[2] - ROOM.wallZ) * 0.85)
+  return {
+    position: [INTRO_X + centerX, 2.25, ROOM.wallZ + distance],
+    target: [INTRO_X + centerX, 2.27, ROOM.wallZ],
+    offset: NO_OFFSET,
+  }
+}
+
 export const INTRO_POSE = introPose(16 / 9)
+export const INTRO_WIDE_POSE = introWidePose(16 / 9)
 
 // En horizontal, frente a la fila y lo bastante lejos para que entre a lo ancho.
 // En vertical, en diagonal: la fila se escorza y entra completa sin alejarse demasiado.

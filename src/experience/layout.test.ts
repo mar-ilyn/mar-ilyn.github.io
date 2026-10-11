@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
-import { FOV, galleryPose, INTRO_POSE, poseFor } from './layout'
+import { FOV, galleryPose, INTRO_POSE, introWidePose, poseFor } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 const detail = { name: 'project', slug: projects[0].slug } as const
@@ -29,11 +29,24 @@ describe('encuadres de cámara', () => {
     expect(dist(0.46)).toBeGreaterThan(dist(1.78))
   })
 
-  it('la intro entra completa también en vertical', () => {
-    for (const aspect of [0.46, 0.75, 1.78]) {
+  it('el acercamiento deja entrar el texto y el cuadro en horizontal, y el cuadro en vertical', () => {
+    for (const [aspect, halfWidth] of [
+      [1.33, 2.6],
+      [1.78, 2.6],
+      [0.75, 2.1],
+      [0.46, 2.1],
+    ]) {
       const { position, target } = poseFor({ name: 'intro' }, aspect, projects)
       const distance = position[2] - target[2]
-      expect(distance * halfTan * aspect).toBeGreaterThanOrEqual(2.6)
+      expect(distance * halfTan * aspect).toBeGreaterThanOrEqual(halfWidth)
+    }
+  })
+
+  it('la intro se acerca respecto del plano general', () => {
+    for (const aspect of [0.46, 1.33, 1.78, 2.4]) {
+      const close = poseFor({ name: 'intro' }, aspect, projects)
+      const wide = introWidePose(aspect)
+      expect(close.position[2]).toBeLessThan(wide.position[2])
     }
   })
 

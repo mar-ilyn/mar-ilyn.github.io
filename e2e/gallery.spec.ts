@@ -10,6 +10,7 @@ const waitForGallery = async (page: Page, arrivalTimeout = 15_000) => {
 
 // Espera a que la cámara termine de volar: con render por software, interactuar en pleno vuelo
 // compite con cuadros muy lentos. También verifica que cada vuelo llega a destino.
+// El texto de la intro aparece recién cuando la escena está lista y la cámara terminó de acercarse.
 const waitForCamera = (page: Page) =>
   expect(page.locator('.experience')).toHaveAttribute('data-moving', 'false', { timeout: 45_000 })
 
@@ -18,7 +19,8 @@ test.describe('con movimiento', () => {
     await page.goto('/')
     await expect(page.locator('canvas')).toBeVisible()
     const verProyectos = page.getByRole('button', { name: 'Explorar proyectos' })
-    await expect(verProyectos).toBeVisible()
+    // El texto aparece cuando termina el acercamiento inicial.
+    await expect(verProyectos).toBeVisible({ timeout: 45_000 })
 
     if (isMobile) {
       await verProyectos.tap()
@@ -85,7 +87,7 @@ test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async (
   await expect(page).toHaveURL(/\/lista$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
   await page.goBack()
-  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible({ timeout: 30_000 })
 })
 
 test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
@@ -104,7 +106,7 @@ test('subir desde la galería vuelve a la intro', async ({ page }) => {
   await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explorar proyectos' })).toBeVisible({ timeout: 30_000 })
 })
 
 test('la calidad alta carga texturas, entorno y efectos sin errores', async ({ page, isMobile }) => {
