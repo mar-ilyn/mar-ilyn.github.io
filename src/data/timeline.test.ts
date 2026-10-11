@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AXIS, axisX, axisYears, durationSpan, entryX, formatRange, neighbours, rowOf, timeline } from './timeline'
+import { AXIS, axisX, axisYears, durationSpan, entryX, formatRange, neighbours, rowOf, timeline, VITRINE } from './timeline'
 
 const NOW = '2026-10' as const
 
@@ -51,5 +51,16 @@ describe('línea de tiempo', () => {
     expect(formatRange({ start: '2023-07', end: '2024-02' })).toBe('julio 2023 – febrero 2024')
     expect(formatRange({ start: '2023-03', end: null })).toBe('marzo 2023 – actualidad')
     expect(formatRange({ start: null, end: null })).toBe('Sin fecha')
+  })
+})
+
+describe('vitrina', () => {
+  it('cada objeto cae dentro de un tramo, lejos de los montantes y de los laterales', () => {
+    for (const e of timeline) {
+      const x = entryX(e, NOW)
+      expect(x).toBeGreaterThan(VITRINE.left + 0.3)
+      expect(x).toBeLessThan(VITRINE.right - 0.3)
+      for (const m of VITRINE.mullions) expect(Math.abs(x - m)).toBeGreaterThan(0.3)
+    }
   })
 })

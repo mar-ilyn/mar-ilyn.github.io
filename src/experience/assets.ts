@@ -40,6 +40,15 @@ export const GILT_FRAME = {
   orm: `${BASE}giltframe_orm.ktx2`,
 } as const
 
+// Nogal de la vitrina (black_walnut_veneer_01) y marco con atril de los certificados
+// (standing_picture_frame_02), ambos de Poly Haven, CC0.
+export const WALNUT = {
+  color: `${BASE}walnut_color.ktx2`,
+  normal: `${BASE}walnut_normal.ktx2`,
+  arm: `${BASE}walnut_arm.ktx2`,
+} as const
+export const CERT_FRAME_MODEL = `${BASE}cert_frame.glb`
+
 // Marco tallado (fancy_picture_frame_02, Poly Haven CC0): geometría meshopt y texturas KTX2.
 export const FRAME_MODEL = `${BASE}frame.glb`
 

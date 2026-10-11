@@ -117,6 +117,10 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 - **Lámpara de cuadro** (`PictureLamp.tsx`): barra de bronce con brazo, sobre el marco. Un foco cerrado y de alcance corto (1,25 m) ilumina solo la parte superior del cuadro.
 - **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
 
+### Zona "Sobre mí"
+
+A la derecha de los pedestales (se llega bajando desde la galería o desde el menú). Friso de dos filas (experiencia arriba, estudios abajo) con un eje de tiempo compartido de 2022 a hoy, y una vitrina victoriana con un estante por fila. Los datos están en `src/data/timeline.ts`. La vitrina y los objetos (teclado, guía de envío, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
+
 ### Molduras doradas de la pared
 
 Se arman con el tallado real del marco `fancy_picture_frame_02` (Poly Haven, CC0, Rob Tuytel y Rico Cilliers), no con ornamentos generados por código:
@@ -155,6 +159,8 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 | Parquet en espiga (color, normal, AO+rugosidad) | [herringbone_parquet](https://polyhaven.com/a/herringbone_parquet) | 3 JPG 1k, 1,75 MB | KTX2 ETC1S, 374 KB |
 | Yeso (normal, AO+rugosidad) | [painted_plaster_wall](https://polyhaven.com/a/painted_plaster_wall) | 2 JPG 1k, 1,41 MB | KTX2 ETC1S, 311 KB |
 | Marco tallado del retrato (sin la pintura original) | [fancy_picture_frame_02](https://polyhaven.com/a/fancy_picture_frame_02), de Rob Tuytel y Rico Cilliers | glTF 1k, 1,73 MB, 35 k triángulos | GLB meshopt simplificado al 35 % + texturas KTX2 512 px, 288 KB |
+| Nogal de la vitrina "Sobre mí" | [black_walnut_veneer_01](https://polyhaven.com/a/black_walnut_veneer_01), de Jenelle van Heerden | 3 JPG 1k, 1,81 MB | KTX2 ETC1S, 427 KB |
+| Marco con atril de los certificados (la obra se reemplaza por papel en blanco) | [standing_picture_frame_02](https://polyhaven.com/a/standing_picture_frame_02), de James Ray Cock | glTF 1k, 0,57 MB | GLB meshopt + KTX2 256 px, 87 KB |
 | HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | PMREM horneado, PNG RGBE 336×256, 119 KB |
 
 ### Peso de la carga inicial

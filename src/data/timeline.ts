@@ -7,12 +7,23 @@ import type { CameraView, TimelineEntry, TimelineKind, YearMonth } from './types
 export const ABOUT_BAY = { left: 10, right: 22 } as const
 
 // Eje horizontal: enero de 2022 en AXIS.x0, hoy en AXIS.x1. Lo que no tiene fecha va en AXIS.undated.
-export const AXIS = { start: '2022-01' as YearMonth, x0: 11.1, x1: 20.1, undated: 21.15 } as const
+export const AXIS = { start: '2022-01' as YearMonth, x0: 11.5, x1: 19.7, undated: 20.55 } as const
 
 // Altura de la banda de cada fila (los marcos van encima y la cartela debajo) y del estante de la vitrina.
 export const ROWS = {
-  laboral: { band: 2.72, shelf: 1.2 },
-  estudios: { band: 1.98, shelf: 0.64 },
+  laboral: { band: 2.72, shelf: 1.1 },
+  estudios: { band: 1.98, shelf: 0.56 },
+} as const
+
+// Vitrina: base maciza de nogal hasta baseTop, cuerpo vidriado hasta top, cuatro tramos simétricos
+// separados por montantes (los objetos caen siempre dentro de un tramo).
+export const VITRINE = {
+  left: 11.0,
+  right: 21.0,
+  depth: 0.5,
+  baseTop: 0.52,
+  top: 1.6,
+  mullions: [12.7, 16.0, 19.3],
 } as const
 
 export type Row = keyof typeof ROWS
@@ -59,7 +70,7 @@ const WALL_Z = -3
 function entryCamera(x: number, kind: TimelineKind): CameraView {
   const row = ROWS[rowOf(kind)]
   const top = row.band + 0.56
-  const bottom = row.shelf - 0.05
+  const bottom = row.shelf - 0.16
   const y = (top + bottom) / 2 + 0.08
   const distance = ((top - bottom) / 2 + 0.45) / Math.tan((45 * Math.PI) / 360)
   return { position: [x, y + 0.05, WALL_Z + distance], target: [x, y, WALL_Z] }

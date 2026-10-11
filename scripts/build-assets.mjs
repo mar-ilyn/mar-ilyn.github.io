@@ -26,6 +26,10 @@ const TEXTURES = [
   { file: 'herringbone_parquet_arm_1k.jpg', path: 'Textures/jpg/1k/herringbone_parquet', out: 'parquet_arm.ktx2', kind: 'linear' },
   { file: 'painted_plaster_wall_nor_gl_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_normal.ktx2', kind: 'normal' },
   { file: 'painted_plaster_wall_arm_1k.jpg', path: 'Textures/jpg/1k/painted_plaster_wall', out: 'plaster_arm.ktx2', kind: 'linear' },
+  // Nogal de la vitrina "Sobre mí" (black_walnut_veneer_01).
+  { file: 'black_walnut_veneer_01_diff_1k.jpg', path: 'Textures/jpg/1k/black_walnut_veneer_01', out: 'walnut_color.ktx2', kind: 'color' },
+  { file: 'black_walnut_veneer_01_nor_gl_1k.jpg', path: 'Textures/jpg/1k/black_walnut_veneer_01', out: 'walnut_normal.ktx2', kind: 'normal' },
+  { file: 'black_walnut_veneer_01_arm_1k.jpg', path: 'Textures/jpg/1k/black_walnut_veneer_01', out: 'walnut_arm.ktx2', kind: 'linear' },
 ]
 
 // Marco tallado (fancy_picture_frame_02). La pintura que trae se descarta: el lienzo es nuestro.
@@ -34,6 +38,12 @@ const FRAME = {
   gltf: 'fancy_picture_frame_02_1k.gltf',
   base: 'Models/gltf/1k/fancy_picture_frame_02',
   out: 'frame.glb',
+}
+// Marco con atril para los certificados de la vitrina (standing_picture_frame_02).
+const CERT_FRAME = {
+  dir: 'standing_picture_frame_02',
+  gltf: 'standing_picture_frame_02_1k.gltf',
+  out: 'cert_frame.glb',
 }
 const FRAME_RATIO = Number(process.env.FRAME_RATIO ?? 0.35)
 const HDRI = { file: 'ballroom_1k.hdr', path: 'HDRIs/hdr/1k', out: 'ballroom_256.hdr', width: 256 }
@@ -161,15 +171,20 @@ async function fetchModel({ dir, gltf }) {
 }
 
 // Geometría comprimida con meshopt y texturas en KTX2 (el mapa normal con su modo específico).
-async function buildFrame() {
+async function buildFrame(model = FRAME, { ratio = FRAME_RATIO, texSize = 512 } = {}) {
   await MeshoptEncoder.ready
   await MeshoptSimplifier.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder })
-  const doc = await io.read(await fetchModel(FRAME))
-  for (const node of doc.getRoot().listNodes()) if (/canvas/i.test(node.getName())) node.dispose()
+  const doc = await io.read(await fetchModel(model))
+  // Sin la pintura del marco tallado ni el vidrio: el contenido lo pone la escena. En el marco del
+  // certificado la "obra" queda como superficie y la escena le pone papel en blanco.
+  const drop = /canvas|glass/i
+  for (const node of doc.getRoot().listNodes()) if (drop.test(node.getName())) node.dispose()
+  for (const mesh of doc.getRoot().listMeshes())
+    for (const prim of mesh.listPrimitives()) if (drop.test(prim.getMaterial()?.getName() ?? '')) prim.dispose()
   // 512 px alcanzan: en la intro el cuadro ocupa ~250 px de alto; el relieve lo da la geometría.
   const frameDecoder = async (buffer) => {
-    const { data, info } = await sharp(buffer).resize(512, 512).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    const { data, info } = await sharp(buffer).resize(texSize, texSize).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     return { data: new Uint8Array(data), width: info.width, height: info.height }
   }
   const common = { isUASTC: false, compressionLevel: 2, generateMipmap: true, imageDecoder: frameDecoder }
@@ -179,15 +194,15 @@ async function buildFrame() {
     weld(),
     // Desde la cámara de la intro no se distinguen 35 mil triángulos: se conserva la silueta y el
     // relieve grande; el detalle fino lo aporta el mapa normal.
-    simplify({ simplifier: MeshoptSimplifier, ratio: FRAME_RATIO, error: 0.002 }),
+    ...(ratio < 1 ? [simplify({ simplifier: MeshoptSimplifier, ratio, error: 0.002 })] : []),
     ktx2({ ...common, slots: /normalTexture/, isNormalMap: true, qualityLevel: 200 }),
     ktx2({ ...common, slots: /baseColorTexture/, isPerceptual: true, qualityLevel: 180 }),
     ktx2({ ...common, slots: /metallicRoughnessTexture/, qualityLevel: 160 }),
     meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
   )
-  await io.write(join(OUT, FRAME.out), doc)
-  const size = (await readFile(join(OUT, FRAME.out))).length
-  console.log(`${FRAME.out}: ${(size / 1024).toFixed(0)} KB`)
+  await io.write(join(OUT, model.out), doc)
+  const size = (await readFile(join(OUT, model.out))).length
+  console.log(`${model.out}: ${(size / 1024).toFixed(0)} KB`)
 }
 
 await mkdir(SRC, { recursive: true })
@@ -200,6 +215,8 @@ for (const t of TEXTURES) {
 }
 
 await buildFrame()
+// Marcos de los certificados de la vitrina: chicos, sin simplificar, texturas de 256 px.
+await buildFrame(CERT_FRAME, { ratio: 1, texSize: 256 })
 
 const hdr = downsampleHDR(readHDR(await fetchSource(HDRI)), HDRI.width)
 await writeFile(join(SRC, HDRI.out), hdr)

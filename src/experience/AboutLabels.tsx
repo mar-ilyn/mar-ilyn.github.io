@@ -40,7 +40,7 @@ export function AboutLabels({ anchorRef, visible }: { anchorRef: RefObject<HTMLD
           key={e.slug}
           className="about-label about-label--cartela"
           data-x={entryX(e)}
-          data-y={ROWS[rowOf(e.kind)].band - 0.12}
+          data-y={ROWS[rowOf(e.kind)].band - 0.11}
           data-z={WALL}
         >
           <strong>{e.title}</strong>
