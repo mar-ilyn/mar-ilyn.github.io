@@ -105,8 +105,8 @@ export default function Experience({ view }: Props) {
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
-      {/* El texto aparece cuando la cámara termina de acercarse y se va al empezar a alejarse. */}
-      <IntroText anchorRef={introRef} visible={view.name === 'intro' && ready && !moving} />
+      {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
+      <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

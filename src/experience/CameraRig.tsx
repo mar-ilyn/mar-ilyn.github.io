@@ -65,8 +65,9 @@ export function CameraRig({ view, holdWide = false }: Props) {
         const opening = view.name === 'intro' && !reducedMotion
         await go(opening ? wide : pose, false, 0)
         if (opening) {
+          // El acercamiento no bloquea el scroll: si se baja antes de que termine, el vuelo a la
+          // galería arranca desde donde esté la cámara.
           setSceneReady()
-          setCameraMoving(true)
           await new Promise((r) => setTimeout(r, 350))
           if (cancelled) return
           await go(pose, true, 1.1)
@@ -76,14 +77,9 @@ export function CameraRig({ view, holdWide = false }: Props) {
         await go(pose, false, 0)
       } else {
         setCameraMoving(true)
-        if (view.name === 'toGallery') {
-          // Primero se aleja al plano general y de ahí sigue a la galería.
-          await go(wide, true, 0.55)
-          if (cancelled) return
-          await go(pose, true, 0.7)
-        } else {
-          await go(pose, true, 0.45)
-        }
+        // Hacia la galería es un solo vuelo continuo: al salir del acercamiento la cámara ya se aleja
+        // y se desplaza a la derecha a la vez.
+        await go(pose, true, view.name === 'toGallery' ? 0.8 : 0.45)
       }
       if (cancelled) return
       setCameraMoving(false)
