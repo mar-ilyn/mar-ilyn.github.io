@@ -10,6 +10,7 @@ import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { agedGold, gold, ivoryTrim } from './ornament'
 import { PlasterSurface } from './PlasterSurface'
 import { columnGeometries, goldPanel, lowerPanel, trimGeometry, WALL, wallLayout } from './wallGeometry'
+import { ABOUT_BAY } from '../data/timeline'
 
 interface RowProps {
   geometry: BufferGeometry
@@ -35,7 +36,7 @@ function Row({ geometry, material, xs, y = 0, name }: RowProps) {
 
 // Las cámaras recorren x ∈ [-10, 4] y la niebla cierra a ~30 m: más allá la pared sigue lisa
 // (con zócalo y cornisa continuos), así nunca se ve un final pero no se dibujan ornamentos invisibles.
-const ORNAMENT_RANGE = { from: -30, to: 22 } as const
+const ORNAMENT_RANGE = { from: -30, to: 30 } as const
 
 // Mármol marfil apenas veteado para los fustes y pedestales de las columnas.
 function MarbleColumns({ geometry, xs }: { geometry: BufferGeometry; xs: readonly number[] }) {
@@ -81,10 +82,10 @@ export function PalaceWall({ bare = false }: { bare?: boolean }) {
 
   const layout = useMemo(
     () =>
-      wallLayout(ORNAMENT_RANGE.from, ORNAMENT_RANGE.to, {
-        left: INTRO_X - introBay / 2,
-        right: INTRO_X + introBay / 2,
-      }),
+      wallLayout(ORNAMENT_RANGE.from, ORNAMENT_RANGE.to, [
+        { left: INTRO_X - introBay / 2, right: INTRO_X + introBay / 2 },
+        ABOUT_BAY,
+      ]),
     [introBay],
   )
 

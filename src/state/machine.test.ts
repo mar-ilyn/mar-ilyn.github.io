@@ -24,11 +24,12 @@ describe('máquina de estados de la vista', () => {
     expect(run([{ type: 'STEP_DOWN' }, { type: 'SKIP_INTRO' }])).toEqual({ name: 'gallery' })
   })
 
-  it('en la galería, bajar está bloqueado y subir vuelve a la intro', () => {
+  it('en la galería, bajar sigue a Sobre mí y subir vuelve a la intro', () => {
     const gallery: ViewState = { name: 'gallery' }
-    expect(transition(gallery, { type: 'STEP_DOWN' })).toBe(gallery)
+    expect(transition(gallery, { type: 'STEP_DOWN' })).toEqual({ name: 'about' })
     expect(transition(gallery, { type: 'BACK' })).toBe(gallery)
     expect(transition(gallery, { type: 'STEP_UP' })).toEqual({ name: 'intro' })
+    expect(transition({ name: 'about' }, { type: 'STEP_UP' })).toEqual(gallery)
   })
 
   it('ignora eventos que no corresponden al estado y devuelve la misma referencia', () => {
@@ -42,6 +43,17 @@ describe('máquina de estados de la vista', () => {
       [{ name: 'plaque', slug: 'turnapp' }, { type: 'STEP_DOWN' }],
     ]
     for (const [state, event] of cases) expect(transition(state, event)).toBe(state)
+  })
+
+  it('Sobre mí: abrir entradas, recorrerlas y volver', () => {
+    const about: ViewState = { name: 'about' }
+    const entry = transition(about, { type: 'OPEN_ENTRY', slug: 'a' })
+    expect(entry).toEqual({ name: 'aboutEntry', slug: 'a' })
+    expect(transition(entry, { type: 'OPEN_ENTRY', slug: 'b' })).toEqual({ name: 'aboutEntry', slug: 'b' })
+    expect(transition(entry, { type: 'BACK' })).toEqual(about)
+    expect(transition(entry, { type: 'BACK_TO_ABOUT' })).toEqual(about)
+    expect(transition(about, { type: 'BACK' })).toEqual({ name: 'gallery' })
+    expect(transition(about, { type: 'STEP_DOWN' })).toBe(about)
   })
 
   it('Esc (BACK) retrocede un nivel', () => {

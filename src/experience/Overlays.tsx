@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { getProject, projects } from '../data/projects'
+import { formatRange, getEntry, KIND_LABEL, neighbours, timeline } from '../data/timeline'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 
@@ -18,7 +19,83 @@ export function Overlays({ view }: Props) {
     case 'project':
     case 'plaque':
       return <ProjectPanel slug={view.slug} atPlaque={view.name === 'plaque'} />
+    case 'about':
+      return <AboutOverlay />
+    case 'aboutEntry':
+      return <EntryPanel slug={view.slug} />
   }
+}
+
+// Capa de botones de la zona: Tab entre entradas (en orden cronológico), Enter abre, Esc vuelve.
+function AboutOverlay() {
+  const send = useViewStore((s) => s.send)
+  const setHighlighted = useViewStore((s) => s.setHighlighted)
+  const heading = useFocusOnMount<HTMLHeadingElement>('about')
+  return (
+    <nav className="overlay overlay--gallery" aria-labelledby="about-title">
+      <h2 id="about-title" ref={heading} tabIndex={-1} className="overlay__hint">
+        Sobre mí · elegí una entrada
+      </h2>
+      <ul className="pedestal-nav">
+        {timeline.map((e) => (
+          <li key={e.slug}>
+            <button
+              type="button"
+              className="pedestal-nav__button"
+              onClick={() => send({ type: 'OPEN_ENTRY', slug: e.slug })}
+              onFocus={() => setHighlighted(e.slug)}
+              onBlur={() => setHighlighted(null)}
+            >
+              Abrir {e.accessibleName}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+function EntryPanel({ slug }: { slug: string }) {
+  const send = useViewStore((s) => s.send)
+  const heading = useFocusOnMount<HTMLHeadingElement>(slug)
+  const entry = getEntry(slug)
+  if (!entry) return null
+  const { prev, next } = neighbours(slug)
+
+  return (
+    <aside className="panel" aria-labelledby="panel-title">
+      <p className="eyebrow">{KIND_LABEL[entry.kind]}</p>
+      <h2 id="panel-title" ref={heading} tabIndex={-1}>
+        {entry.title}
+      </h2>
+      <p className="panel__summary">{entry.organization}</p>
+      <p className="panel__detail">{formatRange(entry)}</p>
+      <p className="panel__detail">{entry.description}</p>
+      <div className="panel__actions">
+        <button type="button" className="button button--primary" onClick={() => send({ type: 'BACK_TO_ABOUT' })}>
+          Volver a Sobre mí
+        </button>
+        <button
+          type="button"
+          className="button"
+          disabled={!prev}
+          aria-label={prev ? `Anterior: ${prev.title}` : 'Anterior'}
+          onClick={() => prev && send({ type: 'OPEN_ENTRY', slug: prev.slug })}
+        >
+          ← Anterior
+        </button>
+        <button
+          type="button"
+          className="button"
+          disabled={!next}
+          aria-label={next ? `Siguiente: ${next.title}` : 'Siguiente'}
+          onClick={() => next && send({ type: 'OPEN_ENTRY', slug: next.slug })}
+        >
+          Siguiente →
+        </button>
+      </div>
+    </aside>
+  )
 }
 
 function useFocusOnMount<T extends HTMLElement>(key: string) {
@@ -45,7 +122,7 @@ function GalleryOverlay() {
   return (
     <nav className="overlay overlay--gallery" aria-labelledby="gallery-title">
       <h2 id="gallery-title" ref={heading} tabIndex={-1} className="overlay__hint">
-        Elegí un proyecto
+        Elegí un proyecto · deslizá hacia abajo para Sobre mí
       </h2>
       <ul className="pedestal-nav">
         {projects.map((p) => (

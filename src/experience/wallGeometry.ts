@@ -36,10 +36,11 @@ export interface WallLayout {
   wideBays: number[]
 }
 
-// Posiciones de columnas y paneles entre `from` y `to`, dejando libre el tramo de la intro
-// (sus bordes coinciden con columnas, así queda un panel ancho especial para textos y foto).
-export function wallLayout(from: number, to: number, intro: Bay): WallLayout {
-  const inside = (x: number) => x > intro.left + 1e-6 && x < intro.right - 1e-6
+// Posiciones de columnas y paneles entre `from` y `to`, dejando libres los tramos especiales (la intro
+// y "Sobre mí"): sus bordes coinciden con columnas, así cada uno queda enmarcado por dos.
+export function wallLayout(from: number, to: number, free: Bay | readonly Bay[]): WallLayout {
+  const bays = Array.isArray(free) ? free : [free as Bay]
+  const inside = (x: number) => bays.some((b) => x > b.left + 1e-6 && x < b.right - 1e-6)
   const layout: WallLayout = { columns: [], wideBays: [] }
   const { period } = WALL
   for (let n = Math.ceil((from - period) / period); n * period <= to + period; n++) {

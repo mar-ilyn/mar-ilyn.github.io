@@ -1,9 +1,10 @@
 import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
+import { AboutLabels, AboutLabelsAnchor } from './AboutLabels'
 import { Atmosphere } from './Atmosphere'
 import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
@@ -24,6 +25,10 @@ import { useStepInput } from './useStepInput'
 interface Props {
   view: ViewState
 }
+
+// La zona "Sobre mí" se descarga recién cuando se llega a la galería (o se entra directo a ella).
+const AboutZone = lazy(() => import('./AboutZone'))
+const ABOUT_READY_VIEWS = new Set(['gallery', 'project', 'plaque', 'about', 'aboutEntry'])
 
 function initialSettings() {
   const overrides = readUrlOverrides(window.location.search)
@@ -49,6 +54,10 @@ export default function Experience({ view }: Props) {
   const onCompiled = useCallback(() => setCompiled(true), [])
   const ready = cameraPlaced && compiled
   const introRef = useRef<HTMLDivElement>(null)
+  const aboutRef = useRef<HTMLDivElement>(null)
+  const [aboutLoaded, setAboutLoaded] = useState(false)
+  if (!aboutLoaded && !render && ABOUT_READY_VIEWS.has(view.name)) setAboutLoaded(true)
+  const inAbout = view.name === 'about' || view.name === 'aboutEntry'
   useStepInput()
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
@@ -102,11 +111,18 @@ export default function Experience({ view }: Props) {
         </Suspense>
         <CameraRig view={view} holdWide={render === 'fondo'} />
         <IntroAnchor target={introRef} />
+        {aboutLoaded && (
+          <Suspense fallback={null}>
+            <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
+            <AboutLabelsAnchor target={aboutRef} />
+          </Suspense>
+        )}
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
       {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
       <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
+      {aboutLoaded && <AboutLabels anchorRef={aboutRef} visible={inAbout} />}
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

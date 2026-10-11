@@ -18,6 +18,14 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
         ? { route: { name: 'intro' }, label: 'Ver galería 3D' }
         : null
 
+  // "Sobre mí": en la galería lleva a la zona 3D; en la lista, a su sección.
+  const aboutHref = mode === 'gallery' ? routeToPath({ name: 'about' }, import.meta.env.BASE_URL) : '#sobre-mi'
+  const onAbout = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (mode !== 'gallery' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+    e.preventDefault()
+    navigate({ name: 'about' })
+  }
+
   const onToggle = (e: MouseEvent<HTMLAnchorElement>) => {
     if (!toggle || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
     e.preventDefault()
@@ -38,6 +46,9 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
           <span className="site-header__role">{profile.role}</span>
         </p>
         <div className="site-header__actions">
+          <a className="site-header__toggle" href={aboutHref} onClick={onAbout}>
+            Sobre mí
+          </a>
           {toggle && (
             <a className="site-header__toggle" href={routeToPath(toggle.route, import.meta.env.BASE_URL)} onClick={onToggle}>
               {toggle.label}

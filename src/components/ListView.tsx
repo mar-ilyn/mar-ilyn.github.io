@@ -2,6 +2,7 @@ import { profile } from '../data/profile'
 import { ContactLinks } from './ContactLinks'
 import { ListHero } from './ListHero'
 import { ProjectList } from './ProjectList'
+import { TimelineList } from './TimelineList'
 
 const YEAR = new Date().getFullYear()
 
@@ -13,6 +14,7 @@ export function ListView() {
       <main className="list-view">
         <ListHero />
         <ProjectList />
+        <TimelineList />
         <section className="about" aria-labelledby="about-title">
           <h2 id="about-title">Un poco sobre mí</h2>
           <p>{profile.about}</p>

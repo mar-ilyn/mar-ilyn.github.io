@@ -1,5 +1,6 @@
 import type { Project, Vec3 } from '../data/types'
 import type { ViewState } from '../state/machine'
+import { ABOUT_BAY, getEntry } from '../data/timeline'
 
 export const FOV = 45
 export const ROOM = { length: 80, depth: 40, height: 4.2, wallZ: -3 } as const
@@ -89,6 +90,19 @@ function portraitPullBack(position: Vec3, target: Vec3, aspect: number): Vec3 {
   ]
 }
 
+// Plano general de "Sobre mí": el friso y la vitrina entran a lo ancho. En vertical se recorta a la
+// mitad derecha del friso (lo más reciente); el resto se recorre entrada por entrada.
+export function aboutPose(aspect: number): CameraPose {
+  const halfWidth = (ABOUT_BAY.right - ABOUT_BAY.left) / 2 - 0.4
+  const cx = (ABOUT_BAY.left + ABOUT_BAY.right) / 2
+  if (aspect < 1) {
+    const x = cx + halfWidth * 0.45
+    return { position: [x, 2.1, ROOM.wallZ + 12], target: [x, 1.95, ROOM.wallZ], offset: NO_OFFSET }
+  }
+  const distance = Math.min(12, Math.max(5, (halfWidth + 0.5) / (halfTan * aspect)))
+  return { position: [cx, 2.05, ROOM.wallZ + distance], target: [cx, 1.95, ROOM.wallZ], offset: NO_OFFSET }
+}
+
 export function poseFor(view: ViewState, aspect: number, projects: readonly Project[]): CameraPose {
   const rowHalfWidth = Math.max(...projects.map((p) => Math.abs(p.pedestal[0])), 0)
   switch (view.name) {
@@ -104,6 +118,15 @@ export function poseFor(view: ViewState, aspect: number, projects: readonly Proj
       const framing = view.name === 'project' ? project.camera.detail : project.camera.plaque
       const position = portraitPullBack(framing.position, framing.target, aspect)
       return { position, target: framing.target, offset: sideOffset(position, framing.target, aspect) }
+    }
+    case 'about':
+      return aboutPose(aspect)
+    case 'aboutEntry': {
+      const entry = getEntry(view.slug)
+      if (!entry) return aboutPose(aspect)
+      const { position: p, target } = entry.camera
+      const position = portraitPullBack(p, target, aspect)
+      return { position, target, offset: sideOffset(position, target, aspect) }
     }
   }
 }

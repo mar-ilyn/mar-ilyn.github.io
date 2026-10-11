@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { ListView } from './components/ListView'
 import { SiteHeader } from './components/SiteHeader'
 import { getProject } from './data/projects'
+import { getEntry } from './data/timeline'
 import { profile } from './data/profile'
 import { supportsWebGL } from './lib/webgl'
 import type { Route } from './state/routes'
@@ -20,6 +21,11 @@ function titleFor(route: Route): string {
     if (project) return `${project.title} · ${profile.name}`
   }
   if (route.name === 'list') return `Proyectos · ${profile.name}`
+  if (route.name === 'about') return `Sobre mí · ${profile.name}`
+  if (route.name === 'aboutEntry') {
+    const entry = getEntry(route.slug)
+    if (entry) return `${entry.title} · ${profile.name}`
+  }
   return BASE_TITLE
 }
 

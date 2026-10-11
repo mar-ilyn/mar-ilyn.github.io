@@ -980,3 +980,104 @@ html.is-gallery body {
   position: fixed;
   inset: 0;
 }
+
+/* Etiquetas de "Sobre mí" ancladas a la escena (AboutLabels). */
+.about-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+.about-labels--hidden {
+  opacity: 0;
+}
+.about-label {
+  --ppm: 120;
+  position: absolute;
+  left: 0;
+  top: 0;
+  text-align: center;
+  color: #2f2218;
+  white-space: nowrap;
+}
+.about-label--cartela {
+  display: grid;
+  gap: 0.1em;
+  font-size: clamp(8px, calc(var(--ppm) * 0.042px), 20px);
+  line-height: 1.15;
+}
+.about-label--cartela strong {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.15em;
+}
+.about-label--year {
+  font-family: var(--serif);
+  font-size: clamp(8px, calc(var(--ppm) * 0.07px), 22px);
+  color: #6b5234;
+  letter-spacing: 0.06em;
+}
+
+/* Línea de tiempo en la vista en lista */
+.timeline {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) var(--gutter);
+  border-top: 1px solid #d6c7ad;
+  scroll-margin-top: 70px;
+}
+.timeline:focus {
+  outline: none;
+}
+.timeline h2 {
+  font-size: clamp(2.1rem, 4.6vw, 3.2rem);
+  color: #2a1d14;
+  margin-bottom: 1.6rem;
+}
+.timeline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.4rem;
+  border-left: 1px solid var(--gold, #a8843f);
+  display: grid;
+  gap: 1.6rem;
+}
+.timeline__item {
+  position: relative;
+}
+.timeline__item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.4rem - 5px);
+  top: 0.4rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a8843f;
+}
+.timeline__meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a6a3e;
+}
+.timeline__item h3 {
+  margin-top: 0.3rem;
+  font-size: clamp(1.4rem, 2.4vw, 1.75rem);
+  color: #2a1d14;
+}
+.timeline__org {
+  margin: 0.15rem 0 0;
+  font-weight: 500;
+  color: #4a3626;
+}
+.timeline__desc {
+  margin: 0.35rem 0 0;
+  max-width: 62ch;
+  color: #4a3626;
+}

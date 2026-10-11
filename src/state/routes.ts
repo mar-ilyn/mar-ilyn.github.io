@@ -3,6 +3,7 @@ import type { ViewState } from './machine'
 export type Route = ViewState | { name: 'list' }
 
 const PROJECT_PATH = /^\/proyecto\/([a-z0-9-]+)(\/placa)?$/
+const ABOUT_PATH = /^\/sobre-mi(?:\/([a-z0-9-]+))?$/
 
 function stripBase(pathname: string, base: string): string {
   const b = base.endsWith('/') ? base.slice(0, -1) : base
@@ -11,10 +12,21 @@ function stripBase(pathname: string, base: string): string {
   return clean === '' ? '/' : clean
 }
 
-export function pathToRoute(pathname: string, isKnownSlug: (slug: string) => boolean, base = '/'): Route {
+export function pathToRoute(
+  pathname: string,
+  isKnownSlug: (slug: string) => boolean,
+  base = '/',
+  isKnownEntry: (slug: string) => boolean = () => false,
+): Route {
   const path = stripBase(pathname, base)
   if (path === '/lista') return { name: 'list' }
   if (path === '/proyectos') return { name: 'gallery' }
+
+  const about = ABOUT_PATH.exec(path)
+  if (about) {
+    const slug = about[1]
+    return slug && isKnownEntry(slug) ? { name: 'aboutEntry', slug } : { name: 'about' }
+  }
 
   const match = PROJECT_PATH.exec(path)
   if (match) {
@@ -40,5 +52,9 @@ export function routeToPath(route: Route, base = '/'): string {
       return `${b}/proyecto/${route.slug}/placa`
     case 'list':
       return `${b}/lista`
+    case 'about':
+      return `${b}/sobre-mi`
+    case 'aboutEntry':
+      return `${b}/sobre-mi/${route.slug}`
   }
 }

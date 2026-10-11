@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
 import { INTRO_LAYOUT, INTRO_X } from './layout'
 import { WALL, wallLayout } from './wallGeometry'
+import { ABOUT_BAY } from '../data/timeline'
 
 const intro = { left: INTRO_X - INTRO_LAYOUT.bay / 2, right: INTRO_X + INTRO_LAYOUT.bay / 2 }
-const layout = wallLayout(-39, 39, intro)
+const layout = wallLayout(-39, 39, [intro, ABOUT_BAY])
 const near = (list: number[], x: number) => list.some((v) => Math.abs(v - x) < 1e-6)
 
 describe('pared de palacio', () => {
@@ -25,8 +26,16 @@ describe('pared de palacio', () => {
     expect(near(layout.columns, intro.right)).toBe(true)
   })
 
-  it('una sola columna por separación, sin pares, cada 4 m fuera de la intro', () => {
-    const outside = layout.columns.filter((x) => x > intro.right + 0.1)
+  it('el tramo de Sobre mí queda libre y enmarcado por columnas', () => {
+    const inside = (x: number) => x > ABOUT_BAY.left + 1e-6 && x < ABOUT_BAY.right - 1e-6
+    expect(layout.columns.filter(inside)).toEqual([])
+    expect(layout.wideBays.filter(inside)).toEqual([])
+    expect(near(layout.columns, ABOUT_BAY.left)).toBe(true)
+    expect(near(layout.columns, ABOUT_BAY.right)).toBe(true)
+  })
+
+  it('una sola columna por separación, sin pares, cada 4 m entre la intro y Sobre mí', () => {
+    const outside = layout.columns.filter((x) => x > intro.right + 0.1 && x < ABOUT_BAY.left - 0.1)
     const gaps = outside.slice(1).map((x, i) => +(x - outside[i]).toFixed(6))
     expect(new Set(gaps)).toEqual(new Set([WALL.period]))
   })

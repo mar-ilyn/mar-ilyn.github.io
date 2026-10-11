@@ -49,3 +49,25 @@ export interface Profile {
   about: string
   contacts: readonly ContactLink[]
 }
+
+export type TimelineKind = 'laboral' | 'estudio' | 'certificacion'
+
+// Año y mes, p. ej. '2023-03'.
+export type YearMonth = `${number}-${number}`
+
+export type TimelineObjectKind = 'guia' | 'laptop' | 'cuaderno' | 'certificado'
+
+export interface TimelineEntry {
+  slug: string
+  kind: TimelineKind
+  title: string
+  organization: string
+  // null: sin fecha (se ubica al final del eje).
+  start: YearMonth | null
+  // null: actualidad (la barra llega hasta el extremo derecho).
+  end: YearMonth | null
+  description: string
+  object: { kind: TimelineObjectKind; alt: string }
+  accessibleName: string
+  camera: CameraView
+}

@@ -4,6 +4,8 @@ export type ViewState =
   | { name: 'gallery' }
   | { name: 'project'; slug: string }
   | { name: 'plaque'; slug: string }
+  | { name: 'about' }
+  | { name: 'aboutEntry'; slug: string }
 
 export type ViewEvent =
   | { type: 'STEP_DOWN' }
@@ -14,6 +16,8 @@ export type ViewEvent =
   | { type: 'MORE_INFO' }
   | { type: 'BACK' }
   | { type: 'BACK_TO_GALLERY' }
+  | { type: 'OPEN_ENTRY'; slug: string }
+  | { type: 'BACK_TO_ABOUT' }
 
 export const initialView: ViewState = { name: 'intro' }
 
@@ -31,6 +35,8 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
     case 'gallery':
       if (event.type === 'OPEN') return { name: 'project', slug: event.slug }
       if (event.type === 'STEP_UP') return { name: 'intro' }
+      // Bajando se sigue hacia la derecha, a "Sobre mí".
+      if (event.type === 'STEP_DOWN') return { name: 'about' }
       return state
 
     case 'project':
@@ -41,6 +47,18 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
     case 'plaque':
       if (event.type === 'STEP_UP' || event.type === 'BACK') return { name: 'project', slug: state.slug }
       if (event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
+      return state
+
+    // "Sobre mí", a la derecha de los pedestales: se llega bajando desde la galería o desde el menú.
+    // Subir o Esc vuelven a la galería; desde una entrada, Esc vuelve a la zona.
+    case 'about':
+      if (event.type === 'OPEN_ENTRY') return { name: 'aboutEntry', slug: event.slug }
+      if (event.type === 'STEP_UP' || event.type === 'BACK' || event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
+      return state
+
+    case 'aboutEntry':
+      if (event.type === 'OPEN_ENTRY' && event.slug !== state.slug) return { name: 'aboutEntry', slug: event.slug }
+      if (event.type === 'BACK' || event.type === 'BACK_TO_ABOUT') return { name: 'about' }
       return state
   }
 }

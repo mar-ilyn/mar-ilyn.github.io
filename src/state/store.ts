@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { getProject } from '../data/projects'
+import { getEntry } from '../data/timeline'
 import { transition, type ViewEvent } from './machine'
 import { pathToRoute, routeToPath, type Route } from './routes'
 
@@ -19,7 +20,8 @@ interface ViewStore {
   setHighlighted: (slug: string | null) => void
 }
 
-const readLocation = (): Route => pathToRoute(window.location.pathname, (s) => !!getProject(s), BASE)
+const readLocation = (): Route =>
+  pathToRoute(window.location.pathname, (s) => !!getProject(s), BASE, (s) => !!getEntry(s))
 
 function commit(route: Route, mode: 'push' | 'replace') {
   const path = routeToPath(route, BASE)
