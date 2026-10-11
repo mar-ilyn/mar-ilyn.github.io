@@ -8,7 +8,6 @@ import {
   entriesOf,
   entryX,
   formatRange,
-  HOBBY_SLOT,
   neighbours,
   rowOf,
   SECTIONS,
@@ -42,7 +41,6 @@ describe('línea de tiempo', () => {
     const inner = CABINET.width / 2 - 0.05
     for (const row of ['laboral', 'estudios'] as const) {
       const xs = entriesOf(row).map((e) => entryX(e))
-      if (row === HOBBY_SLOT.row) xs.push(HOBBY_SLOT.x)
       xs.sort((a, b) => a - b)
       for (let i = 1; i < xs.length; i++) expect(xs[i] - xs[i - 1]).toBeGreaterThan(0.45)
       for (const x of xs) expect(Math.abs(x - CABINET.cx)).toBeLessThan(inner - 0.2)

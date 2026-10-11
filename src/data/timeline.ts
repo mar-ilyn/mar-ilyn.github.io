@@ -27,9 +27,17 @@ export const SECTIONS: Record<Row, { floor: number; ceiling: number }> = {
   estudios: { floor: CABINET.baseTop, ceiling: CABINET.shelf - 0.012 },
 }
 
-// Alturas del friso medidas desde el piso del compartimento: años, eje, primera barra de duración (las
-// siguientes bajan de a laneStep), quiebre de las líneas guía y centro de la cartela.
-export const FRIEZE = { years: 1.0, axis: 0.95, lane: 0.915, laneStep: 0.028, elbow: 0.74, cartela: 0.6 } as const
+// Alturas medidas desde el piso del compartimento: título (Experiencia / Estudios), años, eje, primera
+// barra de duración (las siguientes bajan de a laneStep), quiebre de las líneas guía y centro de la cartela.
+export const FRIEZE = {
+  title: 0.985,
+  years: 0.895,
+  axis: 0.855,
+  lane: 0.82,
+  laneStep: 0.028,
+  elbow: 0.69,
+  cartela: 0.575,
+} as const
 
 // Eje horizontal dentro del mueble: enero de 2022 en x0, hoy en x1.
 export const AXIS = { start: '2022-01' as YearMonth, x0: CABINET.cx - 0.74, x1: CABINET.cx + 0.74 } as const
@@ -97,7 +105,7 @@ const drafts: Draft[] = [
     end: null,
     description:
       'Texto de ejemplo: gestión de la documentación de envíos internacionales. Reemplazar por la descripción real.',
-    object: { kind: 'guia', alt: 'Guía de envío en papel con una etiqueta genérica' },
+    object: { kind: 'guia', alt: 'Caja de envío con la documentación pegada encima' },
     accessibleName: 'Experiencia: Asistente de Documentación Internacional en The Argentino, desde marzo de 2023',
   },
   {
@@ -155,23 +163,16 @@ const order = (a: Draft, b: Draft) =>
   ROW_ORDER.indexOf(rowOf(a.kind)) - ROW_ORDER.indexOf(rowOf(b.kind)) ||
   (a.start && b.start ? months(a.start) - months(b.start) : a.start ? -1 : b.start ? 1 : 0)
 
-// Lugar reservado en el estante de experiencia para un objeto de un hobby (se completa más adelante).
-const HOBBY = 'hobby'
-
-// Columnas de cada estante: las entradas en orden cronológico (sin fecha al final) y el hobby al final
-// del de experiencia.
+// Columnas de cada estante: las entradas en orden cronológico (sin fecha al final), centradas.
 const sorted = [...drafts].sort(order)
 const slots = new Map<string, number>()
 for (const row of ROW_ORDER) {
   const ids = sorted.filter((d) => rowOf(d.kind) === row).map((d) => d.slug)
-  if (row === 'laboral') ids.push(HOBBY)
   ids.forEach((id, i) => slots.set(id, slotX(i, ids.length)))
 }
 
 // Columna de la entrada en su estante: ahí van su objeto y su cartela.
 export const entryX = (e: Pick<TimelineEntry, 'slug'>) => slots.get(e.slug) ?? CABINET.cx
-
-export const HOBBY_SLOT = { x: slots.get(HOBBY) ?? CABINET.cx, row: 'laboral' as Row }
 
 // Primero la experiencia y después los estudios, cada uno en orden cronológico: es el orden de
 // "Anterior / Siguiente".

@@ -100,12 +100,12 @@ export function cabinetPose(aspect: number): CameraPose {
   return { position: [CABINET.cx, y + 0.25, ROOM.wallZ + distance], target: [CABINET.cx, y, ROOM.wallZ], offset: NO_OFFSET }
 }
 
-// Un compartimento: del piso (los objetos) a los años del friso, con margen para el header. En vertical
+// Un compartimento: del piso (los objetos) al título, con margen para el header. En vertical
 // la cámara retrocede hasta que entra el ancho del mueble.
 export function sectionPose(section: Row, aspect: number): CameraPose {
   const { floor } = SECTIONS[section]
   const bottom = floor - 0.1
-  const top = floor + FRIEZE.years + 0.06
+  const top = floor + FRIEZE.title + 0.06
   // Margen para el header arriba y la pista abajo.
   const halfHeight = (top - bottom) / 2 + 0.32
   const halfWidth = CABINET.width / 2 + 0.12

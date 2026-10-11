@@ -13,7 +13,6 @@ import {
   entriesOf,
   entryX,
   FRIEZE,
-  HOBBY_SLOT,
   rowOf,
   SECTIONS,
   timeline,
@@ -130,6 +129,9 @@ const PARTS_MATERIAL: Record<string, Material> = {
   keycap: M.keycap,
   paper: M.paper,
   paperLabel: M.paperLabel,
+  cardboard: M.cardboard,
+  tape: M.tape,
+  ink: M.ink,
   brass: M.agedBrass,
   leather: M.leather,
   leatherGreen: M.leatherGreen,
@@ -230,7 +232,7 @@ function EntryObject({ entry }: { entry: TimelineEntry }): ReactNode {
 
 const OBJECT_WIDTH: Record<TimelineEntry['object']['kind'], number> = {
   laptop: 0.36,
-  guia: 0.18,
+  guia: 0.3,
   cuaderno: 0.3,
   certificado: 0.24,
 }
@@ -325,19 +327,8 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
   )
 }
 
-// Lugar reservado para el hobby: el pedestal de exposición vacío, con su cartela.
-function HobbySlot() {
-  return (
-    <group position={[HOBBY_SLOT.x, SECTIONS[HOBBY_SLOT.row].floor, OBJ_Z]} name="hobby-slot">
-      <ShelfLight width={0.28} />
-      <Riser width={0.24} />
-      <ShelfPlaque y={0.012} />
-    </group>
-  )
-}
-
 function Riser({ width }: { width: number }) {
-  const parts = useMemo(() => riserGeometry(width, 0.24), [width])
+  const parts = useMemo(() => riserGeometry(width, 0.28), [width])
   return (
     <>
       <mesh geometry={parts.walnut} material={M.walnutPlain} />
@@ -363,7 +354,6 @@ export default function AboutZone({ view, noHover, reducedMotion }: Props) {
       {timeline.map((e) => (
         <Entry key={e.slug} entry={e} interactive={interactive} noHover={noHover} reducedMotion={reducedMotion} />
       ))}
-      <HobbySlot />
     </group>
   )
 }

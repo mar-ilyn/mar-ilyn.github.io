@@ -119,11 +119,11 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 
 ### Zona "Sobre mí"
 
-A la derecha de los pedestales, entre dos columnas de la pared: un mueble vitrina alto y angosto (1,8 × 3,1 m) con base de nogal y puertas macizas, cuerpo vidriado con marco fino de latón, fondo claro y tira de luz bajo el techo. Tiene dos compartimentos separados por un estante de vidrio: arriba la experiencia laboral, abajo estudios y certificaciones. Cada uno lleva su propio friso cronológico (eje de 2022 a hoy, una barra de duración por entrada y una línea guía en ángulo recto hasta la cartela) y sus objetos en el estante, repartidos a distancias iguales para que no se pisen aunque las fechas estén cerca.
+A la derecha de los pedestales, entre dos columnas de la pared: un mueble vitrina alto y angosto (1,8 × 3,1 m) con base de nogal y puertas macizas, cuerpo vidriado con marco fino de latón, fondo claro y tira de luz bajo el techo. Tiene dos compartimentos separados por un estante de vidrio, cada uno con su título: arriba "Experiencia", abajo "Estudios" (estudios y certificaciones). Cada uno lleva su propio friso cronológico (eje de 2022 a hoy, una barra de duración por entrada y una línea guía en ángulo recto hasta la cartela) y sus objetos en el estante, repartidos a distancias iguales para que no se pisen aunque las fechas estén cerca.
 
 Recorrido: al bajar desde la galería la cámara se corre a la derecha y muestra el mueble entero un instante (`cabinetPose`), y sin detenerse sigue al compartimento de experiencia (`/sobre-mi`). Bajando otra vez va al de estudios (`/sobre-mi/estudios`); subir desanda el camino. Cada entrada abre su panel (`/sobre-mi/<entrada>`) y Esc vuelve a su compartimento. Con teclado, cada compartimento tiene botones para sus entradas y uno para pasar al otro.
 
-Los datos están en `src/data/timeline.ts`. El mueble y los objetos (teclado, guía de envío, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
+Los datos están en `src/data/timeline.ts`. El mueble y los objetos (teclado, caja de envío con su documentación, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
 
 ### Molduras doradas de la pared
 
