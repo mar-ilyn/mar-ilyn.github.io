@@ -33,6 +33,13 @@ export const TEXTURES = {
   },
 } as const
 
+// Molduras doradas de la pared, armadas con el mismo marco tallado (scripts/build-frame-kit.mjs).
+export const GILT_FRAME = {
+  albedo: `${BASE}giltframe_albedo.ktx2`,
+  normal: `${BASE}giltframe_normal.ktx2`,
+  orm: `${BASE}giltframe_orm.ktx2`,
+} as const
+
 // Marco tallado (fancy_picture_frame_02, Poly Haven CC0): geometría meshopt y texturas KTX2.
 export const FRAME_MODEL = `${BASE}frame.glb`
 

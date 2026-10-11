@@ -1,18 +1,9 @@
-import {
-  BufferGeometry,
-  ExtrudeGeometry,
-  Group,
-  LatheGeometry,
-  Mesh,
-  Shape,
-  SphereGeometry,
-  TorusGeometry,
-  Vector2,
-} from 'three'
+import { BufferGeometry, Group, LatheGeometry, Mesh, Vector2 } from 'three'
 import { bake } from './bake'
 
-// Pedestal de columna corintia, procedural: sin archivos de modelo y compartido por todos los pedestales.
-// Alturas en metros; el ábaco termina en TOP_Y, donde apoya (flotando) el objeto del proyecto.
+// Pedestal de columna, procedural: base con molduras y faldón estriado, fuste estriado y el mismo
+// diseño de la base invertido arriba. Sin archivos de modelo y compartido por todos los pedestales.
+// Alturas en metros; la cara superior está en TOP_Y, donde apoya (flotando) el objeto del proyecto.
 export const TOP_Y = 1.1
 export const SHAFT = { bottom: 0.27, top: 0.86, radius: 0.15 } as const
 
@@ -81,71 +72,17 @@ function shaft() {
   return flute(lathe(points, 96), 16, 0.016, SHAFT.bottom + 0.01, SHAFT.top - 0.01)
 }
 
-function capitalBell() {
-  return lathe([
-    [0, 0.86],
-    [0.158, 0.86],
-    [0.165, 0.875],
-    [0.152, 0.885],
-    [0.16, 0.92],
-    [0.18, 0.96],
-    [0.21, 1.0],
-    [0.235, 1.025],
-    [0, 1.025],
-  ])
-}
-
-function abacus() {
-  const h = 0.29
-  const sag = 0.05
-  const shape = new Shape()
-  shape.moveTo(-h, -h)
-  shape.quadraticCurveTo(0, -h + sag, h, -h)
-  shape.quadraticCurveTo(h - sag, 0, h, h)
-  shape.quadraticCurveTo(0, h - sag, -h, h)
-  shape.quadraticCurveTo(-h + sag, 0, -h, -h)
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: 0.055,
-    bevelEnabled: true,
-    bevelThickness: 0.01,
-    bevelSize: 0.01,
-    bevelSegments: 2,
-    curveSegments: 24,
-  })
-  geometry.rotateX(-Math.PI / 2)
-  geometry.translate(0, TOP_Y - 0.065, 0)
-  return geometry
-}
-
-const LEAVES = Array.from({ length: 16 }, (_, i) => {
-  const lower = i % 2 === 0
-  const angle = (i / 16) * Math.PI * 2
-  return { angle, lower, r: lower ? 0.165 : 0.19, y: lower ? 0.915 : 0.965 }
-})
-
-const VOLUTES = [0, 1, 2, 3].map((i) => (i / 4) * Math.PI * 2 + Math.PI / 4)
+// Remate superior: la misma base, invertida como en un espejo y ajustada a la altura que va del
+// fuste a la cara superior (TOP_Y), así arriba y abajo tienen el mismo diseño.
+const BASE_HEIGHT = 0.27
 
 function stone() {
   const root = new Group()
-  for (const geometry of [base(), shaft(), capitalBell(), abacus()]) root.add(new Mesh(geometry))
-
-  const leaf = new SphereGeometry(0.045, 8, 6)
-  for (const { angle, r, y, lower } of LEAVES) {
-    const mesh = new Mesh(leaf)
-    mesh.position.set(Math.cos(angle) * r, y, Math.sin(angle) * r)
-    mesh.rotation.set(0, -angle, lower ? 0.35 : 0.5)
-    mesh.scale.set(0.45, lower ? 1 : 0.85, 0.9)
-    root.add(mesh)
-  }
-
-  const volute = new TorusGeometry(0.032, 0.011, 6, 16)
-  for (const angle of VOLUTES) {
-    const mesh = new Mesh(volute)
-    mesh.position.set(Math.cos(angle) * 0.225, 1.0, Math.sin(angle) * 0.225)
-    mesh.rotation.set(0, -angle + Math.PI / 2, 0)
-    root.add(mesh)
-  }
-
+  for (const geometry of [base(), shaft()]) root.add(new Mesh(geometry))
+  const top = new Mesh(base())
+  top.scale.set(1, -(TOP_Y - SHAFT.top) / BASE_HEIGHT, 1)
+  top.position.y = TOP_Y
+  root.add(top)
   return bake(root)
 }
 

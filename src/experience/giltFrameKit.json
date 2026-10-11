@@ -1,0 +1,41 @@
+{
+  "source": "fancy_picture_frame_02 (Poly Haven, CC0) — Rob Tuytel, Rico Cilliers",
+  "aspect": 0.8566,
+  "widthMeters": 0.661,
+  "border": {
+    "u": 0.1959,
+    "v": 0.1673
+  },
+  "corner": {
+    "u": 0.33,
+    "v": 0.29
+  },
+  "straight": {
+    "top": [
+      0.36,
+      0.44
+    ],
+    "bottom": [
+      0.36,
+      0.44
+    ],
+    "left": [
+      0.3,
+      0.42
+    ],
+    "right": [
+      0.3,
+      0.42
+    ]
+  },
+  "crest": {
+    "u": [
+      0.4,
+      0.6
+    ],
+    "v": [
+      0,
+      0.1673
+    ]
+  }
+}

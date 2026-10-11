@@ -51,9 +51,21 @@ WINDOW_W, WINDOW_BOTTOM, WINDOW_TOP = 0.9, 1.2, 2.8
 ROOM_Z_MAX, ROOM_TOP = 22.0, 4.2
 
 # Luz del retrato: arriba del cuadro, apuntando a la pared y hacia abajo.
+# Segunda luz: ventanas altas en la pared de enfrente (z = 11, detrás de la cámara; esta pared existe
+# solo en el horneado, no en la escena), con un sol de tarde que entra hacia la pared del fondo.
+# Pendiente 0,42 (unos 22°): un rayo que pasa a altura y llega al piso tras recorrer y / 0,42 m.
+# Con ventanas entre 2,4 y 4,0 m la luz cae entre z ≈ 1 y z ≈ 5, delante de los pedestales, y no
+# alcanza la pared. Cada rayo se corre 0,3 m en x por metro: ventanas en x = -4,4 y -0,4 dejan las
+# manchas cerca de x = -2 y x = 2, entre los pedestales.
+FRONT_WALL_Z = 11.0
+FRONT_WINDOWS_X = (-4.4, -0.4)
+FRONT_WINDOW_W, FRONT_WINDOW_BOTTOM, FRONT_WINDOW_TOP = 1.0, 2.4, 4.0
+SUN2_DIR = Vector((0.3, -0.42, -1.0)).normalized()  # en coordenadas web
+SUN2_STRENGTH = 7.0
+
 # Lámpara de cuadro (PictureLamp.tsx): justo debajo de la pantalla de bronce, apuntando hacia
 # abajo y a la pared con un haz cerrado, para iluminar solo la parte de arriba del cuadro.
-PICTURE_LIGHT = {"pos": (-8.7, 3.1, -2.72), "dir": (0.0, -1.0, -0.7), "power": 9.0, "color": (1.0, 0.82, 0.58)}
+PICTURE_LIGHT = {"pos": (-8.7, 3.1, -2.72), "dir": (0.0, -1.0, -0.7), "power": 5.0, "color": (1.0, 0.82, 0.58)}
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=GLB)
@@ -102,12 +114,37 @@ def build_window_wall():
         box("window_lintel", (WINDOW_WALL_X, (WINDOW_TOP + 4.4) / 2, zc), (0.3, 4.4 - WINDOW_TOP, WINDOW_W))
         # Parteluz: divide cada haz en dos hojas, como una ventana de dos batientes.
         box("window_mullion", (WINDOW_WALL_X, (WINDOW_BOTTOM + WINDOW_TOP) / 2, zc), (0.1, WINDOW_TOP - WINDOW_BOTTOM, 0.06))
-    # Techo-oclusor desde la pared de ventanas hacia adentro de la sala.
+    # Techo-oclusor desde la pared de ventanas hacia adentro de la sala, hasta la pared de enfrente:
+    # si siguiera más allá, taparía el sol de las ventanas de enfrente.
     x0, x1 = WINDOW_WALL_X, 40.0
-    box("room_roof", ((x0 + x1) / 2, ROOM_TOP + 0.15, (z_min + z_max) / 2), (x1 - x0, 0.3, z_max - z_min))
+    z1 = FRONT_WALL_Z
+    box("room_roof", ((x0 + x1) / 2, ROOM_TOP + 0.15, (z_min + z1) / 2), (x1 - x0, 0.3, z1 - z_min))
+
+
+def build_front_wall():
+    x_min, x_max = WINDOW_WALL_X, 40.0
+    edges = [x_min]
+    for xc in FRONT_WINDOWS_X:
+        edges += [xc - FRONT_WINDOW_W / 2, xc + FRONT_WINDOW_W / 2]
+    edges.append(x_max)
+    for i in range(0, len(edges), 2):
+        x0, x1 = edges[i], edges[i + 1]
+        box("front_wall", ((x0 + x1) / 2, 2.2, FRONT_WALL_Z), (x1 - x0, 4.4, 0.3))
+    for xc in FRONT_WINDOWS_X:
+        box("front_sill", (xc, FRONT_WINDOW_BOTTOM / 2, FRONT_WALL_Z), (FRONT_WINDOW_W, FRONT_WINDOW_BOTTOM, 0.3))
+        box("front_lintel", (xc, (FRONT_WINDOW_TOP + 4.4) / 2, FRONT_WALL_Z), (FRONT_WINDOW_W, 4.4 - FRONT_WINDOW_TOP, 0.3))
+        box("front_mullion", (xc, (FRONT_WINDOW_BOTTOM + FRONT_WINDOW_TOP) / 2, FRONT_WALL_Z), (0.06, FRONT_WINDOW_TOP - FRONT_WINDOW_BOTTOM, 0.1))
 
 
 def add_lights():
+    sun2_data = bpy.data.lights.new("sun_front", type="SUN")
+    sun2_data.energy = SUN2_STRENGTH
+    sun2_data.color = SUN_COLOR
+    sun2_data.angle = SUN_SOFTNESS
+    sun2 = bpy.data.objects.new("sun_front", sun2_data)
+    bpy.context.collection.objects.link(sun2)
+    sun2.rotation_euler = b(*SUN2_DIR).to_track_quat("-Z", "Y").to_euler()
+
     sun_data = bpy.data.lights.new("sun", type="SUN")
     sun_data.energy = SUN_STRENGTH
     sun_data.color = SUN_COLOR
@@ -200,6 +237,7 @@ for o in intro_pieces:
 
 # 2. Luz directa: sol por las ventanas y luz del retrato.
 build_window_wall()
+build_front_wall()
 add_lights()
 # El techo de la escena se extiende 40 m a cada lado y taparía el sol antes de las ventanas:
 # en esta pasada no proyecta sombra (la luz entra desde afuera de la sala).
@@ -217,6 +255,11 @@ for name, (w, h) in LIGHT_TARGETS.items():
     # En el piso y la pared, u recorre x de -40 a 40.
     xs = -40.0 + (np.arange(w) + 0.5) / w * 80.0
     pixels[:, xs < WINDOW_WALL_X, :3] = 0.0
+    if name == "floor":
+        # Las filas del buffer de Blender van de abajo hacia arriba: en el piso, de z = -20 a z = 20.
+        # Del otro lado de la pared de enfrente tampoco puede haber sol.
+        zs = -20.0 + (np.arange(h) + 0.5) / h * 40.0
+        pixels[zs > FRONT_WALL_Z, :, :3] = 0.0
     peak = float(np.percentile(pixels[..., :3], 99.9)) or 1.0
     pixels[..., :3] = np.clip(pixels[..., :3] / peak, 0, 1)
     out = bpy.data.images.new(f"{name}_light_8bit", width=w, height=h, alpha=False, float_buffer=False)

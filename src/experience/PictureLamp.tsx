@@ -72,7 +72,7 @@ export function PictureLamp({ x, frameTop, frameWidth }: Props) {
         penumbra={0.9}
         distance={1.25}
         decay={2}
-        intensity={5}
+        intensity={2.2}
         color="#ffd6a0"
       />
     </group>

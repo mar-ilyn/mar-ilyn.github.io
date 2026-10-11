@@ -5,7 +5,8 @@ import { Group, InstancedMesh, Mesh, MeshStandardMaterial, type Object3D } from 
 // Solo en desarrollo: expone la escena para scripts/bake-lightmaps.mjs, que la exporta a GLB y la
 // hornea en Blender. Así el horneado usa exactamente la geometría que se ve, sin duplicarla.
 // Las piezas que se mueven o son efectos de luz no proyectan oclusión y se excluyen.
-const DYNAMIC = /^(exhibit|light-beam|light-pool)$/
+// Las molduras doradas son planos con transparencia: exportadas sin ella oscurecerían todo el panel.
+const DYNAMIC = /^(exhibit|light-beam|light-pool|gilt-frames|gilt-frame-intro)$/
 
 declare global {
   interface Window {

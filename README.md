@@ -113,8 +113,19 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 ### Luz de la intro
 
 - **Sol de tarde horneado**: `bake_lightmaps.py` agrega, solo para el horneado, una pared con dos ventanas fuera de cuadro a la izquierda y un sol bajo y cálido. Cycles hornea la luz directa (`*_light.ktx2`, ~12 KB): los dos haces entran en diagonal sobre la franja de piso que se ve en la intro, y en la pared solo llegan al zócalo, sin tocar el panel del texto. Los centros de las ventanas se calculan a partir de la dirección del sol (ver el comentario en el script). Fuera de la sala, la luz se anula en el propio mapa. En tiempo real hay un sol débil con la misma dirección, para las piezas sin lightmap.
+- **Segunda luz**: ventanas altas en la pared de enfrente (solo en el horneado, detrás de la cámara) con un sol de tarde que deja dos manchas de luz en el piso entre los pedestales, sin tocar la pared.
 - **Lámpara de cuadro** (`PictureLamp.tsx`): barra de bronce con brazo, sobre el marco. Un foco cerrado y de alcance corto (1,25 m) ilumina solo la parte superior del cuadro.
 - **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
+
+### Molduras doradas de la pared
+
+Se arman con el tallado real del marco `fancy_picture_frame_02` (Poly Haven, CC0, Rob Tuytel y Rico Cilliers), no con ornamentos generados por código:
+
+1. `scripts/blender/render_frame_kit.py` renderiza el marco de frente en Blender: color, normal map, oclusión, rugosidad y altura del relieve.
+2. `npm run frame-kit` recorta el contorno, abre el hueco y genera `giltframe_albedo/normal/orm.ktx2` (~500 KB), con lados múltiplos de 4 (las texturas comprimidas lo exigen; si no, la GPU las rechaza y salen negras).
+3. `giltFrameGeometry.ts` las usa "en 9 partes": esquinas talladas reales y tramos rectos repetidos a lo largo de cada lado, sin deformar las esquinas.
+
+El material lleva la luminancia del render a una paleta de oro envejecido (recovecos #4A3118, altos #A67C3D, desgaste #D6B56C), con rugosidad de 0,35 a 0,55 y metal moderado. **Sin crestería**: la banda superior de este marco es un rectángulo macizo, sin silueta propia, y recortarla quedaba como un bloque. Para tener una haría falta otro modelo.
 
 ### Vista en lista (`/lista`)
 

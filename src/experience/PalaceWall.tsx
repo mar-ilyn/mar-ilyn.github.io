@@ -1,5 +1,10 @@
+import { useKTX2 } from '@react-three/drei'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { Matrix4, MeshStandardMaterial, type BufferGeometry, type InstancedMesh, type Material } from 'three'
+import { AssetBoundary } from './AssetBoundary'
+import { BASIS_PATH, GILT_FRAME } from './assets'
+import { giltFrameGeometry } from './giltFrameGeometry'
+import { createGiltMaterial } from './giltMaterial'
 import { createMarbleTexture } from './marbleTexture'
 import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 import { agedGold, gold, ivoryTrim } from './ornament'
@@ -42,6 +47,31 @@ function MarbleColumns({ geometry, xs }: { geometry: BufferGeometry; xs: readonl
   return <Row geometry={geometry} material={material} xs={xs} name="wall-columns-marble" />
 }
 
+interface FrameSize {
+  width: number
+  height: number
+}
+
+// Molduras de la pared con el tallado real del marco de Poly Haven (ver giltFrameGeometry.ts).
+// Sin crestería: el marco de origen no tiene una con silueta propia (ver README).
+function GiltFrames({ wide, intro, wideXs }: { wide: FrameSize; intro: FrameSize; wideXs: readonly number[] }) {
+  const [albedo, normal, orm] = useKTX2([GILT_FRAME.albedo, GILT_FRAME.normal, GILT_FRAME.orm], BASIS_PATH)
+  const material = useMemo(() => createGiltMaterial(albedo, normal, orm), [albedo, normal, orm])
+  const geometry = useMemo(
+    () => ({
+      wide: giltFrameGeometry(wide.width, wide.height, { border: 0.12 }),
+      intro: giltFrameGeometry(intro.width, intro.height, { border: 0.14 }),
+    }),
+    [wide.width, wide.height, intro.width, intro.height],
+  )
+  return (
+    <>
+      <Row geometry={geometry.wide} material={material} xs={wideXs} y={PANEL_Y} name="gilt-frames" />
+      <mesh geometry={geometry.intro} material={material} position={[INTRO_X, PANEL_Y, 0.005]} name="gilt-frame-intro" />
+    </>
+  )
+}
+
 const PANEL_Y = (WALL.panel.bottom + WALL.panel.top) / 2
 const PANEL_H = WALL.panel.top - WALL.panel.bottom
 
@@ -79,8 +109,20 @@ export function PalaceWall({ bare = false }: { bare?: boolean }) {
       <MarbleColumns geometry={geo.columnIvory} xs={layout.columns} />
       <Row geometry={geo.columnGold} material={agedGold} xs={layout.columns} name="wall-columns-gold" />
 
-      <Row geometry={geo.wide} material={gold} xs={layout.wideBays} y={PANEL_Y} />
-      <mesh geometry={geo.intro} material={gold} position={[INTRO_X, PANEL_Y, 0]} />
+      <AssetBoundary
+        fallback={
+          <>
+            <Row geometry={geo.wide} material={gold} xs={layout.wideBays} y={PANEL_Y} />
+            <mesh geometry={geo.intro} material={gold} position={[INTRO_X, PANEL_Y, 0]} />
+          </>
+        }
+      >
+        <GiltFrames
+          wide={{ width: WALL.wide - 0.45, height: PANEL_H }}
+          intro={{ width: introBay - 0.95, height: PANEL_H }}
+          wideXs={layout.wideBays}
+        />
+      </AssetBoundary>
 
       <Row geometry={geo.lowerWide} material={ivoryTrim} xs={layout.wideBays} y={WALL.lowerPanel.y} />
       <mesh geometry={geo.lowerIntro} material={ivoryTrim} position={[INTRO_X, WALL.lowerPanel.y, 0]} />
