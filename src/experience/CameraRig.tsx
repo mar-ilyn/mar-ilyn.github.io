@@ -5,7 +5,7 @@ import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import type { PerspectiveCamera } from 'three'
-import { cabinetPose, introLensShift, introWidePose, poseFor, tallIntro, type CameraPose } from './layout'
+import { cabinetPose, introCenterX, introLensShift, introWidePose, poseFor, type CameraPose } from './layout'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 const { ACTION } = CameraControlsImpl
@@ -33,8 +33,7 @@ export function CameraRig({ view, holdWide = false }: Props) {
   const reducedMotion = usePrefersReducedMotion()
   const lastView = useRef<ViewState | null>(null)
   // Peso del descentramiento de lente de la intro (0 fuera de la intro): entra y sale suave con los vuelos.
-  // En vertical la cámara ya está de frente a la cartela, sin descentrar.
-  const lensShift = view.name === 'intro' && !holdWide && !tallIntro(aspect)
+  const lensShift = view.name === 'intro' && !holdWide
   const shift = useRef(lensShift ? 1 : 0)
 
   useFrame(({ camera, invalidate }, delta) => {
@@ -44,7 +43,7 @@ export function CameraRig({ view, holdWide = false }: Props) {
     const rate = goal > shift.current ? 3 : 8
     const next = reducedMotion ? goal : shift.current + (goal - shift.current) * Math.min(1, delta * rate)
     shift.current = Math.abs(next - goal) < 0.001 ? goal : next
-    const offset = shift.current ? shift.current * introLensShift(cam.position.x, cam.position.z, cam.getFilmWidth()) : 0
+    const offset = shift.current ? shift.current * introLensShift(cam.position.x, cam.position.z, cam.getFilmWidth(), introCenterX(aspect)) : 0
     if (Math.abs(offset - cam.filmOffset) > 1e-4) {
       cam.filmOffset = offset
       cam.updateProjectionMatrix()

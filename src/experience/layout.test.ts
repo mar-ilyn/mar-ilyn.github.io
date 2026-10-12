@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
 import { CABINET, SECTIONS } from '../data/timeline'
 import { PEDESTAL_LABEL } from './pedestalGeometry'
-import { cabinetPose, FOV, galleryPose, INTRO_LABEL, INTRO_LABEL_MARGIN, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introLensShift, introWidePose, poseFor, ROOM } from './layout'
+import { cabinetPose, FOV, galleryPose, INTRO_LABEL, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introCenterX, introLabelX, introLensShift, introWidePose, poseFor, ROOM } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 const detail = { name: 'projectDetail', slug: projects[0].slug } as const
@@ -39,21 +39,24 @@ describe('encuadres de cámara', () => {
     }
   })
 
-  it('en vertical, la intro se acerca de frente a la cartela alta: casi todo el ancho, entera a lo alto', () => {
-    const { tall, scale, center } = INTRO_LABEL
+  it('en vertical, la cartela va pegada al retrato y el encuadre muestra los dos, de lado a lado', () => {
+    const { tall, scale } = INTRO_LABEL
+    const { frameX, frame } = INTRO_LAYOUT
+    const labelRight = introLabelX(true) + (tall.width * scale) / 2
+    expect(labelRight).toBeCloseTo(frameX - frame.width / 2 - tall.gap)
+    const left = introLabelX(true) - (tall.width * scale) / 2
+    const right = frameX + frame.width / 2
     for (const aspect of [0.46, 0.75, 1]) {
       const { position, target } = poseFor({ name: 'intro' }, aspect, projects)
-      expect(position[0]).toBeCloseTo(INTRO_X + center.x)
+      // De frente al retrato; la lente lleva el centro de la composición al centro de la imagen.
+      expect(position[0]).toBeCloseTo(INTRO_X + frameX)
       expect(target[0]).toBeCloseTo(position[0])
-      const distance = position[2] - ROOM.wallZ
-      const halfVisibleWidth = distance * halfTan * aspect
-      expect(halfVisibleWidth).toBeGreaterThanOrEqual((tall.width * scale) / 2 + INTRO_LABEL_MARGIN - 1e-6)
-      expect(distance * halfTan).toBeGreaterThan((tall.height * scale) / 2 + 0.4)
+      expect(introCenterX(aspect)).toBeCloseTo((left + right) / 2)
+      const d = position[2] - ROOM.wallZ
+      expect((-introLensShift(position[0], position[2], 35, introCenterX(aspect)) / 35) * d).toBeCloseTo(frameX - introCenterX(aspect))
+      // Entra de lado a lado con un margen chico.
+      expect(d * halfTan * aspect).toBeCloseTo((right - left) / 2 + 0.07)
     }
-    // En un celular la cartela llega a los costados, con un margen chico.
-    const phone = poseFor({ name: 'intro' }, 0.46, projects)
-    const halfVisible = (phone.position[2] - ROOM.wallZ) * halfTan * 0.46
-    expect(halfVisible).toBeCloseTo((tall.width * scale) / 2 + INTRO_LABEL_MARGIN)
   })
 
   it('la intro se acerca respecto del plano general', () => {

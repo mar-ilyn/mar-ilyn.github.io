@@ -47,17 +47,7 @@ export function introWidePose(aspect: number): CameraPose {
 // para frente al retrato y mira derecho a la pared, así el marco tallado se ve de frente (desde el centro
 // de la composición se le veía el canto y parecía inclinado). CameraRig descentra la lente para que la
 // imagen siga centrada en la composición (introLensShift).
-// En vertical, de frente a la cartela (la versión alta) y cerca, para que se lea: ocupa casi todo el ancho.
 export function introPose(aspect: number): CameraPose {
-  if (tallIntro(aspect)) {
-    const { center } = INTRO_LABEL
-    const x = INTRO_X + center.x
-    return {
-      position: [x, center.y, ROOM.wallZ + introFit(aspect)],
-      target: [x, center.y, ROOM.wallZ],
-      offset: NO_OFFSET,
-    }
-  }
   const wide = introWidePose(aspect)
   const distance = Math.min(introFit(aspect), (wide.position[2] - ROOM.wallZ) * 0.85)
   const x = INTRO_X + INTRO_LAYOUT.frameX
@@ -71,8 +61,8 @@ export function introPose(aspect: number): CameraPose {
 // Descentramiento de lente (filmOffset de three, en mm) para que el centro de la imagen caiga en el
 // centro de la composición de la intro aunque la cámara esté corrida: con la pared paralela a la imagen,
 // nada se deforma. Depende de dónde esté la cámara en cada cuadro, así acompaña el acercamiento inicial.
-export function introLensShift(cameraX: number, cameraZ: number, filmWidth: number): number {
-  const dx = cameraX - (INTRO_X + INTRO_LAYOUT.centerX)
+export function introLensShift(cameraX: number, cameraZ: number, filmWidth: number, centerX: number = INTRO_LAYOUT.centerX): number {
+  const dx = cameraX - (INTRO_X + centerX)
   const distance = Math.max(0.5, cameraZ - ROOM.wallZ)
   return (-filmWidth * dx) / distance
 }
@@ -81,11 +71,12 @@ export function introLensShift(cameraX: number, cameraZ: number, filmWidth: numb
 // scale la agranda entera (texto incluido) en la escena. Su
 // centro (relativo a INTRO_X) va a la altura del centro del panel de la pared (1,10 a 3,40 m) y, en
 // ancho, entre la moldura dorada del panel (borde interno en -3,39) y el cuadro del retrato (borde en 0,53).
-// En pantallas verticales la cartela es alta y angosta (tall), con el texto más grande en proporción.
+// En pantallas verticales la cartela es angosta (tall), con el texto más grande en proporción, y va pegada al
+// retrato (a gap del marco) para que entren los dos juntos.
 export const INTRO_LABEL = {
   width: 1.7,
   height: 0.9,
-  tall: { width: 1.3, height: 1.3 },
+  tall: { width: 0.82, height: 1.08, gap: 0.15 },
   depth: 0.012,
   standoff: 0.004,
   scale: 1.25,
@@ -94,20 +85,34 @@ export const INTRO_LABEL = {
 
 export const tallIntro = (aspect: number) => aspect <= 1
 
+// Centro horizontal de la cartela (relativo a INTRO_X). En vertical, a la izquierda del marco, a gap de él.
+export function introLabelX(tall: boolean): number {
+  if (!tall) return INTRO_LABEL.center.x
+  const { frameX, frame } = INTRO_LAYOUT
+  return frameX - frame.width / 2 - INTRO_LABEL.tall.gap - (INTRO_LABEL.tall.width * INTRO_LABEL.scale) / 2
+}
+
+// En vertical, la composición va del borde izquierdo de la cartela al borde derecho del marco.
+function tallComposition() {
+  const { frameX, frame } = INTRO_LAYOUT
+  const left = introLabelX(true) - (INTRO_LABEL.tall.width * INTRO_LABEL.scale) / 2
+  const right = frameX + frame.width / 2
+  return { centerX: (left + right) / 2, halfWidth: (right - left) / 2 }
+}
+
+// Centro de la composición de la intro (relativo a INTRO_X), adonde CameraRig lleva el centro de la imagen.
+export const introCenterX = (aspect: number) => (tallIntro(aspect) ? tallComposition().centerX : INTRO_LAYOUT.centerX)
+
 // Distancia del encuadre final de la intro. En horizontal entra el panel entero y las columnas que lo
 // rodean (sus centros están en los bordes del tramo, a bay / 2 del centro), con 30 cm más a cada lado:
-// se ve cada columna completa, con su pedestal. En vertical, la cartela a lo ancho con un margen chico a
-// los costados (INTRO_LABEL_MARGIN) y, a lo alto, lugar para el header arriba y los botones abajo.
+// se ve cada columna completa, con su pedestal. En vertical, la cartela y el retrato a lo ancho, con un
+// margen chico a los costados (INTRO_SIDE_MARGIN).
 const INTRO_COLUMN_MARGIN = 0.3
-export const INTRO_LABEL_MARGIN = 0.07
+export const INTRO_SIDE_MARGIN = 0.07
 
 function introFit(aspect: number): number {
-  const { bay } = INTRO_LAYOUT
-  if (tallIntro(aspect)) {
-    const { tall, scale } = INTRO_LABEL
-    return Math.max((tall.width * scale) / 2 + INTRO_LABEL_MARGIN, ((tall.height * scale) / 2 + 0.5) * aspect) / (halfTan * aspect)
-  }
-  return Math.max(4.2, (bay / 2 + INTRO_COLUMN_MARGIN) / (halfTan * aspect))
+  if (tallIntro(aspect)) return (tallComposition().halfWidth + INTRO_SIDE_MARGIN) / (halfTan * aspect)
+  return Math.max(4.2, (INTRO_LAYOUT.bay / 2 + INTRO_COLUMN_MARGIN) / (halfTan * aspect))
 }
 
 export const INTRO_POSE = introPose(16 / 9)
