@@ -7,6 +7,9 @@ export default defineConfig({
   fullyParallel: true,
   // La escena corre con WebGL por software: menos workers y más margen por aserción.
   workers: process.env.CI ? 2 : 3,
+  // Incluye la preparación del contexto: con dos navegadores con WebGL por software en paralelo, cerrar la
+  // escena del test anterior puede demorar el contexto siguiente más de los 30 s por defecto.
+  timeout: 60_000,
   expect: { timeout: 10_000 },
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

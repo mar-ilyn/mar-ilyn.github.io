@@ -10,9 +10,9 @@ import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
 import { BookAnchor, ContactBook } from './ContactBook'
 import { DevSceneExport } from './DevSceneExport'
-import { IntroName } from './IntroName'
+import { IntroLabel } from './IntroLabel'
 import { Lettering } from './Lettering'
-import { IntroAnchor, IntroText } from './IntroText'
+import { IntroText } from './IntroText'
 import { FOV, INTRO_WIDE_POSE, ROOM } from './layout'
 import { LightBeam } from './LightBeam'
 import { LoadingScreen } from './LoadingScreen'
@@ -54,7 +54,6 @@ export default function Experience({ view }: Props) {
   const setHighlighted = useViewStore((s) => s.setHighlighted)
   // Sin hover (pantallas táctiles): todos los pedestales con un haz suave constante.
   const noHover = useMediaQuery('(hover: none)')
-  // En vertical el texto de la intro es una tarjeta HTML: ahí el nombre va sin letras 3D.
   const introCard = useMediaQuery('(max-aspect-ratio: 1/1)')
   const reducedMotion = usePrefersReducedMotion()
   const [{ quality, debug, render }] = useState(initialSettings)
@@ -62,7 +61,6 @@ export default function Experience({ view }: Props) {
   const [compiled, setCompiled] = useState(false)
   const onCompiled = useCallback(() => setCompiled(true), [])
   const ready = cameraPlaced && compiled
-  const introRef = useRef<HTMLDivElement>(null)
   const aboutRef = useRef<HTMLDivElement>(null)
   const [aboutLoaded, setAboutLoaded] = useState(false)
   if (!aboutLoaded && !render && ABOUT_READY_VIEWS.has(view.name)) setAboutLoaded(true)
@@ -72,7 +70,8 @@ export default function Experience({ view }: Props) {
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
 
-  const name3d = !render && !introCard
+  // Cartela de museo con el texto de la intro, en la pared (en vertical, el texto es una tarjeta HTML).
+  const introLabel = !render && !introCard
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
 
@@ -126,8 +125,7 @@ export default function Experience({ view }: Props) {
           <Precompile onDone={onCompiled} />
         </Suspense>
         <CameraRig view={view} holdWide={render === 'fondo'} />
-        <IntroAnchor target={introRef} />
-        {name3d && <IntroName target={introRef} visible={view.name === 'intro'} reducedMotion={reducedMotion} />}
+        {introLabel && <IntroLabel />}
         {aboutLoaded && (
           <Suspense fallback={null}>
             <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
@@ -144,7 +142,7 @@ export default function Experience({ view }: Props) {
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
       {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
-      <IntroText anchorRef={introRef} visible={view.name === 'intro'} name3d={name3d} />
+      <IntroText visible={view.name === 'intro'} label={!introCard} />
       {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
       {view.name === 'contactBook' && <ContactBook anchorRef={bookRef} />}
       <LoadingScreen done={ready} />

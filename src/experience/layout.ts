@@ -55,6 +55,17 @@ export function introPose(aspect: number): CameraPose {
   }
 }
 
+// Cartela de museo de la intro (IntroLabel): tamaño, espesor del cartón y separación de la pared. Su
+// centro (relativo a INTRO_X) va a la altura del centro del panel de la pared (1,10 a 3,40 m) y, en
+// ancho, entre la moldura dorada del panel (borde interno en -3,39) y el cuadro del retrato (borde en 0,53).
+export const INTRO_LABEL = {
+  width: 1.7,
+  height: 0.9,
+  depth: 0.012,
+  standoff: 0.004,
+  center: { x: -1.43, y: 2.25 },
+} as const
+
 export const INTRO_POSE = introPose(16 / 9)
 export const INTRO_WIDE_POSE = introWidePose(16 / 9)
 

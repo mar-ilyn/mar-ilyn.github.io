@@ -74,6 +74,8 @@ export interface Profile {
   tagline: string
   stack: readonly string[]
   about: string
+  // Cartela de la intro: título en negrita (como el de la obra), junto al año.
+  label: { title: string }
   contacts: readonly ContactLink[]
 }
 

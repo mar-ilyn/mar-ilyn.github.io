@@ -41,5 +41,5 @@ export const ENVELOPE = { position: [DESK.x + 0.54, TOP, DESK.z + 0.16] as const
 export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.pageTop, BOOK.z] as const
 
 // Objetos interactivos del escritorio y su clave de resaltado (hover o foco de su botón en el DOM).
-export type ContactItem = 'book' | 'pen' | 'envelope'
+export type ContactItem = 'book' | 'envelope'
 export const contactItemKey = (id: ContactItem) => `contact:${id}`

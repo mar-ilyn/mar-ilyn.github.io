@@ -12,6 +12,17 @@ const isTextField = (el: EventTarget | null) =>
 const isInteractive = (el: EventTarget | null) =>
   el instanceof HTMLElement && !!el.closest('a, button, input, textarea, select, [contenteditable]')
 
+// ¿Algún contenedor bajo el puntero puede scrollear todavía en esa dirección? (dy > 0: hacia abajo)
+function scrollsInside(target: EventTarget | null, dy: number): boolean {
+  for (let el = target instanceof Element ? target : null; el && el !== document.body; el = el.parentElement) {
+    const { overflowY } = getComputedStyle(el)
+    if (overflowY !== 'auto' && overflowY !== 'scroll') continue
+    if (el.scrollHeight <= el.clientHeight) continue
+    if (dy > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 1 : el.scrollTop > 0) return true
+  }
+  return false
+}
+
 // Convierte rueda, gestos y teclado en pasos discretos: un gesto = un paso, sin scroll libre.
 export function useStepInput() {
   useEffect(() => {
@@ -29,6 +40,7 @@ export function useStepInput() {
     }
 
     const onWheel = (e: WheelEvent) => {
+      if (scrollsInside(e.target, e.deltaY)) return
       const now = performance.now()
       if (now - lastWheel > WHEEL_IDLE_MS) wheelAccum = 0
       lastWheel = now
@@ -38,15 +50,17 @@ export function useStepInput() {
       wheelAccum = 0
     }
 
+    let touchTarget: EventTarget | null = null
     const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0]?.clientY ?? null
+      touchTarget = e.target
     }
     const onTouchEnd = (e: TouchEvent) => {
       const endY = e.changedTouches[0]?.clientY
       if (touchStartY === null || endY === undefined) return
       const dy = touchStartY - endY
       touchStartY = null
-      if (Math.abs(dy) >= SWIPE_THRESHOLD) step(dy > 0 ? 'down' : 'up')
+      if (Math.abs(dy) >= SWIPE_THRESHOLD && !scrollsInside(touchTarget, dy)) step(dy > 0 ? 'down' : 'up')
     }
 
     const onKey = (e: KeyboardEvent) => {

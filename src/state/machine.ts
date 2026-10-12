@@ -71,8 +71,9 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
       if (event.type === 'BACK' || event.type === 'BACK_TO_ABOUT') return { name: 'about', section: sectionOf(state.slug) }
       return state
 
-    // "Contacto", el cierre del recorrido: un escritorio. El libro se abre con el formulario y los
-    // canales; Esc lo cierra y, con el libro cerrado, vuelve a la galería. Desde ambos se puede reiniciar.
+    // "Contacto", el cierre del recorrido: un escritorio. Acercarse al libro muestra los canales y el
+    // mensaje; Esc o scrollear vuelven al escritorio y, desde ahí, Esc vuelve a la galería. Desde ambos se
+    // puede reiniciar.
     case 'contact':
       if (event.type === 'OPEN_BOOK') return { name: 'contactBook' }
       if (event.type === 'STEP_UP') return { name: 'about', section: 'estudios' }
@@ -81,7 +82,7 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
       return state
 
     case 'contactBook':
-      if (event.type === 'BACK') return { name: 'contact' }
+      if (event.type === 'BACK' || event.type === 'STEP_DOWN' || event.type === 'STEP_UP') return { name: 'contact' }
       if (event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
       if (event.type === 'RESTART') return { name: 'intro' }
       return state

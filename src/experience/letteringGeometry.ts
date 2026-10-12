@@ -3,14 +3,12 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { FontLoader, type FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import fontData from './letteringFont.json'
 
-// Letras de bronce en relieve (el nombre de la intro y los títulos de las zonas), con los contornos de
+// Letras de bronce en relieve (los títulos de las zonas), con los contornos de
 // Cormorant Garamond 500 (letteringFont.json, npm run lettering-font). Medidas en em: el componente
 // escala el grupo al tamaño de letra en metros. El origen es la línea base, al comienzo del texto.
 
 export const font = new FontLoader().parse(fontData as unknown as FontData)
 const res = fontData.resolution
-export const ASCENT = fontData.ascender / res
-export const DESCENT = -fontData.descender / res
 export const CAP_HEIGHT = fontData.capHeight / res
 
 const DEPTH = 0.1

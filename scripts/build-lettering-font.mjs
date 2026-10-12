@@ -1,11 +1,11 @@
 // Genera src/experience/letteringFont.json: los contornos de Cormorant Garamond peso 500 en el formato de
-// fuente de three.js (typeface), para las letras 3D de bronce: el nombre de la intro y los títulos en
-// mayúsculas de las zonas (Proyectos, Experiencia, Estudios). Solo entran los caracteres que se usan: el
+// fuente de three.js (typeface), para las letras 3D de bronce: los títulos en mayúsculas de las zonas
+// (Proyectos, Experiencia, Estudios). Solo entran los caracteres que se usan: el
 // archivo pesa unos pocos KB. Un test (letteringGeometry.test.ts) avisa si un texto pide una letra que falta.
 // Tipografía: Cormorant Garamond (Christian Thalmann), SIL Open Font License 1.1, desde el paquete
 // @fontsource-variable/cormorant-garamond que ya usa el sitio.
 //
-// Uso: npm run lettering-font (volver a correrlo si cambia el nombre o un título).
+// Uso: npm run lettering-font (volver a correrlo si cambia un título).
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -23,16 +23,14 @@ const match = (source, re, what) => {
   if (!found) throw new Error(`No se encontró ${what}`)
   return found
 }
-const profile = await read('src/data/profile.ts')
 const projects = await read('src/data/projects.ts')
 const timeline = await read('src/data/timeline.ts')
-const name = match(profile, /name:\s*'([^']+)'/, 'el nombre en src/data/profile.ts')
 const titles = [
   match(projects, /PROJECTS_TITLE\s*=\s*'([^']+)'/, 'PROJECTS_TITLE en src/data/projects.ts'),
   ...[...match(timeline, /SECTION_LABEL[^{]*\{([^}]+)\}/, 'SECTION_LABEL en src/data/timeline.ts').matchAll(/'([^']+)'/g)].map((m) => m[1]),
 ]
 // Los títulos van en mayúsculas.
-const text = name + titles.join('').toLocaleUpperCase('es')
+const text = titles.join('').toLocaleUpperCase('es')
 
 // getVariation() de fontkit no funciona con woff2 (pierde la tabla de caracteres): el peso se fija en
 // la fuente original, antes de leer cualquier glifo (el procesador de variaciones se calcula una vez).

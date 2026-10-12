@@ -7,6 +7,7 @@ export const profile: Profile = {
   tagline:
     'Construyo aplicaciones web de punta a punta: interfaces cuidadas, APIs sólidas y datos que se pueden confiar.',
   stack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
+  label: { title: 'Portfolio' },
   about: 'Mi recorrido, mi forma de trabajar y las tecnologías con las que construyo soluciones.',
   contacts: [
     { id: 'cv', label: 'Descargar CV', href: CV_URL, external: false },

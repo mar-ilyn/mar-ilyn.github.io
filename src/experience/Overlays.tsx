@@ -6,6 +6,8 @@ import { entriesOf, formatRange, getEntry, KIND_LABEL, neighbours, SECTION_LABEL
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import { contactItemKey } from './deskLayout'
+import { IntroActions } from './IntroText'
+import { useMediaQuery } from './useMediaQuery'
 
 interface Props {
   view: ViewState
@@ -188,11 +190,15 @@ function useFocusOnMount<T extends HTMLElement>(key: string) {
   return ref
 }
 
-// El texto y los botones de la intro viven en IntroText (anclados a la pared); acá solo la pista.
+// Con la cartela en la pared (horizontal), los botones de la intro van acá; en vertical están en la tarjeta.
 function IntroOverlay() {
+  const card = useMediaQuery('(max-aspect-ratio: 1/1)')
   return (
-    <div className="overlay overlay--intro-hint" aria-hidden="true">
-      <p className="overlay__hint">Deslizá hacia abajo para recorrer la galería</p>
+    <div className="overlay overlay--intro-hint">
+      <p className="overlay__hint" aria-hidden="true">
+        Deslizá hacia abajo para recorrer la galería
+      </p>
+      {!card && <IntroActions />}
     </div>
   )
 }

@@ -184,8 +184,14 @@ test('Contacto: desde el menú fijo al escritorio, acercarse al libro con teclad
   await expect(book.getByRole('heading', { name: 'Dejá un mensaje' })).toBeVisible()
   await expect(book.getByRole('link', { name: 'Escribirme' })).toHaveAttribute('href', /^mailto:/)
 
-  // Atrás del navegador cierra el libro; Esc desde el escritorio vuelve a la galería.
+  // Atrás del navegador vuelve al escritorio, y scrollear con el libro de cerca también.
   await page.goBack({ waitUntil: 'commit' })
+  await expect(page).toHaveURL(/\/contacto$/)
+  await page.getByRole('button', { name: 'Leer el libro de contacto' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/contacto\/libro$/)
+  await page.mouse.move(20, 400)
+  await page.mouse.wheel(0, 120)
   await expect(page).toHaveURL(/\/contacto$/)
   await page.getByRole('button', { name: 'Reiniciar recorrido' }).click()
   await expect(page).toHaveURL(/\/$/)
@@ -194,9 +200,10 @@ test('Contacto: desde el menú fijo al escritorio, acercarse al libro con teclad
 test('el sobre del escritorio descarga el CV', async ({ page }) => {
   // Entrar directo al escritorio carga toda la escena: con WebGL por software tarda.
   test.setTimeout(90_000)
-  await page.goto('/contacto')
+  // Solo el HTML: la escena se espera abajo (la carga completa de los assets superaba los 30 s en paralelo).
+  await page.goto('/contacto', { waitUntil: 'domcontentloaded' })
   await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 60_000 })
-  const download = page.waitForEvent('download')
+  const download = page.waitForEvent('download', { timeout: 60_000 })
   await page.getByRole('link', { name: /Descargar mi CV en PDF \(el sobre\)/ }).focus()
   await page.keyboard.press('Enter')
   const file = await download

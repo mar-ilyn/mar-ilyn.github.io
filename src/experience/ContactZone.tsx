@@ -153,9 +153,10 @@ export default function ContactZone({ view, noHover, reducedMotion }: Props) {
       <Item id="book" {...common} position={[BOOK.spineX, BOOK.y, BOOK.z]} hit={[2 * BOOK.width + 0.03, BOOK.pageTop + 0.02, BOOK.depth + 0.03]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
         <Book />
       </Item>
-      <Item id="pen" {...common} position={PEN.position} rotation={PEN.rotation} hit={[PEN.length + 0.03, 0.04, 0.05]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
+      {/* Pluma decorativa (no se selecciona): se mueve apenas cuando el libro está bajo el mouse. */}
+      <group name="contact-pen" position={[...PEN.position]} rotation={[0, PEN.rotation, 0]}>
         <Pen nudge={highlighted === key('book')} reducedMotion={reducedMotion} />
-      </Item>
+      </group>
       <Item id="envelope" {...common} position={ENVELOPE.position} rotation={ENVELOPE.rotation} hit={[ENVELOPE.width + 0.03, 0.08, ENVELOPE.depth + 0.16]} onSelect={downloadCv}>
         <Envelope open={envelopeOpen} reducedMotion={reducedMotion} />
       </Item>

@@ -73,9 +73,9 @@ describe('máquina de estados de la vista', () => {
     expect(transition(desk, { type: 'STEP_DOWN' })).toBe(desk)
     const book = transition(desk, { type: 'OPEN_BOOK' })
     expect(book).toEqual({ name: 'contactBook' })
-    // Con el libro abierto el scroll no mueve la cámara: se usa para leer y escribir.
-    expect(transition(book, { type: 'STEP_DOWN' })).toBe(book)
-    expect(transition(book, { type: 'STEP_UP' })).toBe(book)
+    // Scrollear con el libro de cerca vuelve al escritorio.
+    expect(transition(book, { type: 'STEP_DOWN' })).toEqual(desk)
+    expect(transition(book, { type: 'STEP_UP' })).toEqual(desk)
     expect(transition(book, { type: 'BACK' })).toEqual(desk)
     expect(transition(desk, { type: 'BACK' })).toEqual({ name: 'gallery' })
   })
