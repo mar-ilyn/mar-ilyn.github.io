@@ -8,6 +8,7 @@ import { AboutLabels, AboutLabelsAnchor } from './AboutLabels'
 import { Atmosphere } from './Atmosphere'
 import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
+import { BookAnchor, ContactBook } from './ContactBook'
 import { DevSceneExport } from './DevSceneExport'
 import { IntroAnchor, IntroText } from './IntroText'
 import { FOV, INTRO_WIDE_POSE } from './layout'
@@ -28,7 +29,11 @@ interface Props {
 
 // La zona "Sobre mí" se descarga recién cuando se llega a la galería (o se entra directo a ella).
 const AboutZone = lazy(() => import('./AboutZone'))
-const ABOUT_READY_VIEWS = new Set(['gallery', 'project', 'plaque', 'about', 'aboutEntry'])
+const ABOUT_READY_VIEWS = new Set(['gallery', 'project', 'plaque', 'about', 'aboutEntry', 'contact', 'contactBook'])
+
+// El escritorio de contacto, al llegar a "Sobre mí" (la zona anterior) o al entrar directo a él.
+const ContactZone = lazy(() => import('./ContactZone'))
+const CONTACT_READY_VIEWS = new Set(['about', 'aboutEntry', 'contact', 'contactBook'])
 
 function initialSettings() {
   const overrides = readUrlOverrides(window.location.search)
@@ -57,6 +62,9 @@ export default function Experience({ view }: Props) {
   const aboutRef = useRef<HTMLDivElement>(null)
   const [aboutLoaded, setAboutLoaded] = useState(false)
   if (!aboutLoaded && !render && ABOUT_READY_VIEWS.has(view.name)) setAboutLoaded(true)
+  const bookRef = useRef<HTMLElement>(null)
+  const [contactLoaded, setContactLoaded] = useState(false)
+  if (!contactLoaded && !render && CONTACT_READY_VIEWS.has(view.name)) setContactLoaded(true)
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
 
@@ -117,12 +125,19 @@ export default function Experience({ view }: Props) {
             <AboutLabelsAnchor target={aboutRef} />
           </Suspense>
         )}
+        {contactLoaded && (
+          <Suspense fallback={null}>
+            <ContactZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
+            <BookAnchor target={bookRef} />
+          </Suspense>
+        )}
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
       {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
       <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
       {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
+      {view.name === 'contactBook' && <ContactBook anchorRef={bookRef} />}
       <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>

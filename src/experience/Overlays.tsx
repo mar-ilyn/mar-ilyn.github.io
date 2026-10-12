@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { CV_URL } from '../config'
+import { contact } from '../data/contact'
 import { getProject, projects } from '../data/projects'
 import { entriesOf, formatRange, getEntry, KIND_LABEL, neighbours, SECTION_LABEL, type Row } from '../data/timeline'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
+import { contactItemKey } from './deskLayout'
 
 interface Props {
   view: ViewState
@@ -23,6 +26,10 @@ export function Overlays({ view }: Props) {
       return <AboutOverlay section={view.section} />
     case 'aboutEntry':
       return <EntryPanel slug={view.slug} />
+    case 'contact':
+      return <ContactOverlay />
+    case 'contactBook':
+      return <ContactBookActions />
   }
 }
 
@@ -64,6 +71,69 @@ function AboutOverlay({ section }: { section: Row }) {
         </li>
       </ul>
     </nav>
+  )
+}
+
+// Escritorio de contacto: Tab recorre el libro y el sobre (el foco los resalta como el hover), Enter
+// abre el libro o descarga el CV, Esc vuelve a la galería.
+function ContactOverlay() {
+  const send = useViewStore((s) => s.send)
+  const setHighlighted = useViewStore((s) => s.setHighlighted)
+  const heading = useFocusOnMount<HTMLHeadingElement>('contact')
+  const focusOn = (id: 'book' | 'envelope') => ({
+    onFocus: () => setHighlighted(contactItemKey(id)),
+    onBlur: () => setHighlighted(null),
+  })
+  return (
+    <nav className="overlay overlay--gallery" aria-labelledby="contact-title">
+      <h2 id="contact-title" ref={heading} tabIndex={-1} className="overlay__hint">
+        {contact.title} · {contact.hint}
+      </h2>
+      <ul className="pedestal-nav">
+        <li>
+          <button type="button" className="pedestal-nav__button" onClick={() => send({ type: 'OPEN_BOOK' })} {...focusOn('book')}>
+            {contact.actions.openBook}
+          </button>
+        </li>
+        <li>
+          <a className="pedestal-nav__button" href={CV_URL} download {...focusOn('envelope')}>
+            {contact.cv.accessibleName} (el sobre)
+          </a>
+        </li>
+      </ul>
+      <div className="overlay__actions contact-actions">
+        <ContactActions />
+      </div>
+    </nav>
+  )
+}
+
+// Con el libro abierto: cerrar el libro, volver a la galería o reiniciar.
+function ContactBookActions() {
+  const send = useViewStore((s) => s.send)
+  return (
+    <nav className="overlay overlay--contact-book" aria-label={contact.title}>
+      <div className="overlay__actions contact-actions">
+        <button type="button" className="button" onClick={() => send({ type: 'BACK' })}>
+          {contact.actions.closeBook}
+        </button>
+        <ContactActions />
+      </div>
+    </nav>
+  )
+}
+
+function ContactActions() {
+  const send = useViewStore((s) => s.send)
+  return (
+    <>
+      <button type="button" className="button" onClick={() => send({ type: 'BACK_TO_GALLERY' })}>
+        {contact.actions.backToGallery}
+      </button>
+      <button type="button" className="button" onClick={() => send({ type: 'RESTART' })}>
+        {contact.actions.restart}
+      </button>
+    </>
   )
 }
 

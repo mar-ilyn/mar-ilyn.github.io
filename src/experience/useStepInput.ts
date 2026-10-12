@@ -6,6 +6,9 @@ const SWIPE_THRESHOLD = 50
 const COOLDOWN_MS = 700
 const WHEEL_IDLE_MS = 200
 
+const isTextField = (el: EventTarget | null) =>
+  el instanceof HTMLElement && !!el.closest('input, textarea, select, [contenteditable]')
+
 const isInteractive = (el: EventTarget | null) =>
   el instanceof HTMLElement && !!el.closest('a, button, input, textarea, select, [contenteditable]')
 
@@ -52,6 +55,7 @@ export function useStepInput() {
         useViewStore.getState().send({ type: 'BACK' })
         return
       }
+      if (isTextField(e.target)) return
       if (e.key === ' ' && isInteractive(e.target)) return
       if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
         e.preventDefault()

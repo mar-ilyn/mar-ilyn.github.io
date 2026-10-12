@@ -1,5 +1,6 @@
 import { profile } from '../data/profile'
 import { ContactLinks } from './ContactLinks'
+import { ContactSection } from './ContactSection'
 import { ListHero } from './ListHero'
 import { ProjectList } from './ProjectList'
 import { TimelineList } from './TimelineList'
@@ -25,6 +26,7 @@ export function ListView() {
             </a>
           )}
         </section>
+        <ContactSection />
       </main>
       <footer className="site-footer">
         <p>¿Hablamos? Escribime por LinkedIn o revisá mi código en GitHub.</p>

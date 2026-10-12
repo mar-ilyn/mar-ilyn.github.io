@@ -125,6 +125,18 @@ Recorrido: al bajar desde la galería la cámara se corre a la derecha y muestra
 
 Los datos están en `src/data/timeline.ts`. El mueble y los objetos (teclado, caja de envío con su documentación, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
 
+### Zona "Contacto" (en cajas grises)
+
+El cierre del recorrido: bajando desde el compartimento de estudios, la cámara viaja a un escritorio antiguo en el tramo siguiente (`/contacto`). Sobre el escritorio hay un libro grande, una lapicera, un tintero y un sobre con sello de lacre. El libro y el sobre responden al hover como los pedestales (se agrandan y brillan; en táctiles, brillo suave constante), y la lapicera se mueve apenas cuando el libro está bajo el mouse.
+
+- **Libro** (`/contacto/libro`): la cámara se pone casi cenital y la tapa gira sobre el lomo. Las páginas son HTML anclado al libro (`ContactBook.tsx`, como el texto de la intro): a la izquierda los canales (mail, LinkedIn, GitHub) con botón "Copiar" y confirmación en `aria-live`; a la derecha "Dejá un mensaje" con "Escribirme", un `mailto:` con el asunto armado. En vertical las páginas pasan a una tarjeta. Esc o atrás del navegador cierran el libro.
+- **Sobre**: descarga el CV en PDF.
+- "Volver a la galería" y "Reiniciar recorrido" en el escritorio y con el libro abierto.
+
+Fuera de la escena, el header tiene un botón "Contacto" fijo en todas las zonas (también en la vista en lista) que abre los mismos canales en HTML y lleva al escritorio. La vista en lista tiene su sección "Contacto". Textos y links en `src/data/contact.ts`; el email y el archivo del CV se configuran en un solo lugar, `src/config.ts`. No se publica ningún número de teléfono.
+
+Pendiente: el arte (madera PBR, cuero, lacre, luz de lámpara) y el formulario real con función serverless.
+
 ### Molduras doradas de la pared
 
 Se arman con el tallado real del marco `fancy_picture_frame_02` (Poly Haven, CC0, Rob Tuytel y Rico Cilliers), no con ornamentos generados por código:

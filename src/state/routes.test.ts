@@ -15,6 +15,8 @@ describe('rutas', () => {
     ['/sobre-mi', { name: 'about', section: 'laboral' }],
     ['/sobre-mi/estudios', { name: 'about', section: 'estudios' }],
     ['/sobre-mi/forit', { name: 'aboutEntry', slug: 'forit' }],
+    ['/contacto', { name: 'contact' }],
+    ['/contacto/libro', { name: 'contactBook' }],
   ])('%s', (path, route) => {
     expect(pathToRoute(path, known, '/', knownEntry)).toEqual(route)
   })
@@ -38,6 +40,8 @@ describe('rutas', () => {
       { name: 'about', section: 'laboral' },
       { name: 'about', section: 'estudios' },
       { name: 'aboutEntry', slug: 'forit' },
+      { name: 'contact' },
+      { name: 'contactBook' },
     ]
     for (const r of routes) expect(pathToRoute(routeToPath(r), known, '/', knownEntry)).toEqual(r)
   })

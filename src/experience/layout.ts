@@ -1,6 +1,7 @@
 import type { Project, Vec3 } from '../data/types'
 import type { ViewState } from '../state/machine'
 import { CABINET, FRIEZE, getEntry, SECTIONS, type Row } from '../data/timeline'
+import { BOOK, DESK, OPEN_BOOK_CENTER } from './deskLayout'
 
 export const FOV = 45
 export const ROOM = { length: 80, depth: 40, height: 4.2, wallZ: -3 } as const
@@ -114,6 +115,33 @@ export function sectionPose(section: Row, aspect: number): CameraPose {
   return { position: [CABINET.cx, y + 0.06, ROOM.wallZ + distance], target: [CABINET.cx, y, ROOM.wallZ], offset: NO_OFFSET }
 }
 
+// Pose a una distancia y con una inclinación (grados sobre la horizontal) hacia un punto.
+function orbit(target: Vec3, distance: number, elevation: number): CameraPose {
+  const a = (elevation * Math.PI) / 180
+  return {
+    position: [target[0], target[1] + distance * Math.sin(a), target[2] + distance * Math.cos(a)],
+    target,
+    offset: NO_OFFSET,
+  }
+}
+
+// Escritorio de contacto: desde arriba y adelante, como quien se acerca a sentarse. Entra todo el
+// escritorio con un poco de pared detrás; en vertical la cámara retrocede hasta que entre a lo ancho.
+export function deskPose(aspect: number): CameraPose {
+  const halfWidth = DESK.width / 2 + 0.15
+  const distance = Math.max(2.3, halfWidth / (halfTan * aspect))
+  return orbit([DESK.x + 0.05, DESK.height + 0.12, DESK.z], distance, 36)
+}
+
+// Libro abierto: casi cenital, para que las dos páginas (y el panel HTML anclado a ellas) se vean
+// planas. Margen arriba para el header y abajo para los botones.
+export function bookPose(aspect: number): CameraPose {
+  const halfWidth = BOOK.width + 0.05
+  const halfDepth = BOOK.depth / 2 + 0.09
+  const distance = Math.max(halfDepth / halfTan, halfWidth / (halfTan * aspect))
+  return orbit([...OPEN_BOOK_CENTER], distance, 82)
+}
+
 export function poseFor(view: ViewState, aspect: number, projects: readonly Project[]): CameraPose {
   const rowHalfWidth = Math.max(...projects.map((p) => Math.abs(p.pedestal[0])), 0)
   switch (view.name) {
@@ -139,5 +167,9 @@ export function poseFor(view: ViewState, aspect: number, projects: readonly Proj
       const position = portraitPullBack(p, target, aspect)
       return { position, target, offset: sideOffset(position, target, aspect) }
     }
+    case 'contact':
+      return deskPose(aspect)
+    case 'contactBook':
+      return bookPose(aspect)
   }
 }

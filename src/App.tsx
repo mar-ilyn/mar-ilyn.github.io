@@ -22,6 +22,7 @@ function titleFor(route: Route): string {
   }
   if (route.name === 'list') return `Proyectos · ${profile.name}`
   if (route.name === 'about') return `Sobre mí · ${profile.name}`
+  if (route.name === 'contact' || route.name === 'contactBook') return `Contacto · ${profile.name}`
   if (route.name === 'aboutEntry') {
     const entry = getEntry(route.slug)
     if (entry) return `${entry.title} · ${profile.name}`

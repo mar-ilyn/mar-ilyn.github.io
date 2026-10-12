@@ -1098,3 +1098,202 @@ html.is-gallery body {
   max-width: 62ch;
   color: #4a3626;
 }
+
+/* Canales de contacto (libro, menú fijo y vista en lista) */
+.channels__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75em;
+}
+.channels__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.1em 0.6em;
+}
+.channels__label {
+  grid-column: 1 / -1;
+  font-size: 0.75em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.channels__link {
+  color: inherit;
+  overflow-wrap: anywhere;
+  text-underline-offset: 3px;
+}
+.channels__copy {
+  min-height: 32px;
+  padding: 0.25em 0.8em;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85em;
+  color: inherit;
+  cursor: pointer;
+}
+.channels__copy:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.channels__status {
+  min-height: 1.3em;
+  margin: 0.6em 0 0;
+  font-size: 0.85em;
+  color: var(--ink-soft);
+}
+
+/* Botón de contacto fijo del header */
+.site-header__actions {
+  position: relative;
+}
+.contact-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 20;
+  width: min(340px, calc(100vw - 24px));
+  padding: 1rem 1.1rem;
+  border: 1px solid #d6c7ad;
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 14px 32px rgb(40 28 18 / 0.16);
+  font-size: 0.9rem;
+  text-align: left;
+}
+.contact-menu__panel[hidden] {
+  display: none;
+}
+.contact-menu__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.9rem;
+}
+@media (max-width: 720px) {
+  .site-header__inner {
+    position: relative;
+  }
+  .contact-menu__panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+
+/* Escritorio de contacto: botones sobre la escena */
+.contact-actions .button {
+  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  backdrop-filter: blur(6px);
+}
+.contact-actions .button:hover {
+  background: var(--ink);
+}
+.overlay--contact-book {
+  z-index: 3;
+}
+
+/* Libro abierto: dos páginas HTML sobre las del libro (BookAnchor pasa --book-x/y y --ppm). */
+.contact-book {
+  --ppm: 1000;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: calc(var(--ppm) * 0.6px);
+  height: calc(var(--ppm) * 0.4px);
+  transform: translate(var(--book-x, 50vw), var(--book-y, 50vh)) translate(-50%, -50%);
+  font-size: clamp(11px, calc(var(--ppm) * 0.0115px), 17px);
+  line-height: 1.45;
+  color: #2f2218;
+  animation: book-in 400ms ease 450ms both;
+}
+.contact-book__page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7em;
+  padding: 9% 9%;
+  overflow: auto;
+}
+.contact-book__page .channels {
+  align-self: stretch;
+}
+.contact-book__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.7em;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.contact-book__text {
+  margin: 0;
+}
+@keyframes book-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-book {
+    animation: none;
+  }
+}
+/* En vertical las páginas no entran sobre el libro: tarjeta con las dos secciones apiladas. */
+@media (max-aspect-ratio: 1/1), (max-width: 720px) {
+  .contact-book {
+    position: fixed;
+    inset: 110px 12px 150px;
+    grid-template-columns: 1fr;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    transform: none;
+    border-radius: 12px;
+    background: var(--paper);
+    box-shadow: 0 14px 32px rgb(40 28 18 / 0.16);
+    font-size: 15px;
+  }
+  .contact-book__page {
+    overflow: visible;
+    padding: 1.2rem 1.2rem 0.4rem;
+  }
+}
+
+/* Contacto en la vista en lista */
+.contact-section {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) var(--gutter);
+  border-top: 1px solid #d6c7ad;
+  scroll-margin-top: 70px;
+}
+.contact-section:focus {
+  outline: none;
+}
+.contact-section h2 {
+  font-size: clamp(2.1rem, 4.6vw, 3.2rem);
+  color: #2a1d14;
+  margin-bottom: 1.6rem;
+}
+.contact-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 2rem 3rem;
+}
+.contact-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}

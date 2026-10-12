@@ -49,7 +49,7 @@ describe('máquina de estados de la vista', () => {
     const laboral: ViewState = { name: 'about', section: 'laboral' }
     const estudios: ViewState = { name: 'about', section: 'estudios' }
     expect(transition(laboral, { type: 'STEP_DOWN' })).toEqual(estudios)
-    expect(transition(estudios, { type: 'STEP_DOWN' })).toBe(estudios)
+    expect(transition(estudios, { type: 'STEP_DOWN' })).toEqual({ name: 'contact' })
     expect(transition(estudios, { type: 'STEP_UP' })).toEqual(laboral)
     expect(transition(estudios, { type: 'BACK' })).toEqual({ name: 'gallery' })
   })
@@ -63,6 +63,29 @@ describe('máquina de estados de la vista', () => {
     expect(transition(entry, { type: 'BACK' })).toEqual(about)
     expect(transition(study, { type: 'BACK_TO_ABOUT' })).toEqual({ name: 'about', section: 'estudios' })
     expect(transition(about, { type: 'BACK' })).toEqual({ name: 'gallery' })
+  })
+
+  it('Contacto: bajando desde estudios se llega al escritorio; el libro se abre y se cierra', () => {
+    const estudios: ViewState = { name: 'about', section: 'estudios' }
+    const desk = transition(estudios, { type: 'STEP_DOWN' })
+    expect(desk).toEqual({ name: 'contact' })
+    expect(transition(desk, { type: 'STEP_UP' })).toEqual(estudios)
+    expect(transition(desk, { type: 'STEP_DOWN' })).toBe(desk)
+    const book = transition(desk, { type: 'OPEN_BOOK' })
+    expect(book).toEqual({ name: 'contactBook' })
+    // Con el libro abierto el scroll no mueve la cámara: se usa para leer y escribir.
+    expect(transition(book, { type: 'STEP_DOWN' })).toBe(book)
+    expect(transition(book, { type: 'STEP_UP' })).toBe(book)
+    expect(transition(book, { type: 'BACK' })).toEqual(desk)
+    expect(transition(desk, { type: 'BACK' })).toEqual({ name: 'gallery' })
+  })
+
+  it('Contacto: volver a la galería o reiniciar el recorrido desde el escritorio y desde el libro', () => {
+    for (const state of [{ name: 'contact' }, { name: 'contactBook' }] as ViewState[]) {
+      expect(transition(state, { type: 'BACK_TO_GALLERY' })).toEqual({ name: 'gallery' })
+      expect(transition(state, { type: 'RESTART' })).toEqual({ name: 'intro' })
+    }
+    expect(transition({ name: 'gallery' }, { type: 'RESTART' })).toEqual({ name: 'gallery' })
   })
 
   it('Esc (BACK) retrocede un nivel', () => {

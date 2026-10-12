@@ -41,6 +41,33 @@ export interface ContactLink {
   external: boolean
 }
 
+// Canal de contacto: lo que se muestra, a dónde lleva y lo que copia el botón "Copiar".
+export interface ContactChannel {
+  id: 'email' | 'linkedin' | 'github'
+  label: string
+  display: string
+  href: string
+  copyValue: string
+  external: boolean
+}
+
+export interface ContactContent {
+  title: string
+  hint: string
+  channelsTitle: string
+  channelsIntro: string
+  channels: readonly ContactChannel[]
+  message: {
+    title: string
+    text: string
+    button: string
+    subject: string
+  }
+  cv: { label: string; accessibleName: string }
+  copy: { button: string; done: (label: string) => string; failed: string }
+  actions: { openBook: string; closeBook: string; backToGallery: string; restart: string }
+}
+
 export interface Profile {
   name: string
   role: string

@@ -2,7 +2,9 @@ import type { MouseEvent } from 'react'
 import { profile } from '../data/profile'
 import { routeToPath, type Route } from '../state/routes'
 import { useViewStore } from '../state/store'
-import { ContactLinks } from './ContactLinks'
+import { CV_URL } from '../config'
+import { contact } from '../data/contact'
+import { ContactMenu } from './ContactMenu'
 
 interface Props {
   mode: 'gallery' | 'list'
@@ -54,7 +56,10 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
               {toggle.label}
             </a>
           )}
-          <ContactLinks />
+          <ContactMenu mode={mode} />
+          <a className="button button--primary" href={CV_URL} download>
+            {contact.cv.label}
+          </a>
         </div>
       </div>
     </header>

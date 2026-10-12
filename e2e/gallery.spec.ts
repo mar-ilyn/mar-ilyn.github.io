@@ -95,9 +95,8 @@ test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
   const header = page.getByRole('banner')
   await expect(header.getByText('Marilyn Diaz')).toBeInViewport()
   await expect(header.getByText('Desarrolladora Full Stack')).toBeInViewport()
-  for (const name of [/CV/, /GitHub/, /LinkedIn/]) {
-    await expect(header.getByRole('link', { name })).toBeInViewport()
-  }
+  await expect(header.getByRole('link', { name: /CV/ })).toBeInViewport()
+  await expect(header.getByRole('button', { name: 'Contacto' })).toBeInViewport()
 })
 
 test('subir desde la galería vuelve a la intro', async ({ page }) => {
@@ -165,4 +164,41 @@ test('la vista en lista incluye la línea de tiempo como lista ordenada', async 
   await expect(section.getByRole('list')).toBeVisible()
   await expect(section.getByRole('listitem')).toHaveCount(5)
   await expect(section.getByRole('heading', { level: 3 }).first()).toHaveText('Asistente de Documentación Internacional')
+})
+
+test('Contacto: desde el menú fijo al escritorio, abrir el libro con teclado, cerrarlo y reiniciar', async ({ page }) => {
+  test.setTimeout(90_000)
+  await page.goto('/proyectos')
+  await waitForGallery(page)
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
+  await page.getByRole('banner').getByRole('button', { name: 'Contacto' }).click()
+  await page.getByRole('link', { name: 'Ir al escritorio de contacto' }).click()
+  await expect(page).toHaveURL(/\/contacto$/)
+  await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 30_000 })
+
+  await page.getByRole('button', { name: 'Abrir el libro de contacto' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/contacto\/libro$/)
+  const book = page.getByRole('region', { name: 'Contacto' })
+  await expect(book.getByRole('heading', { name: 'Mis canales' })).toBeVisible()
+  await expect(book.getByRole('heading', { name: 'Dejá un mensaje' })).toBeVisible()
+  await expect(book.getByRole('link', { name: 'Escribirme' })).toHaveAttribute('href', /^mailto:/)
+
+  // Atrás del navegador cierra el libro; Esc desde el escritorio vuelve a la galería.
+  await page.goBack({ waitUntil: 'commit' })
+  await expect(page).toHaveURL(/\/contacto$/)
+  await page.getByRole('button', { name: 'Reiniciar recorrido' }).click()
+  await expect(page).toHaveURL(/\/$/)
+})
+
+test('el sobre del escritorio descarga el CV', async ({ page }) => {
+  await page.goto('/contacto')
+  await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 30_000 })
+  const download = page.waitForEvent('download')
+  await page.getByRole('link', { name: /Descargar mi CV en PDF \(el sobre\)/ }).focus()
+  await page.keyboard.press('Enter')
+  const file = await download
+  expect(file.suggestedFilename()).toMatch(/\.pdf$/)
+  // Esperar a que termine: cerrar el contexto con la descarga en curso deja al navegador inestable.
+  expect(await file.path()).toBeTruthy()
 })

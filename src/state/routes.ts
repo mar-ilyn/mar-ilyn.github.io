@@ -22,6 +22,8 @@ export function pathToRoute(
   const path = stripBase(pathname, base)
   if (path === '/lista') return { name: 'list' }
   if (path === '/proyectos') return { name: 'gallery' }
+  if (path === '/contacto') return { name: 'contact' }
+  if (path === '/contacto/libro') return { name: 'contactBook' }
 
   const about = ABOUT_PATH.exec(path)
   if (about) {
@@ -58,5 +60,9 @@ export function routeToPath(route: Route, base = '/'): string {
       return route.section === 'estudios' ? `${b}/sobre-mi/estudios` : `${b}/sobre-mi`
     case 'aboutEntry':
       return `${b}/sobre-mi/${route.slug}`
+    case 'contact':
+      return `${b}/contacto`
+    case 'contactBook':
+      return `${b}/contacto/libro`
   }
 }

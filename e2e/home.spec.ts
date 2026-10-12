@@ -6,7 +6,9 @@ test('la home muestra identidad, contacto y proyectos', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
 
   const header = page.getByRole('banner')
-  for (const name of [/CV/, /GitHub/, /LinkedIn/]) {
+  await expect(header.getByRole('link', { name: /CV/ })).toBeVisible()
+  await header.getByRole('button', { name: 'Contacto' }).click()
+  for (const name of [/github\.com\/mar-ilyn/, /linkedin\.com\/in\/marilyn-d/]) {
     await expect(header.getByRole('link', { name })).toBeVisible()
   }
 
@@ -17,7 +19,7 @@ test('la home muestra identidad, contacto y proyectos', async ({ page }) => {
 test('el contacto sigue visible al bajar hasta el final', async ({ page }) => {
   await page.goto('/lista')
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-  await expect(page.getByRole('banner').getByRole('link', { name: /LinkedIn/ })).toBeInViewport()
+  await expect(page.getByRole('banner').getByRole('button', { name: 'Contacto' })).toBeInViewport()
 })
 
 test('el CV y las imágenes de proyectos se sirven', async ({ page, request }) => {
@@ -35,4 +37,15 @@ test('sin desbordamiento horizontal', async ({ page }) => {
   await page.goto('/lista')
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
   expect(overflow).toBeLessThanOrEqual(0)
+})
+
+test('la vista en lista incluye el contacto y copiar lo confirma', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'permisos de portapapeles solo en Chromium')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/lista')
+  const section = page.getByRole('region', { name: 'Contacto' })
+  await expect(section.getByRole('link', { name: 'Escribirme' })).toHaveAttribute('href', /^mailto:.+subject=Contacto/)
+  await section.getByRole('button', { name: 'Copiar GitHub' }).click()
+  await expect(section.getByRole('status')).toHaveText('GitHub copiado al portapapeles')
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('https://github.com/mar-ilyn')
 })

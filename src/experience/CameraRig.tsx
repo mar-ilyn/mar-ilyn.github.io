@@ -15,6 +15,16 @@ interface Props {
   holdWide?: boolean
 }
 
+// Duración (smoothTime) de cada vuelo. Hacia la galería es un solo vuelo continuo: al salir del
+// acercamiento la cámara ya se aleja y se desplaza a la derecha a la vez. Al escritorio y al libro, más
+// lento: es el cierre del recorrido. Reiniciar cruza toda la sala hasta la intro.
+function flightTime(view: ViewState, previous: ViewState | null): number {
+  if (view.name === 'toGallery') return 0.8
+  if (view.name === 'intro' && previous?.name.startsWith('contact')) return 0.9
+  if (view.name === 'contact' || view.name === 'contactBook') return previous?.name === 'about' ? 0.7 : 0.5
+  return 0.45
+}
+
 export function CameraRig({ view, holdWide = false }: Props) {
   const controls = useRef<CameraControlsImpl>(null)
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height))
@@ -83,9 +93,7 @@ export function CameraRig({ view, holdWide = false }: Props) {
           await Promise.race([go(cabinetPose(aspect), true, 0.4), new Promise((r) => setTimeout(r, 850))])
           if (cancelled) return
         }
-        // Hacia la galería es un solo vuelo continuo: al salir del acercamiento la cámara ya se aleja
-        // y se desplaza a la derecha a la vez.
-        await go(pose, true, view.name === 'toGallery' ? 0.8 : 0.45)
+        await go(pose, true, flightTime(view, previous))
       }
       if (cancelled) return
       setCameraMoving(false)
