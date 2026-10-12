@@ -136,6 +136,7 @@ const PARTS_MATERIAL: Record<string, Material> = {
   brass: M.agedBrass,
   leather: M.leather,
   leatherGreen: M.leatherGreen,
+  leatherBlue: M.leatherBlue,
   pages: M.pages,
   gilt: M.gilt,
   walnut: M.walnutPlain,

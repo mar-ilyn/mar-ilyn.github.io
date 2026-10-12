@@ -194,44 +194,63 @@ function shippingBox(): ObjectParts {
   return { cardboard: bake(cardboardRoot), document: bake(documentRoot) }
 }
 
-// Libro clásico: tapas de cuero, bloque de páginas, nervios en el lomo y filetes dorados (sin títulos).
-// Cada material va en su propio grupo; un contenedor por grupo lleva la posición y el giro del libro.
+// Libro clásico acostado, con el lomo hacia el frente (+z): tapas de cuero, bloque de páginas, nervios
+// en el lomo y filetes dorados (sin títulos). length va en x, depth en z y thickness en y; el libro
+// apoya en y = 0. Cada material va en su propio grupo; un contenedor por grupo lleva la posición y el giro.
 interface BookGroups {
   leather: Group
   pages: Group
   gilt: Group
 }
 
-function book(groups: BookGroups, w: number, h: number, t: number, at: [number, number, number], rot: [number, number, number]) {
+function flatBook(groups: BookGroups, length: number, depth: number, thickness: number, y: number, yaw: number, dx = 0) {
   const holder = (parent: Group) => {
     const g = new Group()
-    g.position.set(...at)
-    g.rotation.set(...rot)
+    g.position.set(dx, y, 0)
+    g.rotation.set(0, yaw, 0)
     parent.add(g)
     return g
   }
   const leather = holder(groups.leather)
   const pages = holder(groups.pages)
   const gilt = holder(groups.gilt)
-  place(leather, new BoxGeometry(w, h, 0.004), { position: [0, h / 2, t / 2 - 0.002] })
-  place(leather, new BoxGeometry(w, h, 0.004), { position: [0, h / 2, -t / 2 + 0.002] })
-  place(leather, new BoxGeometry(0.006, h, t), { position: [-w / 2 + 0.003, h / 2, 0] })
-  place(pages, new BoxGeometry(w - 0.01, h - 0.008, t - 0.008), { position: [0.002, h / 2, 0] })
-  for (const y of [0.25, 0.45, 0.55, 0.75]) {
-    place(leather, new BoxGeometry(0.009, 0.006, t + 0.002), { position: [-w / 2 + 0.003, h * y, 0] })
+  const board = 0.004
+  // Tapas (apenas más grandes que las hojas) y lomo redondeado al frente.
+  for (const by of [board / 2, thickness - board / 2]) place(leather, new BoxGeometry(length, board, depth), { position: [0, by, 0] })
+  place(pages, new BoxGeometry(length - 0.008, thickness - 2 * board, depth - 0.008), { position: [0, thickness / 2, -0.002] })
+  place(leather, new CylinderGeometry(thickness / 2, thickness / 2, length, 16, 1, false, -Math.PI / 2, Math.PI), {
+    position: [0, thickness / 2, depth / 2 - 0.002],
+    rotation: [0, 0, Math.PI / 2],
+  })
+  // Nervios en el lomo, con filetes dorados a los lados, y un filete a lo largo cerca de cada tapa.
+  const spineZ = depth / 2 - 0.002 + thickness / 2
+  for (const t of [-0.3, -0.1, 0.1, 0.3]) {
+    const x = t * length
+    place(leather, new BoxGeometry(0.006, thickness * 0.9, 0.006), { position: [x, thickness / 2, spineZ] })
+    for (const sx of [-1, 1]) {
+      place(gilt, new BoxGeometry(0.0012, thickness * 0.8, 0.003), { position: [x + sx * 0.007, thickness / 2, spineZ - 0.0005] })
+    }
   }
-  for (const y of [0.15, 0.85]) {
-    place(gilt, new BoxGeometry(0.0095, 0.0015, t + 0.0025), { position: [-w / 2 + 0.003, h * y, 0] })
+  for (const fy of [0.18, 0.82]) {
+    place(gilt, new BoxGeometry(length * 0.9, 0.0012, 0.003), { position: [0, thickness * fy, spineZ - thickness * 0.12] })
   }
 }
 
+// Tres libros acostados uno sobre otro, de mayor a menor y apenas girados, con los lomos al frente.
 function books(): ObjectParts {
   const brown: BookGroups = { leather: new Group(), pages: new Group(), gilt: new Group() }
   const green: BookGroups = { leather: new Group(), pages: brown.pages, gilt: brown.gilt }
-  // Uno parado con el lomo al frente, levemente inclinado, y otro acostado delante.
-  book(green, 0.03, 0.22, 0.155, [0.05, 0, -0.04], [0, Math.PI / 2, 0.06])
-  book(brown, 0.16, 0.035, 0.12, [-0.06, 0, 0.03], [0, 0.25, 0])
-  return { leather: bake(brown.leather), leatherGreen: bake(green.leather), pages: bake(brown.pages), gilt: bake(brown.gilt) }
+  const blue: BookGroups = { leather: new Group(), pages: brown.pages, gilt: brown.gilt }
+  flatBook(green, 0.24, 0.17, 0.042, 0, 0.04)
+  flatBook(brown, 0.22, 0.155, 0.036, 0.042, -0.07, -0.006)
+  flatBook(blue, 0.19, 0.135, 0.03, 0.078, 0.1, 0.008)
+  return {
+    leather: bake(brown.leather),
+    leatherGreen: bake(green.leather),
+    leatherBlue: bake(blue.leather),
+    pages: bake(brown.pages),
+    gilt: bake(brown.gilt),
+  }
 }
 
 // Pedestal de exposición bajo cada objeto: bloque de nogal con tapa de terciopelo.

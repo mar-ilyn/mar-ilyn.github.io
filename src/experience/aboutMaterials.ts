@@ -51,6 +51,7 @@ export const charcoal = new MeshStandardMaterial({ color: '#3a3b3d', metalness: 
 export const keycap = new MeshStandardMaterial({ color: '#4c4d50', roughness: 0.7 })
 export const leather = new MeshStandardMaterial({ color: '#5a2a1e', roughness: 0.6 })
 export const leatherGreen = new MeshStandardMaterial({ color: '#2f3d2c', roughness: 0.6 })
+export const leatherBlue = new MeshStandardMaterial({ color: '#23304a', roughness: 0.6 })
 export const pages = new MeshStandardMaterial({ color: '#e6dcc4', roughness: 0.95 })
 export const gilt = new MeshStandardMaterial({ color: '#c9a35e', metalness: 0.8, roughness: 0.35 })
 export const certificatePaper = new MeshStandardMaterial({ color: '#f1ead9', roughness: 0.92 })
