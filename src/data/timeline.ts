@@ -31,7 +31,7 @@ export const SECTIONS: Record<Row, { floor: number; ceiling: number }> = {
 // barra de duración (las siguientes bajan de a laneStep), quiebre de las líneas guía y centro de la cartela.
 export const FRIEZE = {
   title: 0.985,
-  years: 0.895,
+  years: 0.905,
   axis: 0.855,
   lane: 0.82,
   laneStep: 0.028,

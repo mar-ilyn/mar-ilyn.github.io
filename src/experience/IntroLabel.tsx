@@ -101,24 +101,23 @@ function shadowMaterial(): MeshBasicMaterial {
 }
 
 export function IntroLabel() {
-  const { width, height, depth, standoff, center } = INTRO_LABEL
+  const { width, height, depth, standoff, center, scale } = INTRO_LABEL
   // La cara impresa con un poco de luz propia: el cartón mate quedaba gris al lado de la pared.
   const face = useMemo(() => {
     const map = labelTexture()
     return new MeshStandardMaterial({ map, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.2, roughness: 0.92, envMapIntensity: 0.4 })
   }, [])
   const shadow = useMemo(() => shadowMaterial(), [])
-  const z = ROOM.wallZ + standoff
   return (
-    <group name="intro-label" position={[INTRO_X + center.x, center.y, 0]}>
-      <mesh material={shadow} position={[0.015, -0.03, ROOM.wallZ + 0.002]} scale={[width * 1.08, height * 1.1, 1]} renderOrder={1}>
+    <group name="intro-label" position={[INTRO_X + center.x, center.y, ROOM.wallZ]} scale={scale}>
+      <mesh material={shadow} position={[0.015, -0.03, 0.002]} scale={[width * 1.08, height * 1.1, 1]} renderOrder={1}>
         <planeGeometry />
       </mesh>
       {/* Cartón (los cantos) y la cara impresa al frente. */}
-      <mesh material={board} position={[0, 0, z + depth / 2]}>
+      <mesh material={board} position={[0, 0, standoff + depth / 2]}>
         <boxGeometry args={[width, height, depth]} />
       </mesh>
-      <mesh material={face} position={[0, 0, z + depth + 0.0005]}>
+      <mesh material={face} position={[0, 0, standoff + depth + 0.0005]}>
         <planeGeometry args={[width, height]} />
       </mesh>
     </group>

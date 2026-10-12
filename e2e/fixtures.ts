@@ -10,6 +10,12 @@ export const test = base.extend({
       return goto(url.includes('calidad=') ? url : `${url}${sep}calidad=baja`, options)
     }
     await provide(page)
+    // Antes de cerrar, esperar a que el navegador termine los cuadros pendientes: con WebGL por software,
+    // volver a una zona pesada (p. ej. "Reiniciar recorrido") deja segundos de trabajo en la GPU, y si la
+    // página se cierra antes, ese trabajo bloquea la creación del contexto del test siguiente.
+    await page
+      .evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
+      .catch(() => {})
   },
 })
 

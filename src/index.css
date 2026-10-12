@@ -1009,8 +1009,9 @@ html.is-gallery body {
 }
 .about-label--year {
   font-family: var(--serif);
-  font-size: clamp(7px, calc(var(--ppm) * 0.032px), 18px);
-  color: #6b5234;
+  font-size: clamp(9px, calc(var(--ppm) * 0.046px), 26px);
+  font-weight: 600;
+  color: #5a4128;
   letter-spacing: 0.06em;
 }
 
