@@ -33,7 +33,8 @@ export const INTRO_LAYOUT = {
 // En vertical la cámara retrocede lo necesario para que entre la composición.
 export function introWidePose(aspect: number): CameraPose {
   const { halfWidth, centerX } = INTRO_LAYOUT
-  const distance = Math.max(6.8, (halfWidth + 0.3) / (halfTan * aspect))
+  // Siempre más lejos que el encuadre final de la intro, así la apertura es un acercamiento.
+  const distance = Math.max(6.8, (halfWidth + 0.3) / (halfTan * aspect), introFit(aspect) / 0.85)
   return {
     position: [INTRO_X + centerX, 2.15, ROOM.wallZ + distance],
     target: [INTRO_X + centerX, 2.3, ROOM.wallZ],
@@ -41,18 +42,29 @@ export function introWidePose(aspect: number): CameraPose {
   }
 }
 
-// Acercamiento a la parte principal (texto y cuadro): el panel ocupa casi todo el ancho.
+// Acercamiento a la parte principal (cartela y cuadro): el panel ocupa casi todo el ancho. La cámara se
+// para frente al retrato y mira derecho a la pared, así el marco tallado se ve de frente (desde el centro
+// de la composición se le veía el canto y parecía inclinado). CameraRig descentra la lente para que la
+// imagen siga centrada en la composición (introLensShift).
 export function introPose(aspect: number): CameraPose {
-  const { halfWidth, centerX } = INTRO_LAYOUT
   const wide = introWidePose(aspect)
-  const fit = Math.max(4.2, (halfWidth + 0.75) / (halfTan * aspect))
   // En vertical el plano general ya está ajustado a la composición: el acercamiento es más leve.
-  const distance = Math.min(fit, (wide.position[2] - ROOM.wallZ) * 0.85)
+  const distance = Math.min(introFit(aspect), (wide.position[2] - ROOM.wallZ) * 0.85)
+  const x = INTRO_X + INTRO_LAYOUT.frameX
   return {
-    position: [INTRO_X + centerX, 2.25, ROOM.wallZ + distance],
-    target: [INTRO_X + centerX, 2.27, ROOM.wallZ],
+    position: [x, 2.25, ROOM.wallZ + distance],
+    target: [x, 2.27, ROOM.wallZ],
     offset: NO_OFFSET,
   }
+}
+
+// Descentramiento de lente (filmOffset de three, en mm) para que el centro de la imagen caiga en el
+// centro de la composición de la intro aunque la cámara esté corrida: con la pared paralela a la imagen,
+// nada se deforma. Depende de dónde esté la cámara en cada cuadro, así acompaña el acercamiento inicial.
+export function introLensShift(cameraX: number, cameraZ: number, filmWidth: number): number {
+  const dx = cameraX - (INTRO_X + INTRO_LAYOUT.centerX)
+  const distance = Math.max(0.5, cameraZ - ROOM.wallZ)
+  return (-filmWidth * dx) / distance
 }
 
 // Cartela de museo de la intro (IntroLabel): tamaño de diseño, espesor del cartón y separación de la pared;
@@ -67,6 +79,15 @@ export const INTRO_LABEL = {
   scale: 1.25,
   center: { x: -1.43, y: 2.25 },
 } as const
+
+// Distancia del encuadre final de la intro. En horizontal entra el panel entero y la mitad de cada columna
+// que lo rodea (sus centros están en los bordes del tramo, a bay / 2 del centro). En vertical, el texto y el
+// cuadro, sin alejarse tanto (las columnas quedarían muy lejos).
+function introFit(aspect: number): number {
+  const { halfWidth, bay } = INTRO_LAYOUT
+  if (aspect < 1) return Math.max(4.2, (halfWidth + 0.75) / (halfTan * aspect))
+  return Math.max(4.2, bay / 2 / (halfTan * aspect))
+}
 
 export const INTRO_POSE = introPose(16 / 9)
 export const INTRO_WIDE_POSE = introWidePose(16 / 9)

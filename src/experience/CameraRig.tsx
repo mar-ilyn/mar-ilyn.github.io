@@ -1,10 +1,11 @@
 import { CameraControls, CameraControlsImpl } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
-import { cabinetPose, introWidePose, poseFor, type CameraPose } from './layout'
+import type { PerspectiveCamera } from 'three'
+import { cabinetPose, introLensShift, introWidePose, poseFor, type CameraPose } from './layout'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 const { ACTION } = CameraControlsImpl
@@ -31,6 +32,23 @@ export function CameraRig({ view, holdWide = false }: Props) {
   const invalidate = useThree((s) => s.invalidate)
   const reducedMotion = usePrefersReducedMotion()
   const lastView = useRef<ViewState | null>(null)
+  // Peso del descentramiento de lente de la intro (0 fuera de la intro): entra y sale suave con los vuelos.
+  const shift = useRef(view.name === 'intro' && !holdWide ? 1 : 0)
+
+  useFrame(({ camera, invalidate }, delta) => {
+    const cam = camera as PerspectiveCamera
+    const goal = view.name === 'intro' && !holdWide ? 1 : 0
+    // Al irse de la intro se apaga rápido, antes de que la cámara se aleje del retrato.
+    const rate = goal > shift.current ? 3 : 8
+    const next = reducedMotion ? goal : shift.current + (goal - shift.current) * Math.min(1, delta * rate)
+    shift.current = Math.abs(next - goal) < 0.001 ? goal : next
+    const offset = shift.current ? shift.current * introLensShift(cam.position.x, cam.position.z, cam.getFilmWidth()) : 0
+    if (Math.abs(offset - cam.filmOffset) > 1e-4) {
+      cam.filmOffset = offset
+      cam.updateProjectionMatrix()
+    }
+    if (shift.current !== goal) invalidate()
+  })
 
   useEffect(() => {
     const c = controls.current

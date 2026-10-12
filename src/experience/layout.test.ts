@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
 import { CABINET, SECTIONS } from '../data/timeline'
-import { cabinetPose, FOV, galleryPose, INTRO_POSE, introWidePose, poseFor, ROOM } from './layout'
+import { cabinetPose, FOV, galleryPose, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introLensShift, introWidePose, poseFor, ROOM } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 const detail = { name: 'project', slug: projects[0].slug } as const
@@ -70,6 +70,26 @@ describe('encuadres de cámara', () => {
         expect(target[1]).toBeGreaterThan(SECTIONS[section].floor)
         expect(target[1]).toBeLessThan(SECTIONS[section].ceiling)
       }
+    }
+  })
+
+  it('la intro mira de frente al retrato y descentra la lente para mantener la composición', () => {
+    const { position, target } = poseFor({ name: 'intro' }, 16 / 9, projects)
+    expect(position[0]).toBeCloseTo(INTRO_X + INTRO_LAYOUT.frameX)
+    expect(target[0]).toBeCloseTo(position[0])
+    // Corrida a la derecha del centro, la imagen se desplaza a la izquierda; en el centro, nada.
+    expect(introLensShift(position[0], position[2], 35)).toBeLessThan(0)
+    expect(introLensShift(INTRO_X + INTRO_LAYOUT.centerX, position[2], 35)).toBeCloseTo(0)
+    // El desplazamiento equivale a llevar el centro de la composición al centro de la imagen.
+    const d = position[2] - ROOM.wallZ
+    expect((-introLensShift(position[0], position[2], 35) / 35) * d).toBeCloseTo(INTRO_LAYOUT.frameX - INTRO_LAYOUT.centerX)
+  })
+
+  it('en horizontal, el encuadre de la intro muestra la mitad de cada columna del tramo', () => {
+    for (const aspect of [1.33, 1.78]) {
+      const { position } = poseFor({ name: 'intro' }, aspect, projects)
+      const halfVisible = (position[2] - ROOM.wallZ) * halfTan * aspect
+      expect(halfVisible).toBeCloseTo(INTRO_LAYOUT.bay / 2, 1)
     }
   })
 })
