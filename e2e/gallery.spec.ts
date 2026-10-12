@@ -89,10 +89,15 @@ test('Esc vuelve un nivel', async ({ page }) => {
 test('subir desde el detalle vuelve a la cartela y desde la cartela a los proyectos', async ({ page }) => {
   await page.goto('/proyecto/turnapp/detalle')
   await expect(page.getByRole('button', { name: 'Volver a la cartela' })).toBeVisible()
+  // Mientras la cámara se ubica, las teclas de paso se ignoran.
+  const experience = page.locator('.experience')
+  await expect(experience).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
+  await expect(experience).toHaveAttribute('data-moving', 'false')
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
   // Pausa entre pasos: el scroll se toma de a un gesto (700 ms).
   await page.waitForTimeout(800)
+  await expect(experience).toHaveAttribute('data-moving', 'false')
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/proyectos$/)
 })

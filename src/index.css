@@ -763,23 +763,10 @@ html.is-gallery body {
   opacity: 0.85;
 }
 
-/* Texto de la intro en HTML. En horizontal está impreso en la cartela de la pared (IntroLabel) y acá
-   queda oculto a la vista: lo leen los lectores de pantalla y los buscadores. En vertical, donde la
-   cartela se vería chica, es una tarjeta abajo que deja la pared y el retrato a la vista. */
+/* Texto de la intro en HTML: está impreso en la cartela de la pared (IntroLabel) y acá queda oculto a
+   la vista; lo leen los lectores de pantalla y los buscadores. */
 .intro-text {
   position: absolute;
-  z-index: 2;
-  left: 16px;
-  right: 16px;
-  bottom: max(64px, env(safe-area-inset-bottom));
-  padding: 1.1rem 1.1rem 1rem;
-  background: color-mix(in srgb, #f6efe2 90%, transparent);
-  border: 1px solid rgb(156 122 62 / 0.45);
-  box-shadow: 0 18px 40px -24px rgb(42 30 20 / 0.55);
-  color: #2f2218;
-  transition: opacity 300ms ease;
-}
-.intro-text--label {
   width: 1px;
   height: 1px;
   padding: 0;
@@ -787,43 +774,6 @@ html.is-gallery body {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
-}
-.intro-text--hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.intro-text__role {
-  margin: 0;
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #5b4532;
-}
-.intro-text__ornament {
-  display: block;
-  width: 7rem;
-  height: auto;
-  margin: 0.45rem 0 0.35rem;
-  color: #9c7a3e;
-}
-.intro-text__name {
-  margin: 0;
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: 2.3rem;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: #2a1d14;
-}
-.intro-text__tagline {
-  margin: 0.5rem 0 0;
-  max-width: 34ch;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.02rem;
-  line-height: 1.3;
-  color: #3d2c20;
 }
 .intro-text__actions {
   display: flex;
@@ -859,23 +809,7 @@ html.is-gallery body {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.intro-text__stack {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem 0.9rem;
-  margin: 0.75rem 0 0;
-  padding: 0;
-  font-family: var(--serif);
-  font-size: 0.9rem;
-  color: #3d2c20;
-}
-.intro-text__stack li + li::before {
-  content: '•';
-  margin-right: 0.9rem;
-  color: #9c7a3e;
-}
-/* Con la cartela, los botones de la intro van abajo, junto a la pista. */
+/* Los botones de la intro van abajo, junto a la pista. */
 .overlay--intro-hint .intro-text__actions {
   justify-content: center;
   margin-top: 0;
@@ -951,13 +885,13 @@ html.is-gallery body {
   transition: transform 200ms ease;
 }
 
-/* En pantallas verticales la pista de la intro baja hasta el borde (la tarjeta ocupa su lugar). */
+/* En pantallas verticales la pista y los botones de la intro, más cerca del borde de abajo. */
 @media (max-aspect-ratio: 1/1) {
   .overlay--intro-hint {
     bottom: max(16px, env(safe-area-inset-bottom));
   }
   .overlay--intro-hint .overlay__hint {
-    margin: 0;
+    margin: 0 0 0.6rem;
     font-size: 0.78rem;
   }
 }

@@ -5,7 +5,7 @@ import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import type { PerspectiveCamera } from 'three'
-import { cabinetPose, introLensShift, introWidePose, poseFor, type CameraPose } from './layout'
+import { cabinetPose, introLensShift, introWidePose, poseFor, tallIntro, type CameraPose } from './layout'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 const { ACTION } = CameraControlsImpl
@@ -33,11 +33,13 @@ export function CameraRig({ view, holdWide = false }: Props) {
   const reducedMotion = usePrefersReducedMotion()
   const lastView = useRef<ViewState | null>(null)
   // Peso del descentramiento de lente de la intro (0 fuera de la intro): entra y sale suave con los vuelos.
-  const shift = useRef(view.name === 'intro' && !holdWide ? 1 : 0)
+  // En vertical la cámara ya está de frente a la cartela, sin descentrar.
+  const lensShift = view.name === 'intro' && !holdWide && !tallIntro(aspect)
+  const shift = useRef(lensShift ? 1 : 0)
 
   useFrame(({ camera, invalidate }, delta) => {
     const cam = camera as PerspectiveCamera
-    const goal = view.name === 'intro' && !holdWide ? 1 : 0
+    const goal = lensShift ? 1 : 0
     // Al irse de la intro se apaga rápido, antes de que la cámara se aleje del retrato.
     const rate = goal > shift.current ? 3 : 8
     const next = reducedMotion ? goal : shift.current + (goal - shift.current) * Math.min(1, delta * rate)

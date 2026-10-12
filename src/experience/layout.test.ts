@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
 import { CABINET, SECTIONS } from '../data/timeline'
 import { PEDESTAL_LABEL } from './pedestalGeometry'
-import { cabinetPose, FOV, galleryPose, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introLensShift, introWidePose, poseFor, ROOM } from './layout'
+import { cabinetPose, FOV, galleryPose, INTRO_LABEL, INTRO_LABEL_MARGIN, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introLensShift, introWidePose, poseFor, ROOM } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
 const detail = { name: 'projectDetail', slug: projects[0].slug } as const
@@ -31,17 +31,29 @@ describe('encuadres de cámara', () => {
     expect(dist(0.46)).toBeGreaterThan(dist(1.78))
   })
 
-  it('el acercamiento deja entrar el texto y el cuadro en horizontal, y el cuadro en vertical', () => {
-    for (const [aspect, halfWidth] of [
-      [1.33, 2.6],
-      [1.78, 2.6],
-      [0.75, 2.1],
-      [0.46, 2.1],
-    ]) {
+  it('en horizontal, el acercamiento deja entrar el texto y el cuadro', () => {
+    for (const aspect of [1.33, 1.78]) {
       const { position, target } = poseFor({ name: 'intro' }, aspect, projects)
       const distance = position[2] - target[2]
-      expect(distance * halfTan * aspect).toBeGreaterThanOrEqual(halfWidth)
+      expect(distance * halfTan * aspect).toBeGreaterThanOrEqual(INTRO_LAYOUT.halfWidth)
     }
+  })
+
+  it('en vertical, la intro se acerca de frente a la cartela alta: casi todo el ancho, entera a lo alto', () => {
+    const { tall, scale, center } = INTRO_LABEL
+    for (const aspect of [0.46, 0.75, 1]) {
+      const { position, target } = poseFor({ name: 'intro' }, aspect, projects)
+      expect(position[0]).toBeCloseTo(INTRO_X + center.x)
+      expect(target[0]).toBeCloseTo(position[0])
+      const distance = position[2] - ROOM.wallZ
+      const halfVisibleWidth = distance * halfTan * aspect
+      expect(halfVisibleWidth).toBeGreaterThanOrEqual((tall.width * scale) / 2 + INTRO_LABEL_MARGIN - 1e-6)
+      expect(distance * halfTan).toBeGreaterThan((tall.height * scale) / 2 + 0.4)
+    }
+    // En un celular la cartela llega a los costados, con un margen chico.
+    const phone = poseFor({ name: 'intro' }, 0.46, projects)
+    const halfVisible = (phone.position[2] - ROOM.wallZ) * halfTan * 0.46
+    expect(halfVisible).toBeCloseTo((tall.width * scale) / 2 + INTRO_LABEL_MARGIN)
   })
 
   it('la intro se acerca respecto del plano general', () => {

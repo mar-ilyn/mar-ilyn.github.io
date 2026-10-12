@@ -7,7 +7,6 @@ import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import { contactItemKey } from './deskLayout'
 import { IntroActions } from './IntroText'
-import { useMediaQuery } from './useMediaQuery'
 
 interface Props {
   view: ViewState
@@ -193,13 +192,12 @@ function useFocusOnMount<T extends HTMLElement>(key: string) {
 
 // Con la cartela en la pared (horizontal), los botones de la intro van acá; en vertical están en la tarjeta.
 function IntroOverlay() {
-  const card = useMediaQuery('(max-aspect-ratio: 1/1)')
   return (
     <div className="overlay overlay--intro-hint">
       <p className="overlay__hint" aria-hidden="true">
         Deslizá hacia abajo para recorrer la galería
       </p>
-      {!card && <IntroActions />}
+      <IntroActions />
     </div>
   )
 }

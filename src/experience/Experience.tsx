@@ -54,7 +54,6 @@ export default function Experience({ view }: Props) {
   const setHighlighted = useViewStore((s) => s.setHighlighted)
   // Sin hover (pantallas táctiles): todos los pedestales con un haz suave constante.
   const noHover = useMediaQuery('(hover: none)')
-  const introCard = useMediaQuery('(max-aspect-ratio: 1/1)')
   const reducedMotion = usePrefersReducedMotion()
   const [{ quality, debug, render }] = useState(initialSettings)
   // Hasta compilar los shaders el canvas no dibuja: así el primer cuadro no congela la página.
@@ -69,9 +68,6 @@ export default function Experience({ view }: Props) {
   if (!contactLoaded && !render && CONTACT_READY_VIEWS.has(view.name)) setContactLoaded(true)
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
-
-  // Cartela de museo con el texto de la intro, en la pared (en vertical, el texto es una tarjeta HTML).
-  const introLabel = !render && !introCard
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
 
@@ -126,7 +122,8 @@ export default function Experience({ view }: Props) {
           <Precompile onDone={onCompiled} />
         </Suspense>
         <CameraRig view={view} holdWide={render === 'fondo'} />
-        {introLabel && <IntroLabel quality={quality} />}
+        {/* Cartela de museo con el texto de la intro, en la pared. */}
+        {!render && <IntroLabel quality={quality} />}
         {aboutLoaded && (
           <Suspense fallback={null}>
             <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
@@ -142,8 +139,8 @@ export default function Experience({ view }: Props) {
         {debug && <Stats className="debug-stats" />}
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
-      {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
-      <IntroText visible={view.name === 'intro'} label={!introCard} />
+      {/* El texto de la cartela, oculto a la vista: para lectores de pantalla y buscadores. */}
+      <IntroText visible={view.name === 'intro'} />
       {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
       {view.name === 'contactBook' && <ContactBook anchorRef={bookRef} />}
       <LoadingScreen done={ready} />
