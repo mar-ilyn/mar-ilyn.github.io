@@ -23,11 +23,15 @@ const gold = () => new MeshStandardMaterial({ color: '#c99f55', metalness: 0.85,
 const paper = (color: string) => new MeshStandardMaterial({ color, roughness: 0.9 })
 
 // Libro abierto, más realista: cada mitad del bloque de hojas se arquea desde el pliegue central (donde
-// las hojas se hunden hacia el lomo) y baja apenas hacia el borde de afuera. El canto muestra las hojas
-// apiladas, las tapas de cuero asoman alrededor y en los extremos del lomo va la cabezada.
+// las hojas se hunden hacia el lomo) y baja apenas hacia el borde de afuera. Las hojas de abajo asoman en
+// escalones por los bordes, las tapas de cuero asoman alrededor y en los extremos del lomo va la cabezada.
 
 // Perfil de la superficie de las hojas, de 0 (pliegue) a 1 (borde de afuera).
-const pageProfile = (u: number) => (1 - Math.pow(1 - u, 2.5)) * (1 - 0.12 * Math.pow(u, 4))
+// u se acota a 0..1: por redondeo, el borde puede dar apenas más que 1 y la potencia de un negativo da NaN.
+const pageProfile = (raw: number) => {
+  const u = Math.min(1, Math.max(0, raw))
+  return (1 - Math.pow(1 - u, 2.5)) * (1 - 0.12 * Math.pow(u, 4))
+}
 const PAGE_STEPS = 28
 
 function canvasTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void): CanvasTexture {
@@ -96,13 +100,16 @@ function pageEdgeTexture(vertical: boolean): CanvasTexture {
 
 // Bloque de hojas de una mitad: el perfil extruido a lo largo del libro (z). x de 0 (pliegue) a width.
 function pageBlockGeometry(width: number, depth: number, base: number, height: number): ExtrudeGeometry {
+  // El contorno va en sentido horario (perfil de arriba de adentro hacia afuera, después la base): así las
+  // caras del costado quedan mirando hacia afuera.
   const shape = new Shape()
-  shape.moveTo(0, 0)
-  shape.lineTo(width, 0)
-  for (let i = PAGE_STEPS; i >= 0; i--) {
+  shape.moveTo(0, base)
+  for (let i = 1; i <= PAGE_STEPS; i++) {
     const u = i / PAGE_STEPS
     shape.lineTo(u * width, base + height * pageProfile(u))
   }
+  shape.lineTo(width, 0)
+  shape.lineTo(0, 0)
   shape.closePath()
   const g = new ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1 })
   g.translate(0, 0, -depth / 2)
@@ -123,12 +130,20 @@ function pageSurfaceGeometry(width: number, depth: number, base: number, height:
   return g
 }
 
+// Hojas de abajo que asoman en escalones por los costados y por arriba y abajo: cada una un poco más
+// ancha, más larga y más baja que la anterior, hasta llegar casi a la tapa.
+const SHEETS = { count: 6, stepX: 0.0035, stepZ: 0.0022 }
+const SHEET_SHADES = ['#ebe0c8', '#e0d3b6']
+
 export function Book() {
   const { width, depth, pageTop } = BOOK
   const board = 0.008
   const margin = 0.006
   const gutterBase = 0.004
-  const blockW = width - margin
+  const { count, stepX, stepZ } = SHEETS
+  // La hoja de arriba (y el bloque bajo ella) es la más chica; la última hoja llega al margen de la tapa.
+  const blockW = width - margin - count * stepX
+  const blockD = depth - 2 * count * stepZ
   const blockH = pageTop - board - gutterBase
   const m = useMemo(
     () => ({
@@ -141,15 +156,20 @@ export function Book() {
       ],
       headband: new MeshStandardMaterial({ color: '#8c2a22', roughness: 0.6 }),
       headbandGold: gold(),
+      sheets: SHEET_SHADES.map((color) => paper(color)),
     }),
     [],
   )
   const geo = useMemo(
     () => ({
-      block: pageBlockGeometry(blockW, depth, gutterBase, blockH),
-      surface: pageSurfaceGeometry(blockW, depth, gutterBase, blockH),
+      block: pageBlockGeometry(blockW, blockD, gutterBase, blockH),
+      surface: pageSurfaceGeometry(blockW, blockD, gutterBase, blockH),
+      sheets: Array.from({ length: count }, (_, i) => {
+        const k = i + 1
+        return pageSurfaceGeometry(blockW + k * stepX, blockD + 2 * k * stepZ, gutterBase, blockH * (1 - k / (count + 0.8)))
+      }),
     }),
-    [blockW, depth, blockH],
+    [blockW, blockD, blockH, count, stepX, stepZ],
   )
   return (
     <group>
@@ -162,6 +182,9 @@ export function Book() {
           <group position={[0.001, board, 0]}>
             <mesh geometry={geo.block} material={m.edges} />
             <mesh geometry={geo.surface} material={m.page} />
+            {geo.sheets.map((g, i) => (
+              <mesh key={i} geometry={g} material={m.sheets[i % 2]} />
+            ))}
           </group>
         </group>
       ))}
