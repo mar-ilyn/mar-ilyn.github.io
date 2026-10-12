@@ -37,8 +37,13 @@ export const INKWELL = { position: [DESK.x + 0.52, TOP, DESK.z - 0.2] as const }
 // El sobre queda fuera del cuadro del libro (en el borde de la pantalla, la perspectiva lo estiraba).
 export const ENVELOPE = { position: [DESK.x + 0.54, TOP, DESK.z + 0.16] as const, width: 0.22, depth: 0.11, rotation: -0.12 }
 
-// Centro del libro abierto (las dos páginas), donde se ancla el panel HTML.
-export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.pageTop, BOOK.z] as const
+// Hojas de abajo que asoman en escalones por el borde de afuera y por abajo (la cabeza, arriba, va
+// pareja): cada una stepX más ancha y stepZ más larga que la anterior.
+export const BOOK_SHEETS = { count: 6, stepX: 0.0035, stepZ: 0.0022 } as const
+
+// Centro de las dos hojas de arriba del libro abierto, donde se ancla el panel HTML: los escalones de
+// abajo las corren hacia la cabeza.
+export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.pageTop, BOOK.z - (BOOK_SHEETS.count * BOOK_SHEETS.stepZ) / 2] as const
 
 // Objetos interactivos del escritorio y su clave de resaltado (hover o foco de su botón en el DOM).
 export type ContactItem = 'book' | 'envelope'

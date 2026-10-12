@@ -1186,9 +1186,9 @@ html.is-gallery body {
   z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* Las dos hojas de arriba del libro (sin los escalones de las hojas de abajo): 2 × 0,273 m × 0,374 m. */
+  /* Las dos hojas de arriba del libro (sin los escalones de las hojas de abajo): 2 × 0,273 m × 0,387 m. */
   width: calc(var(--ppm) * 0.546px);
-  height: calc(var(--ppm) * 0.374px);
+  height: calc(var(--ppm) * 0.387px);
   transform: translate(var(--book-x, 50vw), var(--book-y, 50vh)) translate(-50%, -50%);
   font-size: clamp(11px, calc(var(--ppm) * 0.0115px), 17px);
   line-height: 1.45;

@@ -13,7 +13,7 @@ import {
   TorusGeometry,
   type Group,
 } from 'three'
-import { BOOK, ENVELOPE, PEN } from './deskLayout'
+import { BOOK, BOOK_SHEETS, ENVELOPE, PEN } from './deskLayout'
 
 // Objetos del escritorio de contacto, modelados por código (assets propios): libro encuadernado en cuero,
 // pluma fuente, tintero de cristal y sobre con sello de lacre. Cada objeto crea sus propios materiales:
@@ -130,9 +130,9 @@ function pageSurfaceGeometry(width: number, depth: number, base: number, height:
   return g
 }
 
-// Hojas de abajo que asoman en escalones por los costados y por arriba y abajo: cada una un poco más
-// ancha, más larga y más baja que la anterior, hasta llegar casi a la tapa.
-const SHEETS = { count: 6, stepX: 0.0035, stepZ: 0.0022 }
+// Hojas de abajo que asoman en escalones por el borde de afuera y por abajo (BOOK_SHEETS): cada una un
+// poco más ancha, más larga y más baja que la anterior, hasta llegar casi a la tapa. Arriba (la cabeza)
+// todas quedan parejas.
 const SHEET_SHADES = ['#ebe0c8', '#e0d3b6']
 
 export function Book() {
@@ -140,10 +140,12 @@ export function Book() {
   const board = 0.008
   const margin = 0.006
   const gutterBase = 0.004
-  const { count, stepX, stepZ } = SHEETS
+  const { count, stepX, stepZ } = BOOK_SHEETS
   // La hoja de arriba (y el bloque bajo ella) es la más chica; la última hoja llega al margen de la tapa.
   const blockW = width - margin - count * stepX
-  const blockD = depth - 2 * count * stepZ
+  const blockD = depth - count * stepZ
+  // Todas las hojas empiezan en la cabeza (z = -depth / 2): cada una se centra según su largo.
+  const zFor = (d: number) => -depth / 2 + d / 2
   const blockH = pageTop - board - gutterBase
   const m = useMemo(
     () => ({
@@ -166,7 +168,8 @@ export function Book() {
       surface: pageSurfaceGeometry(blockW, blockD, gutterBase, blockH),
       sheets: Array.from({ length: count }, (_, i) => {
         const k = i + 1
-        return pageSurfaceGeometry(blockW + k * stepX, blockD + 2 * k * stepZ, gutterBase, blockH * (1 - k / (count + 0.8)))
+        const d = blockD + k * stepZ
+        return { d, geometry: pageSurfaceGeometry(blockW + k * stepX, d, gutterBase, blockH * (1 - k / (count + 0.8))) }
       }),
     }),
     [blockW, blockD, blockH, count, stepX, stepZ],
@@ -180,10 +183,10 @@ export function Book() {
             <boxGeometry args={[width + 0.002, board, depth + 2 * margin]} />
           </mesh>
           <group position={[0.001, board, 0]}>
-            <mesh geometry={geo.block} material={m.edges} />
-            <mesh geometry={geo.surface} material={m.page} />
-            {geo.sheets.map((g, i) => (
-              <mesh key={i} geometry={g} material={m.sheets[i % 2]} />
+            <mesh geometry={geo.block} material={m.edges} position={[0, 0, zFor(blockD)]} />
+            <mesh geometry={geo.surface} material={m.page} position={[0, 0, zFor(blockD)]} />
+            {geo.sheets.map(({ d, geometry }, i) => (
+              <mesh key={i} geometry={geometry} material={m.sheets[i % 2]} position={[0, 0, zFor(d)]} />
             ))}
           </group>
         </group>
