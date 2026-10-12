@@ -1,4 +1,4 @@
-import { BoxGeometry, CylinderGeometry, Group, type BufferGeometry } from 'three'
+import { BoxGeometry, CylinderGeometry, Group, PlaneGeometry, type BufferGeometry } from 'three'
 import { CABINET } from '../data/timeline'
 import type { TimelineObjectKind } from '../data/types'
 import { bake } from './bake'
@@ -172,8 +172,9 @@ function keyboard(): ObjectParts {
   return { charcoal: bake(bodyRoot), keycap: bake(capsRoot), brass: bake(stand) }
 }
 
-// Caja de envío de cartón cerrada con cinta, con la documentación pegada en el frente (hoja con renglones
-// y un código de barras genéricos, sin marcas ni datos reales). Levemente girada para que se vea un lateral.
+// Caja de envío de cartón con la documentación pegada en el centro del frente. Los renglones y el código
+// de barras van dibujados en la textura de la hoja (shippingDocument): como geometría medían 1-3 mm y
+// titilaban al agrandarse con el hover. Levemente girada para que se vea un lateral.
 function shippingBox(): ObjectParts {
   const root = (parent: Group) => {
     const g = new Group()
@@ -182,32 +183,15 @@ function shippingBox(): ObjectParts {
     return g
   }
   const cardboardRoot = new Group()
-  const tapeRoot = new Group()
-  const paperRoot = new Group()
-  const inkRoot = new Group()
+  const documentRoot = new Group()
   const cardboard = root(cardboardRoot)
-  const tape = root(tapeRoot)
-  const paper = root(paperRoot)
-  const ink = root(inkRoot)
+  const doc = root(documentRoot)
   const w = 0.28
   const h = 0.2
   const d = 0.18
   place(cardboard, new BoxGeometry(w, h, d), { position: [0, h / 2, 0] })
-  // Cinta sobre la unión de las solapas, que baja un poco por el frente y por atrás.
-  place(tape, new BoxGeometry(w + 0.002, 0.002, 0.05), { position: [0, h + 0.001, 0] })
-  for (const z of [-1, 1]) place(tape, new BoxGeometry(0.05, 0.05, 0.002), { position: [0, h - 0.025, z * (d / 2 + 0.001)] })
-  // Documentación: hoja pegada en el frente, a la derecha de la cinta.
-  const front = d / 2 + 0.0015
-  const cx = 0.065
-  const cy = 0.095
-  place(paper, new BoxGeometry(0.115, 0.15, 0.001), { position: [cx, cy, front], rotation: [0, 0, -0.03] })
-  const line = (x: number, y: number, lw: number, lh = 0.0035) =>
-    place(ink, new BoxGeometry(lw, lh, 0.0005), { position: [cx + x, cy + y, front + 0.0008], rotation: [0, 0, -0.03] })
-  line(-0.025, 0.06, 0.045, 0.01)
-  for (let i = 0; i < 6; i++) line(-0.008 + (i % 2) * -0.008, 0.035 - i * 0.012, i % 3 === 2 ? 0.06 : 0.085)
-  // Código de barras genérico al pie.
-  for (let i = 0; i < 16; i++) line(-0.04 + i * 0.0053, -0.055, i % 3 === 0 ? 0.0028 : 0.0014, 0.02)
-  return { cardboard: bake(cardboardRoot), tape: bake(tapeRoot), paper: bake(paperRoot), ink: bake(inkRoot) }
+  place(doc, new PlaneGeometry(0.12, 0.13), { position: [0, h / 2, d / 2 + 0.003], rotation: [0, 0, -0.02] })
+  return { cardboard: bake(cardboardRoot), document: bake(documentRoot) }
 }
 
 // Libro clásico: tapas de cuero, bloque de páginas, nervios en el lomo y filetes dorados (sin títulos).

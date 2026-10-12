@@ -47,8 +47,6 @@ export const velvet = new MeshStandardMaterial({ color: '#3e1f22', roughness: 1 
 export const paper = new MeshStandardMaterial({ color: '#efe7d6', roughness: 0.9 })
 export const paperLabel = new MeshStandardMaterial({ color: '#f8f5ee', roughness: 0.85 })
 export const cardboard = new MeshStandardMaterial({ color: '#a9824f', roughness: 0.92 })
-export const tape = new MeshStandardMaterial({ color: '#c8a46e', roughness: 0.3 })
-export const ink = new MeshStandardMaterial({ color: '#3d3a37', roughness: 0.8 })
 export const charcoal = new MeshStandardMaterial({ color: '#3a3b3d', metalness: 0.55, roughness: 0.45 })
 export const keycap = new MeshStandardMaterial({ color: '#4c4d50', roughness: 0.7 })
 export const leather = new MeshStandardMaterial({ color: '#5a2a1e', roughness: 0.6 })
@@ -87,6 +85,35 @@ const radial = canvasTexture(128, (ctx, s) => {
   ctx.fillStyle = g
   ctx.fillRect(0, 0, s, s)
 })
+
+// Hoja de documentación de la caja de envío: renglones y un código de barras genéricos (sin datos ni
+// marcas), dibujados en una textura con mipmaps para que no titilen a ninguna escala.
+const documentTexture = (() => {
+  const canvas = document.createElement('canvas')
+  canvas.width = 240
+  canvas.height = 260
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas 2D no disponible')
+  ctx.fillStyle = '#f4f0e6'
+  ctx.fillRect(0, 0, 240, 260)
+  ctx.fillStyle = '#3d3a37'
+  ctx.fillRect(22, 22, 90, 18)
+  const widths = [190, 170, 120, 190, 150, 110]
+  widths.forEach((lw, i) => ctx.fillRect(22, 60 + i * 22, lw, 7))
+  // Código de barras: barras de ancho fijo por patrón, sin codificar nada.
+  let x = 22
+  for (let i = 0; x < 214; i++) {
+    const bar = i % 3 === 0 ? 5 : i % 2 === 0 ? 3 : 2
+    ctx.fillRect(x, 200, bar, 38)
+    x += bar + 3
+  }
+  const texture = new CanvasTexture(canvas)
+  texture.colorSpace = SRGBColorSpace
+  texture.anisotropy = 4
+  return texture
+})()
+
+export const shippingDocument = new MeshStandardMaterial({ map: documentTexture, roughness: 0.85 })
 
 // Luz cálida y tenue de los focos sobre el estante y el fondo.
 export const lightPool = new MeshBasicMaterial({

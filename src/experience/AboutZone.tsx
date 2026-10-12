@@ -24,6 +24,8 @@ import * as M from './aboutMaterials'
 import { AssetBoundary } from './AssetBoundary'
 import { CERT_FRAME_MODEL, WALNUT } from './assets'
 import { ROOM } from './layout'
+import { HitBox } from './HitBox'
+import { useGroupHover } from './useGroupHover'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
 import { ktx2Loader, useKTX2 } from './ktx2'
 
@@ -130,8 +132,7 @@ const PARTS_MATERIAL: Record<string, Material> = {
   paper: M.paper,
   paperLabel: M.paperLabel,
   cardboard: M.cardboard,
-  tape: M.tape,
-  ink: M.ink,
+  document: M.shippingDocument,
   brass: M.agedBrass,
   leather: M.leather,
   leatherGreen: M.leatherGreen,
@@ -234,6 +235,9 @@ const OBJECT_WIDTH: Record<TimelineEntry['object']['kind'], number> = {
   certificado: 0.24,
 }
 
+// Alto de la zona de hover de los objetos (el más alto, el certificado, mide ~0,33 m con la escala).
+const OBJECT_HEIGHT = 0.36
+
 // Los objetos se agrandan un poco respecto de su tamaño real para que se lean desde la vista del compartimento.
 const OBJECT_SCALE = 1.25
 
@@ -275,20 +279,17 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
     if (scale.current !== target) invalidate()
   })
 
+  const hover = useGroupHover((over, pointerType) => {
+    setHovered(over)
+    if (!over) setHighlighted(null)
+    else if (pointerType === 'mouse') setHighlighted(entry.slug)
+  })
   const events = {
     onClick: (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation()
       if (interactive) send({ type: 'OPEN_ENTRY', slug: entry.slug })
     },
-    onPointerOver: (e: ThreeEvent<PointerEvent>) => {
-      e.stopPropagation()
-      setHovered(true)
-      if (e.pointerType === 'mouse') setHighlighted(entry.slug)
-    },
-    onPointerOut: () => {
-      setHovered(false)
-      setHighlighted(null)
-    },
+    ...hover,
   }
 
   return (
@@ -306,14 +307,16 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
         </>
       )}
       {/* Zona de clic sobre la cartela (el texto es HTML y no recibe eventos). */}
-      <mesh position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events}>
-        <planeGeometry args={[0.48, 0.16]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
+      <HitBox size={[0.48, 0.16, 0.01]} position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events} />
       <group position={[x, floor, OBJ_Z]}>
         <ShelfLight width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.06} />
         <Riser width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.04} />
-        <group ref={object} position={[0, RISER.height, 0]} {...events}>
+        <HitBox
+          size={[OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.06, OBJECT_HEIGHT, 0.3]}
+          position={[0, RISER.height + OBJECT_HEIGHT / 2, 0]}
+          {...events}
+        />
+        <group ref={object} position={[0, RISER.height, 0]}>
           <group scale={OBJECT_SCALE}>
             <EntryObject entry={entry} />
           </group>

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { MeshStandardMaterial, type Mesh } from 'three'
 import type { Project } from '../data/types'
 import { pedestalGeometry, SHAFT, TOP_Y } from './pedestalGeometry'
+import { useGroupHover } from './useGroupHover'
 
 interface Props {
   project: Project
@@ -34,6 +35,12 @@ export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover 
     invalidate()
   })
 
+  const hover = useGroupHover((over, pointerType) => {
+    setHovered(over)
+    if (!over) onHover(null)
+    else if (pointerType === 'mouse') onHover(project.slug)
+  })
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (interactive) onOpen(project.slug)
@@ -44,15 +51,7 @@ export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover 
       position={project.pedestal}
       name={`pedestal-${project.slug}`}
       onClick={handleClick}
-      onPointerOver={(e) => {
-        e.stopPropagation()
-        setHovered(true)
-        if (e.pointerType === 'mouse') onHover(project.slug)
-      }}
-      onPointerOut={() => {
-        setHovered(false)
-        onHover(null)
-      }}
+      {...hover}
     >
       <mesh geometry={pedestalGeometry()} material={stone} />
 

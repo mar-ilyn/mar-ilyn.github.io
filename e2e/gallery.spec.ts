@@ -192,8 +192,10 @@ test('Contacto: desde el menú fijo al escritorio, abrir el libro con teclado, c
 })
 
 test('el sobre del escritorio descarga el CV', async ({ page }) => {
+  // Entrar directo al escritorio carga toda la escena: con WebGL por software tarda.
+  test.setTimeout(90_000)
   await page.goto('/contacto')
-  await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 60_000 })
   const download = page.waitForEvent('download')
   await page.getByRole('link', { name: /Descargar mi CV en PDF \(el sobre\)/ }).focus()
   await page.keyboard.press('Enter')

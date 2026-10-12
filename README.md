@@ -125,9 +125,11 @@ Recorrido: al bajar desde la galería la cámara se corre a la derecha y muestra
 
 Los datos están en `src/data/timeline.ts`. El mueble y los objetos (teclado, caja de envío con su documentación, libros, cartelas y pedestales) están modelados por código, salvo la madera y el marco de los certificados (ver la tabla de assets). La luz interior, las sombras de contacto y los reflejos del vidrio son degradés sobre planos, sin luces en tiempo real.
 
-### Zona "Contacto" (en cajas grises)
+### Zona "Contacto"
 
-El cierre del recorrido: bajando desde el compartimento de estudios, la cámara viaja a un escritorio antiguo en el tramo siguiente (`/contacto`). Sobre el escritorio hay un libro grande, una lapicera, un tintero y un sobre con sello de lacre. El libro y el sobre responden al hover como los pedestales (se agrandan y brillan; en táctiles, brillo suave constante), y la lapicera se mueve apenas cuando el libro está bajo el mouse.
+El cierre del recorrido: bajando desde el compartimento de estudios, la cámara viaja a un escritorio antiguo en el tramo siguiente (`/contacto`). Es un escritorio Luis XV modelado por código (`deskGeometry.ts`): palisandro lustrado, tapa de cuero gris pizarra con filete dorado y una banda de enchapado más oscura, canto de cuentas de bronce dorado, cajones enmarcados con tiradores rococó, apliques en las esquinas y patas con zapatas doradas. El palisandro es el enchapado de nogal de la vitrina (CC0) teñido, y el grano del cuero sale del normal map del yeso (CC0): el escritorio no suma descargas.
+
+Encima, también modelados por código (`DeskObjects.tsx`): un libro grande encuadernado en cuero bordó con filetes y nervios dorados, una pluma fuente de laca negra, un tintero de cristal con tapa de bronce y un sobre con sello de lacre de borde irregular y brillo suave. El libro, la pluma y el sobre responden al hover como los pedestales (se agrandan y brillan; en táctiles, brillo suave constante), con una sola zona de hover invisible por objeto (`HitBox`), y la pluma se mueve apenas cuando el libro está bajo el mouse. La luz cálida de lámpara es un degradé sobre la tapa, 4 mm por encima del cuero: en el mismo plano, la GPU alternaba cuál dibujar mientras la cámara se movía y aparecían manchas claras.
 
 - **Libro** (`/contacto/libro`): la cámara se pone casi cenital y la tapa gira sobre el lomo. Las páginas son HTML anclado al libro (`ContactBook.tsx`, como el texto de la intro): a la izquierda los canales (mail, LinkedIn, GitHub) con botón "Copiar" y confirmación en `aria-live`; a la derecha "Dejá un mensaje" con "Escribirme", un `mailto:` con el asunto armado. En vertical las páginas pasan a una tarjeta. Esc o atrás del navegador cierran el libro.
 - **Sobre**: descarga el CV en PDF.
@@ -135,7 +137,7 @@ El cierre del recorrido: bajando desde el compartimento de estudios, la cámara 
 
 Fuera de la escena, el header tiene un botón "Contacto" fijo en todas las zonas (también en la vista en lista) que abre los mismos canales en HTML y lleva al escritorio. La vista en lista tiene su sección "Contacto". Textos y links en `src/data/contact.ts`; el email y el archivo del CV se configuran en un solo lugar, `src/config.ts`. No se publica ningún número de teléfono.
 
-Pendiente: el arte (madera PBR, cuero, lacre, luz de lámpara) y el formulario real con función serverless.
+Pendiente: el formulario real con función serverless (etapa 2).
 
 ### Molduras doradas de la pared
 

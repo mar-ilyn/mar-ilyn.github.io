@@ -16,7 +16,9 @@ export const DESK = {
   top: 0.04,
 } as const
 
-const TOP = DESK.height
+// Superficie de apoyo de los objetos: la cara de arriba del cuero, 2 mm sobre la madera de la tapa.
+export const SURFACE = DESK.height + 0.002
+const TOP = SURFACE
 
 // Libro grande, cerrado, con el lomo a la izquierda: al abrirse la tapa gira sobre el lomo y el libro
 // abierto queda centrado en él.
