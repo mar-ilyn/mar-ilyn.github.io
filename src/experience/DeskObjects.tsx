@@ -263,42 +263,52 @@ export function Pen({ nudge, reducedMotion }: { nudge: boolean; reducedMotion: b
   )
 }
 
-// Tintero de cristal tallado con la tinta adentro, cuello y tapa abovedada de bronce dorado.
+// Tintero de bronce: bandeja redonda con borde, cuerpo octogonal de bronce envejecido con molduras en
+// anillo, hombro, cuello y tapa abovedada con bisagra y botón, en un dorado más claro.
 export function Inkwell() {
   const m = useMemo(
     () => ({
-      crystal: new MeshPhysicalMaterial({
-        color: '#e4ece9',
-        roughness: 0.06,
-        transparent: true,
-        opacity: 0.32,
-        envMapIntensity: 1.4,
-        depthWrite: false,
-      }),
-      ink: new MeshStandardMaterial({ color: '#0c0e18', roughness: 0.15 }),
+      bronze: new MeshStandardMaterial({ color: '#7d5f30', metalness: 0.9, roughness: 0.38, envMapIntensity: 1 }),
       gilt: gold(),
     }),
     [],
   )
+  // Cuerpo octogonal: las caras planas, con una arista de frente (giro de medio lado).
+  const octagon: [number, number, number] = [0, Math.PI / 8, 0]
   return (
     <group>
-      <mesh material={m.ink} position={[0, 0.026, 0]}>
-        <cylinderGeometry args={[0.018, 0.018, 0.044, 20]} />
+      {/* Bandeja con borde. */}
+      <mesh material={m.bronze} position={[0, 0.003, 0]}>
+        <cylinderGeometry args={[0.056, 0.058, 0.006, 40]} />
       </mesh>
-      {/* Bloque de cristal con las aristas biseladas (prisma de ocho caras). */}
-      <mesh material={m.crystal} position={[0, 0.0275, 0]} rotation={[0, Math.PI / 8, 0]} renderOrder={3}>
-        <cylinderGeometry args={[0.04, 0.042, 0.055, 8]} />
+      <mesh material={m.gilt} position={[0, 0.0065, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.054, 0.0022, 8, 48]} />
       </mesh>
-      <mesh material={m.gilt} position={[0, 0.059, 0]}>
-        <cylinderGeometry args={[0.022, 0.024, 0.008, 24]} />
+      {/* Cuerpo, con una moldura abajo y otra arriba. */}
+      <mesh material={m.bronze} position={[0, 0.006 + 0.022, 0]} rotation={octagon}>
+        <cylinderGeometry args={[0.034, 0.038, 0.044, 8]} />
       </mesh>
-      <mesh material={m.gilt} position={[0, 0.063, 0]} scale={[1, 0.65, 1]}>
-        <sphereGeometry args={[0.022, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <mesh material={m.gilt} position={[0, 0.0085, 0]} rotation={octagon}>
+        <cylinderGeometry args={[0.04, 0.041, 0.005, 8]} />
       </mesh>
-      <mesh material={m.gilt} position={[0, 0.081, 0]}>
-        <sphereGeometry args={[0.005, 12, 8]} />
+      <mesh material={m.gilt} position={[0, 0.05, 0]} rotation={octagon}>
+        <cylinderGeometry args={[0.036, 0.036, 0.004, 8]} />
       </mesh>
-      <mesh material={m.gilt} position={[0, 0.062, -0.024]} rotation={[0, 0, Math.PI / 2]}>
+      {/* Hombro y cuello. */}
+      <mesh material={m.bronze} position={[0, 0.056, 0]}>
+        <cylinderGeometry args={[0.022, 0.034, 0.008, 32]} />
+      </mesh>
+      <mesh material={m.gilt} position={[0, 0.0625, 0]}>
+        <cylinderGeometry args={[0.022, 0.023, 0.005, 32]} />
+      </mesh>
+      {/* Tapa abovedada con botón y bisagra atrás. */}
+      <mesh material={m.gilt} position={[0, 0.065, 0]} scale={[1, 0.65, 1]}>
+        <sphereGeometry args={[0.023, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+      <mesh material={m.gilt} position={[0, 0.0825, 0]}>
+        <sphereGeometry args={[0.005, 14, 10]} />
+      </mesh>
+      <mesh material={m.gilt} position={[0, 0.065, -0.024]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.003, 0.003, 0.014, 10]} />
       </mesh>
     </group>
