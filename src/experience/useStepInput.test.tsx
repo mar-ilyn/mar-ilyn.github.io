@@ -38,7 +38,7 @@ describe('useStepInput', () => {
     wheel(120)
     now += 100
     wheel(120)
-    expect(useViewStore.getState().route).toEqual({ name: 'plaque', slug: 'turnapp' })
+    expect(useViewStore.getState().route).toEqual({ name: 'projectDetail', slug: 'turnapp' })
   })
 
   it('ignora el scroll mientras la cámara se mueve', () => {

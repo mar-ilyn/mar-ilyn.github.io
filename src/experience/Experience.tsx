@@ -31,7 +31,7 @@ interface Props {
 
 // La zona "Sobre mí" se descarga recién cuando se llega a la galería (o se entra directo a ella).
 const AboutZone = lazy(() => import('./AboutZone'))
-const ABOUT_READY_VIEWS = new Set(['gallery', 'project', 'plaque', 'about', 'aboutEntry', 'contact', 'contactBook'])
+const ABOUT_READY_VIEWS = new Set(['gallery', 'project', 'projectDetail', 'about', 'aboutEntry', 'contact', 'contactBook'])
 
 // El escritorio de contacto, al llegar a "Sobre mí" (la zona anterior) o al entrar directo a él.
 const ContactZone = lazy(() => import('./ContactZone'))
@@ -111,6 +111,7 @@ export default function Experience({ view }: Props) {
               reducedMotion={reducedMotion}
               onOpen={(slug) => send({ type: 'OPEN', slug })}
               onHover={setHighlighted}
+              quality={quality}
             />
           ))}
           {!render &&
@@ -125,7 +126,7 @@ export default function Experience({ view }: Props) {
           <Precompile onDone={onCompiled} />
         </Suspense>
         <CameraRig view={view} holdWide={render === 'fondo'} />
-        {introLabel && <IntroLabel />}
+        {introLabel && <IntroLabel quality={quality} />}
         {aboutLoaded && (
           <Suspense fallback={null}>
             <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />

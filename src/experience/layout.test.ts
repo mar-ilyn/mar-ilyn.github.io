@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { projects } from '../data/projects'
 import { CABINET, SECTIONS } from '../data/timeline'
+import { PEDESTAL_LABEL } from './pedestalGeometry'
 import { cabinetPose, FOV, galleryPose, INTRO_LAYOUT, INTRO_POSE, INTRO_X, introLensShift, introWidePose, poseFor, ROOM } from './layout'
 
 const halfTan = Math.tan((FOV * Math.PI) / 360)
-const detail = { name: 'project', slug: projects[0].slug } as const
+const detail = { name: 'projectDetail', slug: projects[0].slug } as const
 
 describe('encuadres de cámara', () => {
   it('la galería en horizontal deja entrar todos los pedestales', () => {
@@ -91,6 +92,18 @@ describe('encuadres de cámara', () => {
       const halfVisible = (position[2] - ROOM.wallZ) * halfTan * aspect
       // Los centros de las columnas están a bay / 2; se ven con 30 cm de margen (fuste y pedestal enteros).
       expect(halfVisible).toBeCloseTo(INTRO_LAYOUT.bay / 2 + 0.3, 1)
+    }
+  })
+
+  it('el proyecto se abre de frente a la cartela del pedestal, entera en pantalla', () => {
+    for (const aspect of [0.46, 1.78]) {
+      const { position, target, offset } = poseFor({ name: 'project', slug: projects[0].slug }, aspect, projects)
+      expect(target[0]).toBeCloseTo(projects[0].pedestal[0])
+      expect(position[0]).toBeCloseTo(target[0])
+      expect(offset).toEqual([0, 0, 0])
+      const d = position[2] - target[2]
+      expect(d * halfTan).toBeGreaterThan(PEDESTAL_LABEL.height / 2)
+      expect(d * halfTan * aspect).toBeGreaterThan(PEDESTAL_LABEL.width / 2)
     }
   })
 })

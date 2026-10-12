@@ -2,6 +2,7 @@ import type { Project, Vec3 } from '../data/types'
 import type { ViewState } from '../state/machine'
 import { CABINET, FRIEZE, getEntry, SECTIONS, type Row } from '../data/timeline'
 import { BOOK, DESK, OPEN_BOOK_CENTER } from './deskLayout'
+import { PEDESTAL_LABEL } from './pedestalGeometry'
 
 export const FOV = 45
 export const ROOM = { length: 80, depth: 40, height: 4.2, wallZ: -3 } as const
@@ -181,6 +182,19 @@ export function bookPose(aspect: number): CameraPose {
   return orbit([...OPEN_BOOK_CENTER], distance, 82)
 }
 
+// De frente a la cartela del pedestal, cerca para que se lea: entra la cartela entera con margen para el
+// header arriba y los botones abajo; en vertical la cámara retrocede hasta que entre a lo ancho.
+export function labelPose(project: Project, aspect: number): CameraPose {
+  const { width, height, y, z } = PEDESTAL_LABEL
+  const [px, , pz] = project.pedestal
+  const distance = Math.max((height / 2 + 0.11) / halfTan, (width / 2 + 0.07) / (halfTan * aspect))
+  return {
+    position: [px, y + 0.015, pz + z + distance],
+    target: [px, y, pz + z],
+    offset: NO_OFFSET,
+  }
+}
+
 export function poseFor(view: ViewState, aspect: number, projects: readonly Project[]): CameraPose {
   const rowHalfWidth = Math.max(...projects.map((p) => Math.abs(p.pedestal[0])), 0)
   switch (view.name) {
@@ -189,11 +203,13 @@ export function poseFor(view: ViewState, aspect: number, projects: readonly Proj
     case 'toGallery':
     case 'gallery':
       return galleryPose(aspect, rowHalfWidth)
+    // Primero la cartela del pedestal; con "Más info", el objeto de arriba.
     case 'project':
-    case 'plaque': {
+    case 'projectDetail': {
       const project = projects.find((p) => p.slug === view.slug)
       if (!project) return galleryPose(aspect, rowHalfWidth)
-      const framing = view.name === 'project' ? project.camera.detail : project.camera.plaque
+      if (view.name === 'project') return labelPose(project, aspect)
+      const framing = project.camera.detail
       const position = portraitPullBack(framing.position, framing.target, aspect)
       return { position, target: framing.target, offset: sideOffset(position, framing.target, aspect) }
     }

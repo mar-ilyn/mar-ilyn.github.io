@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test'
+import { test as base, expect, type Page } from '@playwright/test'
 
 // Los tests de flujo usan calidad baja: con WebGL por software, el reflejo del piso y el
 // postprocesado de la calidad alta harían cada cuadro muy lento. La calidad alta tiene su propio test.
@@ -10,26 +10,29 @@ export const test = base.extend({
       return goto(url.includes('calidad=') ? url : `${url}${sep}calidad=baja`, options)
     }
     await provide(page)
-    // Antes de cerrar, esperar a que el navegador termine los cuadros pendientes: con WebGL por software,
-    // volver a una zona pesada (p. ej. "Reiniciar recorrido") deja segundos de trabajo en la GPU, y si la
-    // página se cierra antes, ese trabajo bloquea la creación del contexto del test siguiente.
-    // gl.finish() espera además el trabajo ya encolado en la GPU (p. ej. compilaciones en paralelo).
-    await page
-      .evaluate(
-        () =>
-          new Promise<void>((done) =>
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => {
-                const canvas = document.querySelector('canvas')
-                ;(canvas?.getContext('webgl2') ?? canvas?.getContext('webgl'))?.finish()
-                done()
-              }),
-            ),
-          ),
-      )
-      .catch(() => {})
+    await settleGpu(page)
   },
 })
+
+// Antes de cerrar, esperar a que el navegador termine los cuadros pendientes: con WebGL por software,
+// volver a una zona pesada (p. ej. "Reiniciar recorrido") deja segundos de trabajo en la GPU, y si la
+// página se cierra antes, ese trabajo bloquea la creación del contexto del test siguiente. gl.finish()
+// espera además el trabajo ya encolado. Con tope de 10 s, para que el cierre nunca se cuelgue.
+async function settleGpu(page: Page) {
+  const settle = page.evaluate(
+    () =>
+      new Promise<void>((done) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const canvas = document.querySelector('canvas')
+            ;(canvas?.getContext('webgl2') ?? canvas?.getContext('webgl'))?.finish()
+            done()
+          }),
+        ),
+      ),
+  )
+  await Promise.race([settle, new Promise((done) => setTimeout(done, 10_000))]).catch(() => {})
+}
 
 export { expect }
 export type { Page } from '@playwright/test'

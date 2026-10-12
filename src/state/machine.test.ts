@@ -4,19 +4,19 @@ import { initialView, transition, type ViewEvent, type ViewState } from './machi
 const run = (events: ViewEvent[], from: ViewState = initialView) => events.reduce(transition, from)
 
 describe('máquina de estados de la vista', () => {
-  it('recorre intro → galería → proyecto → placa y vuelve', () => {
+  it('recorre intro → galería → proyecto → detalle y vuelve', () => {
     expect(run([{ type: 'STEP_DOWN' }])).toEqual({ name: 'toGallery' })
     expect(run([{ type: 'STEP_DOWN' }, { type: 'ARRIVED' }])).toEqual({ name: 'gallery' })
 
-    const atPlaque = run([
+    const atDetail = run([
       { type: 'STEP_DOWN' },
       { type: 'ARRIVED' },
       { type: 'OPEN', slug: 'turnapp' },
       { type: 'STEP_DOWN' },
     ])
-    expect(atPlaque).toEqual({ name: 'plaque', slug: 'turnapp' })
-    expect(transition(atPlaque, { type: 'STEP_UP' })).toEqual({ name: 'project', slug: 'turnapp' })
-    expect(transition(atPlaque, { type: 'BACK_TO_GALLERY' })).toEqual({ name: 'gallery' })
+    expect(atDetail).toEqual({ name: 'projectDetail', slug: 'turnapp' })
+    expect(transition(atDetail, { type: 'STEP_UP' })).toEqual({ name: 'project', slug: 'turnapp' })
+    expect(transition(atDetail, { type: 'BACK_TO_GALLERY' })).toEqual({ name: 'gallery' })
   })
 
   it('saltar la intro va directo a la galería, también a mitad del vuelo', () => {
@@ -39,7 +39,7 @@ describe('máquina de estados de la vista', () => {
       [{ name: 'toGallery' }, { type: 'OPEN', slug: 'turnapp' }],
       [{ name: 'gallery' }, { type: 'ARRIVED' }],
       [{ name: 'project', slug: 'turnapp' }, { type: 'OPEN', slug: 'docu-tool' }],
-      [{ name: 'plaque', slug: 'turnapp' }, { type: 'STEP_DOWN' }],
+      [{ name: 'projectDetail', slug: 'turnapp' }, { type: 'STEP_DOWN' }],
     ]
     for (const [state, event] of cases) expect(transition(state, event)).toBe(state)
   })
@@ -88,12 +88,12 @@ describe('máquina de estados de la vista', () => {
   })
 
   it('Esc (BACK) retrocede un nivel', () => {
-    expect(transition({ name: 'plaque', slug: 'a' }, { type: 'BACK' })).toEqual({ name: 'project', slug: 'a' })
+    expect(transition({ name: 'projectDetail', slug: 'a' }, { type: 'BACK' })).toEqual({ name: 'project', slug: 'a' })
     expect(transition({ name: 'project', slug: 'a' }, { type: 'BACK' })).toEqual({ name: 'gallery' })
   })
 
-  it('subir desde un proyecto vuelve a la vista general; desde la placa, al proyecto', () => {
+  it('subir desde un proyecto vuelve a la vista general; desde el detalle, al proyecto', () => {
     expect(transition({ name: 'project', slug: 'a' }, { type: 'STEP_UP' })).toEqual({ name: 'gallery' })
-    expect(transition({ name: 'plaque', slug: 'a' }, { type: 'STEP_UP' })).toEqual({ name: 'project', slug: 'a' })
+    expect(transition({ name: 'projectDetail', slug: 'a' }, { type: 'STEP_UP' })).toEqual({ name: 'project', slug: 'a' })
   })
 })

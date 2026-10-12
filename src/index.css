@@ -1173,6 +1173,10 @@ html.is-gallery body {
 .contact-actions .button:hover {
   background: var(--ink);
 }
+.contact-actions .button--primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
 .overlay--contact-book {
   z-index: 3;
 }

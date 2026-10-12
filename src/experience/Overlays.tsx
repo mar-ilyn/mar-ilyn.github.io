@@ -22,8 +22,9 @@ export function Overlays({ view }: Props) {
     case 'gallery':
       return <GalleryOverlay />
     case 'project':
-    case 'plaque':
-      return <ProjectPanel slug={view.slug} atPlaque={view.name === 'plaque'} />
+      return <ProjectLabelOverlay slug={view.slug} />
+    case 'projectDetail':
+      return <ProjectPanel slug={view.slug} />
     case 'about':
       return <AboutOverlay section={view.section} />
     case 'aboutEntry':
@@ -231,59 +232,77 @@ function GalleryOverlay() {
   )
 }
 
-function ProjectPanel({ slug, atPlaque }: { slug: string; atPlaque: boolean }) {
+// Proyecto abierto en la cartela del pedestal: los datos están impresos en la cartela 3D (ProjectLabel); acá
+// van los mismos datos ocultos a la vista, para lectores de pantalla, y los botones abajo.
+function ProjectLabelOverlay({ slug }: { slug: string }) {
   const send = useViewStore((s) => s.send)
-  const heading = useFocusOnMount<HTMLHeadingElement>(`${slug}-${atPlaque}`)
+  const heading = useFocusOnMount<HTMLHeadingElement>(`${slug}-label`)
+  const project = getProject(slug)
+  if (!project) return null
+  return (
+    <section className="overlay overlay--project" aria-labelledby="panel-title">
+      <div className="visually-hidden">
+        <p>
+          {project.year} · {project.role}
+        </p>
+        <h2 id="panel-title" ref={heading} tabIndex={-1}>
+          {project.title}
+        </h2>
+        <p>{project.summary}</p>
+        <ul aria-label={`Tecnologías de ${project.title}`}>
+          {project.stack.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="overlay__actions contact-actions">
+        <button type="button" className="button button--primary" onClick={() => send({ type: 'MORE_INFO' })}>
+          Ver más información
+        </button>
+        <button type="button" className="button" onClick={() => send({ type: 'BACK_TO_GALLERY' })}>
+          Volver a los proyectos
+        </button>
+      </div>
+    </section>
+  )
+}
+
+// Detalle del proyecto, frente al objeto de arriba del pedestal: la información ampliada y los links.
+function ProjectPanel({ slug }: { slug: string }) {
+  const send = useViewStore((s) => s.send)
+  const heading = useFocusOnMount<HTMLHeadingElement>(`${slug}-detail`)
   const project = getProject(slug)
   if (!project) return null
 
   return (
-    <aside className={`panel ${atPlaque ? 'panel--plaque' : ''}`} aria-labelledby="panel-title">
-      <p className="eyebrow">{atPlaque ? 'Placa' : `${project.year} · ${project.role}`}</p>
+    <aside className="panel panel--detail" aria-labelledby="panel-title">
+      <p className="eyebrow">Más información</p>
       <h2 id="panel-title" ref={heading} tabIndex={-1}>
         {project.title}
       </h2>
-      <p className="panel__summary">{project.summary}</p>
-
-      {atPlaque && (
-        <>
-          {project.details.map((d) => (
-            <p key={d} className="panel__detail">
-              {d}
-            </p>
-          ))}
-          <ul className="tags" aria-label={`Tecnologías de ${project.title}`}>
-            {project.stack.map((t) => (
-              <li key={t}>{t}</li>
-            ))}
-          </ul>
-          {(project.links.demo || project.links.repo) && (
-            <p className="project__links">
-              {project.links.demo && (
-                <a href={project.links.demo} target="_blank" rel="noopener noreferrer">
-                  Ver demo
-                </a>
-              )}
-              {project.links.repo && (
-                <a href={project.links.repo} target="_blank" rel="noopener noreferrer">
-                  Ver código
-                </a>
-              )}
-            </p>
+      {project.details.map((d) => (
+        <p key={d} className="panel__detail">
+          {d}
+        </p>
+      ))}
+      {(project.links.demo || project.links.repo) && (
+        <p className="project__links">
+          {project.links.demo && (
+            <a href={project.links.demo} target="_blank" rel="noopener noreferrer">
+              Ver demo
+            </a>
           )}
-        </>
+          {project.links.repo && (
+            <a href={project.links.repo} target="_blank" rel="noopener noreferrer">
+              Ver código
+            </a>
+          )}
+        </p>
       )}
-
       <div className="panel__actions">
-        {atPlaque ? (
-          <button type="button" className="button button--primary" onClick={() => send({ type: 'BACK' })}>
-            Volver al proyecto
-          </button>
-        ) : (
-          <button type="button" className="button button--primary" onClick={() => send({ type: 'MORE_INFO' })}>
-            Ver más información
-          </button>
-        )}
+        <button type="button" className="button button--primary" onClick={() => send({ type: 'BACK' })}>
+          Volver a la cartela
+        </button>
         <button type="button" className="button" onClick={() => send({ type: 'BACK_TO_GALLERY' })}>
           Volver a los proyectos
         </button>

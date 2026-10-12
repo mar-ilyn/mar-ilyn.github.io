@@ -16,7 +16,7 @@ const RENDER_FRAME = new URLSearchParams(window.location.search).get('render') =
 const BASE_TITLE = `${profile.name} · ${profile.role}`
 
 function titleFor(route: Route): string {
-  if (route.name === 'project' || route.name === 'plaque') {
+  if (route.name === 'project' || route.name === 'projectDetail') {
     const project = getProject(route.slug)
     if (project) return `${project.title} · ${profile.name}`
   }

@@ -30,8 +30,19 @@ function commit(route: Route, mode: 'push' | 'replace') {
   else window.history.replaceState(null, '', path)
 }
 
+// Al entrar, la URL queda en su forma actual (p. ej. un link viejo a /placa pasa a la cartela, sin
+// /placa), conservando los parámetros como ?calidad.
+function initialRoute(): Route {
+  const route = readLocation()
+  const path = routeToPath(route, BASE)
+  if (route.name !== 'list' && path !== window.location.pathname) {
+    window.history.replaceState(null, '', path + window.location.search + window.location.hash)
+  }
+  return route
+}
+
 export const useViewStore = create<ViewStore>((set, get) => ({
-  route: readLocation(),
+  route: initialRoute(),
   cameraMoving: false,
   sceneReady: false,
   highlighted: null,

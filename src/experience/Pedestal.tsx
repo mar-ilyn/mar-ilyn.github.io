@@ -3,7 +3,9 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useRef, useState } from 'react'
 import { MeshStandardMaterial, type Mesh } from 'three'
 import type { Project } from '../data/types'
-import { pedestalGeometry, SHAFT, TOP_Y } from './pedestalGeometry'
+import { pedestalGeometry, TOP_Y } from './pedestalGeometry'
+import { ProjectLabel } from './ProjectLabel'
+import type { Quality } from './quality'
 import { useGroupHover } from './useGroupHover'
 
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
   reducedMotion: boolean
   onOpen: (slug: string) => void
   onHover: (slug: string | null) => void
+  quality: Quality
 }
 
 const OBJECT_SIZE = 0.3
@@ -19,7 +22,7 @@ export const FLOAT_Y = TOP_Y + 0.12 + OBJECT_SIZE / 2
 
 const stone = new MeshStandardMaterial({ color: '#e8e0cc', roughness: 0.75 })
 
-export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover }: Props) {
+export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover, quality }: Props) {
   const [hovered, setHovered] = useState(false)
   const exhibit = useRef<Mesh>(null)
   useCursor(interactive && hovered)
@@ -55,10 +58,7 @@ export function Pedestal({ project, interactive, reducedMotion, onOpen, onHover 
     >
       <mesh geometry={pedestalGeometry()} material={stone} />
 
-      <mesh position={[0, 0.6, SHAFT.radius + 0.012]} name="plaque">
-        <boxGeometry args={[0.2, 0.12, 0.01]} />
-        <meshStandardMaterial color="#8e8e8e" />
-      </mesh>
+      <ProjectLabel project={project} quality={quality} />
 
       <mesh ref={exhibit} position={[0, FLOAT_Y, 0]} name="exhibit">
         <boxGeometry args={[OBJECT_SIZE, OBJECT_SIZE, OBJECT_SIZE]} />

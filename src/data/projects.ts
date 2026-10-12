@@ -8,7 +8,7 @@ const img = (slug: string, alt: string) => ({
 })
 
 // Textos de ejemplo: se reemplazan por el contenido final de cada proyecto.
-// pedestal: posición en la sala (x a lo largo de la galería). Las vistas de cámara miran al objeto (detail) y a la placa (plaque).
+// pedestal: posición en la sala (x a lo largo de la galería). camera.detail mira al objeto de arriba del pedestal.
 // Título de la zona de los pedestales (en la pared, en letras de bronce).
 export const PROJECTS_TITLE = 'Proyectos'
 
@@ -29,7 +29,6 @@ export const projects: readonly Project[] = [
     pedestal: [-4, 0, 0],
     camera: {
       detail: { position: [-4, 1.55, 1.75], target: [-4, 1.3, 0] },
-      plaque: { position: [-4, 0.75, 1.4], target: [-4, 0.6, 0.16] },
     },
   },
   {
@@ -48,7 +47,6 @@ export const projects: readonly Project[] = [
     pedestal: [0, 0, 0],
     camera: {
       detail: { position: [0, 1.55, 1.75], target: [0, 1.3, 0] },
-      plaque: { position: [0, 0.75, 1.4], target: [0, 0.6, 0.16] },
     },
   },
   {
@@ -67,7 +65,6 @@ export const projects: readonly Project[] = [
     pedestal: [4, 0, 0],
     camera: {
       detail: { position: [4, 1.55, 1.75], target: [4, 1.3, 0] },
-      plaque: { position: [4, 0.75, 1.4], target: [4, 0.6, 0.16] },
     },
   },
 ]

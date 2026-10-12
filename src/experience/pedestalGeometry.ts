@@ -7,6 +7,10 @@ import { bake } from './bake'
 export const TOP_Y = 1.1
 export const SHAFT = { bottom: 0.27, top: 0.86, radius: 0.15 } as const
 
+// Cartela de museo del proyecto, montada al frente del fuste con un taco: centro a la altura y, cara de
+// adelante en z (relativo al pedestal).
+export const PEDESTAL_LABEL = { width: 0.21, height: 0.15, depth: 0.006, y: 0.58, z: SHAFT.radius + 0.022 } as const
+
 export const lathe = (points: [number, number][], segments = 96) =>
   new LatheGeometry(
     points.map(([r, y]) => new Vector2(r, y)),

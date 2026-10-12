@@ -5,7 +5,7 @@ export type ViewState =
   | { name: 'toGallery' }
   | { name: 'gallery' }
   | { name: 'project'; slug: string }
-  | { name: 'plaque'; slug: string }
+  | { name: 'projectDetail'; slug: string }
   | { name: 'about'; section: Row }
   | { name: 'aboutEntry'; slug: string }
   | { name: 'contact' }
@@ -45,13 +45,15 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
       if (event.type === 'STEP_DOWN') return { name: 'about', section: 'laboral' }
       return state
 
+    // Un proyecto se abre en la cartela del pedestal (datos generales); "Más info" o bajar suben al
+    // objeto, arriba del pedestal, con la información detallada.
     case 'project':
-      if (event.type === 'STEP_DOWN' || event.type === 'MORE_INFO') return { name: 'plaque', slug: state.slug }
+      if (event.type === 'STEP_DOWN' || event.type === 'MORE_INFO') return { name: 'projectDetail', slug: state.slug }
       // Subir vuelve a la vista general de los proyectos, como Esc.
       if (event.type === 'STEP_UP' || event.type === 'BACK' || event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
       return state
 
-    case 'plaque':
+    case 'projectDetail':
       if (event.type === 'STEP_UP' || event.type === 'BACK') return { name: 'project', slug: state.slug }
       if (event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
       return state

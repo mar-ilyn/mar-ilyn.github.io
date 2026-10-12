@@ -15,7 +15,7 @@ const waitForCamera = (page: Page) =>
   expect(page.locator('.experience')).toHaveAttribute('data-moving', 'false', { timeout: 45_000 })
 
 test.describe('con movimiento', () => {
-  test('recorrido completo: intro → galería → proyecto → placa y vuelta', { tag: '@motion' }, async ({ page, isMobile }) => {
+  test('recorrido completo: intro → galería → cartela → detalle y vuelta', { tag: '@motion' }, async ({ page, isMobile }) => {
     await page.goto('/')
     await expect(page.locator('canvas')).toBeVisible()
     const verProyectos = page.getByRole('button', { name: 'Explorar proyectos' })
@@ -38,10 +38,11 @@ test.describe('con movimiento', () => {
     await expect(page).toHaveTitle(/^TurnApp/)
     await waitForCamera(page)
 
-    await page.getByRole('button', { name: 'Ver más información' }).click()
-    await expect(page).toHaveURL(/\/proyecto\/turnapp\/placa$/)
-    await expect(page.getByText('Placa', { exact: true })).toBeVisible()
+    // La cartela muestra los datos generales; "Más información" sube al objeto con el detalle.
     await expect(page.getByRole('list', { name: 'Tecnologías de TurnApp' })).toBeVisible()
+    await page.getByRole('button', { name: 'Ver más información' }).click()
+    await expect(page).toHaveURL(/\/proyecto\/turnapp\/detalle$/)
+    await expect(page.getByText('Más información', { exact: true })).toBeVisible()
     await waitForCamera(page)
 
     await page.goBack({ waitUntil: 'commit' })
@@ -66,24 +67,28 @@ test('click en un pedestal abre su proyecto', async ({ page, isMobile }) => {
   await expect(page).toHaveURL(/\/proyecto\/panel-logistico$/)
 })
 
-test('un link compartido abre directo en la placa', async ({ page }) => {
-  await page.goto('/proyecto/docu-tool/placa')
+test('un link compartido abre directo en el detalle, y uno viejo a /placa en la cartela', async ({ page }) => {
+  await page.goto('/proyecto/docu-tool/detalle')
   await expect(page.getByRole('heading', { level: 2, name: 'Docu Tool' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Volver al proyecto' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Volver a la cartela' })).toBeVisible()
+  await page.goto('/proyecto/docu-tool/placa')
+  // La URL pasa a la forma nueva y conserva los parámetros (?calidad=baja de los tests).
+  await expect(page).toHaveURL(/\/proyecto\/docu-tool(\?.*)?$/)
+  await expect(page.getByRole('button', { name: 'Ver más información' })).toBeVisible()
 })
 
 test('Esc vuelve un nivel', async ({ page }) => {
-  await page.goto('/proyecto/turnapp/placa')
-  await expect(page.getByRole('button', { name: 'Volver al proyecto' })).toBeVisible()
+  await page.goto('/proyecto/turnapp/detalle')
+  await expect(page.getByRole('button', { name: 'Volver a la cartela' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
   await page.keyboard.press('Escape')
   await waitForGallery(page)
 })
 
-test('subir desde la placa vuelve al proyecto y desde el proyecto a los proyectos', async ({ page }) => {
-  await page.goto('/proyecto/turnapp/placa')
-  await expect(page.getByRole('button', { name: 'Volver al proyecto' })).toBeVisible()
+test('subir desde el detalle vuelve a la cartela y desde la cartela a los proyectos', async ({ page }) => {
+  await page.goto('/proyecto/turnapp/detalle')
+  await expect(page.getByRole('button', { name: 'Volver a la cartela' })).toBeVisible()
   await page.keyboard.press('ArrowUp')
   await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
   // Pausa entre pasos: el scroll se toma de a un gesto (700 ms).

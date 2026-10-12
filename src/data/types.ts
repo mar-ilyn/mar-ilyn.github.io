@@ -28,9 +28,9 @@ export interface Project {
   links: ProjectLinks
   image: ProjectImage
   pedestal: Vec3
+  // Vista del objeto, arriba del pedestal (la de la cartela se calcula a partir del pedestal).
   camera: {
     detail: CameraView
-    plaque: CameraView
   }
 }
 

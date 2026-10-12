@@ -5,6 +5,6 @@ import type { ViewState } from '../state/machine'
 // todos quedan con un brillo suave constante. El proyecto abierto conserva un haz tenue.
 export function beamLevel(view: ViewState, slug: string, highlighted: string | null, noHover: boolean): number {
   if (view.name === 'gallery') return highlighted === slug ? 1 : noHover ? 0.4 : 0
-  if ((view.name === 'project' || view.name === 'plaque') && view.slug === slug) return 0.55
+  if ((view.name === 'project' || view.name === 'projectDetail') && view.slug === slug) return 0.55
   return 0
 }

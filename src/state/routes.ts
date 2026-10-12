@@ -2,7 +2,8 @@ import type { ViewState } from './machine'
 
 export type Route = ViewState | { name: 'list' }
 
-const PROJECT_PATH = /^\/proyecto\/([a-z0-9-]+)(\/placa)?$/
+// /proyecto/x es la cartela; /proyecto/x/detalle, el objeto. /placa (links viejos) abre la cartela.
+const PROJECT_PATH = /^\/proyecto\/([a-z0-9-]+)(\/detalle|\/placa)?$/
 // /sobre-mi es el compartimento de experiencia, /sobre-mi/estudios el de estudios; si no, una entrada.
 const ABOUT_PATH = /^\/sobre-mi(?:\/([a-z0-9-]+))?$/
 
@@ -36,7 +37,7 @@ export function pathToRoute(
   if (match) {
     const slug = match[1]
     if (!isKnownSlug(slug)) return { name: 'gallery' }
-    return match[2] ? { name: 'plaque', slug } : { name: 'project', slug }
+    return match[2] === '/detalle' ? { name: 'projectDetail', slug } : { name: 'project', slug }
   }
 
   return { name: 'intro' }
@@ -52,8 +53,8 @@ export function routeToPath(route: Route, base = '/'): string {
       return `${b}/proyectos`
     case 'project':
       return `${b}/proyecto/${route.slug}`
-    case 'plaque':
-      return `${b}/proyecto/${route.slug}/placa`
+    case 'projectDetail':
+      return `${b}/proyecto/${route.slug}/detalle`
     case 'list':
       return `${b}/lista`
     case 'about':

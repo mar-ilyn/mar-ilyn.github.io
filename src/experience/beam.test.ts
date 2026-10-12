@@ -16,7 +16,7 @@ describe('haz de luz', () => {
 
   it('el proyecto abierto conserva un haz tenue; los demás se apagan', () => {
     expect(beamLevel({ name: 'project', slug: 'a' }, 'a', null, false)).toBeGreaterThan(0)
-    expect(beamLevel({ name: 'plaque', slug: 'a' }, 'a', null, false)).toBeGreaterThan(0)
+    expect(beamLevel({ name: 'projectDetail', slug: 'a' }, 'a', null, false)).toBeGreaterThan(0)
     expect(beamLevel({ name: 'project', slug: 'a' }, 'b', 'b', true)).toBe(0)
   })
 

@@ -24,7 +24,7 @@ describe('datos de proyectos', () => {
   })
 
   it.each(projects)('$slug tiene vistas de cámara válidas', (p) => {
-    for (const view of [p.camera.detail, p.camera.plaque]) {
+    for (const view of [p.camera.detail]) {
       expect(isFiniteVec3(view.position)).toBe(true)
       expect(isFiniteVec3(view.target)).toBe(true)
     }
