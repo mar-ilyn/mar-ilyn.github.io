@@ -47,7 +47,8 @@ export function transition(state: ViewState, event: ViewEvent): ViewState {
 
     case 'project':
       if (event.type === 'STEP_DOWN' || event.type === 'MORE_INFO') return { name: 'plaque', slug: state.slug }
-      if (event.type === 'BACK' || event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
+      // Subir vuelve a la vista general de los proyectos, como Esc.
+      if (event.type === 'STEP_UP' || event.type === 'BACK' || event.type === 'BACK_TO_GALLERY') return { name: 'gallery' }
       return state
 
     case 'plaque':

@@ -81,6 +81,17 @@ test('Esc vuelve un nivel', async ({ page }) => {
   await waitForGallery(page)
 })
 
+test('subir desde la placa vuelve al proyecto y desde el proyecto a los proyectos', async ({ page }) => {
+  await page.goto('/proyecto/turnapp/placa')
+  await expect(page.getByRole('button', { name: 'Volver al proyecto' })).toBeVisible()
+  await page.keyboard.press('ArrowUp')
+  await expect(page).toHaveURL(/\/proyecto\/turnapp$/)
+  // Pausa entre pasos: el scroll se toma de a un gesto (700 ms).
+  await page.waitForTimeout(800)
+  await page.keyboard.press('ArrowUp')
+  await expect(page).toHaveURL(/\/proyectos$/)
+})
+
 test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('link', { name: 'Ver como lista' }).click()

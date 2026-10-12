@@ -6,6 +6,8 @@ import {
   ExtrudeGeometry,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
+  PlaneGeometry,
+  RepeatWrapping,
   Shape,
   SRGBColorSpace,
   TorusGeometry,
@@ -20,38 +22,160 @@ import { BOOK, ENVELOPE, PEN } from './deskLayout'
 const gold = () => new MeshStandardMaterial({ color: '#c99f55', metalness: 0.85, roughness: 0.3, envMapIntensity: 1 })
 const paper = (color: string) => new MeshStandardMaterial({ color, roughness: 0.9 })
 
-// Libro grande encuadernado en cuero bordó, siempre abierto sobre el escritorio: las dos tapas apoyadas,
-// la mitad de las hojas a cada lado del lomo y el canto de cuero asomando alrededor. El origen está en el lomo (el centro del libro abierto), así el
-// agrandado del hover no lo desplaza y coincide con el ancla del panel de contacto.
+// Libro abierto, más realista: cada mitad del bloque de hojas se arquea desde el pliegue central (donde
+// las hojas se hunden hacia el lomo) y baja apenas hacia el borde de afuera. El canto muestra las hojas
+// apiladas, las tapas de cuero asoman alrededor y en los extremos del lomo va la cabezada.
+
+// Perfil de la superficie de las hojas, de 0 (pliegue) a 1 (borde de afuera).
+const pageProfile = (u: number) => (1 - Math.pow(1 - u, 2.5)) * (1 - 0.12 * Math.pow(u, 4))
+const PAGE_STEPS = 28
+
+function canvasTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void): CanvasTexture {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (ctx) draw(ctx)
+  const texture = new CanvasTexture(canvas)
+  texture.colorSpace = SRGBColorSpace
+  texture.anisotropy = 8
+  return texture
+}
+
+// Cara de las hojas: marfil, con la sombra del pliegue, un leve oscurecimiento hacia el borde y unas pocas
+// manchas de papel viejo, muy suaves.
+function pageTexture(): CanvasTexture {
+  return canvasTexture(512, 512, (ctx) => {
+    ctx.fillStyle = '#f2e8d3'
+    ctx.fillRect(0, 0, 512, 512)
+    const gutter = ctx.createLinearGradient(0, 0, 512, 0)
+    gutter.addColorStop(0, 'rgba(92, 70, 40, 0.55)')
+    gutter.addColorStop(0.06, 'rgba(92, 70, 40, 0.22)')
+    gutter.addColorStop(0.2, 'rgba(92, 70, 40, 0)')
+    gutter.addColorStop(0.9, 'rgba(120, 95, 60, 0)')
+    gutter.addColorStop(1, 'rgba(120, 95, 60, 0.16)')
+    ctx.fillStyle = gutter
+    ctx.fillRect(0, 0, 512, 512)
+    const edges = ctx.createLinearGradient(0, 0, 0, 512)
+    edges.addColorStop(0, 'rgba(120, 95, 60, 0.12)')
+    edges.addColorStop(0.06, 'rgba(120, 95, 60, 0)')
+    edges.addColorStop(0.94, 'rgba(120, 95, 60, 0)')
+    edges.addColorStop(1, 'rgba(120, 95, 60, 0.12)')
+    ctx.fillStyle = edges
+    ctx.fillRect(0, 0, 512, 512)
+    for (const [x, y, r] of [
+      [380, 90, 60],
+      [440, 400, 45],
+      [200, 300, 70],
+    ]) {
+      const spot = ctx.createRadialGradient(x, y, 0, x, y, r)
+      spot.addColorStop(0, 'rgba(170, 130, 70, 0.07)')
+      spot.addColorStop(1, 'rgba(170, 130, 70, 0)')
+      ctx.fillStyle = spot
+      ctx.fillRect(x - r, y - r, 2 * r, 2 * r)
+    }
+  })
+}
+
+// Canto de las hojas apiladas: rayas finas, en el sentido que corresponde a cada cara.
+const PAGE_THICKNESS = 0.0005
+function pageEdgeTexture(vertical: boolean): CanvasTexture {
+  const stripes = 16
+  const texture = canvasTexture(vertical ? 64 : 4, vertical ? 4 : 64, (ctx) => {
+    for (let i = 0; i < stripes; i++) {
+      ctx.fillStyle = i % 2 ? '#e9dfc9' : '#d8cbb0'
+      if (vertical) ctx.fillRect(i * 4, 0, 4, 4)
+      else ctx.fillRect(0, i * 4, 4, 4)
+    }
+  })
+  texture.wrapS = texture.wrapT = RepeatWrapping
+  const repeat = 1 / (stripes * PAGE_THICKNESS)
+  texture.repeat.set(vertical ? repeat : 1, vertical ? 1 : repeat)
+  return texture
+}
+
+// Bloque de hojas de una mitad: el perfil extruido a lo largo del libro (z). x de 0 (pliegue) a width.
+function pageBlockGeometry(width: number, depth: number, base: number, height: number): ExtrudeGeometry {
+  const shape = new Shape()
+  shape.moveTo(0, 0)
+  shape.lineTo(width, 0)
+  for (let i = PAGE_STEPS; i >= 0; i--) {
+    const u = i / PAGE_STEPS
+    shape.lineTo(u * width, base + height * pageProfile(u))
+  }
+  shape.closePath()
+  const g = new ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1 })
+  g.translate(0, 0, -depth / 2)
+  return g
+}
+
+// Cara de arriba de las hojas, con UV de 0 (pliegue) a 1 (borde) para la textura de papel.
+function pageSurfaceGeometry(width: number, depth: number, base: number, height: number): PlaneGeometry {
+  const g = new PlaneGeometry(width, depth, PAGE_STEPS, 1)
+  g.rotateX(-Math.PI / 2)
+  g.translate(width / 2, 0, 0)
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i) / width
+    pos.setY(i, base + height * pageProfile(u) + 0.0004)
+  }
+  g.computeVertexNormals()
+  return g
+}
+
 export function Book() {
   const { width, depth, pageTop } = BOOK
   const board = 0.008
-  const pagesH = pageTop - board
+  const margin = 0.006
+  const gutterBase = 0.004
+  const blockW = width - margin
+  const blockH = pageTop - board - gutterBase
   const m = useMemo(
     () => ({
       leather: new MeshStandardMaterial({ color: '#5a1d19', roughness: 0.55, envMapIntensity: 0.6 }),
-      pages: paper('#efe5cf'),
-      gutter: paper('#d9ccb0'),
+      page: new MeshStandardMaterial({ map: pageTexture(), roughness: 0.92 }),
+      // Cabeza y pie del bloque (rayas a lo largo de x) y canto de afuera (rayas a lo largo de y).
+      edges: [
+        new MeshStandardMaterial({ map: pageEdgeTexture(false), roughness: 0.95 }),
+        new MeshStandardMaterial({ map: pageEdgeTexture(true), roughness: 0.95 }),
+      ],
+      headband: new MeshStandardMaterial({ color: '#8c2a22', roughness: 0.6 }),
+      headbandGold: gold(),
     }),
     [],
+  )
+  const geo = useMemo(
+    () => ({
+      block: pageBlockGeometry(blockW, depth, gutterBase, blockH),
+      surface: pageSurfaceGeometry(blockW, depth, gutterBase, blockH),
+    }),
+    [blockW, depth, blockH],
   )
   return (
     <group>
       {[-1, 1].map((side) => (
-        <group key={side}>
-          {/* Tapa apoyada y media pila de hojas. */}
-          <mesh material={m.leather} position={[(side * width) / 2, board / 2, 0]}>
-            <boxGeometry args={[width, board, depth]} />
+        // La mitad izquierda es la derecha espejada: el pliegue queda en el lomo (x = 0).
+        <group key={side} scale={[side, 1, 1]}>
+          <mesh material={m.leather} position={[(width + 0.002) / 2 - 0.002, board / 2, 0]}>
+            <boxGeometry args={[width + 0.002, board, depth + 2 * margin]} />
           </mesh>
-          <mesh material={m.pages} position={[side * (width / 2 - 0.002), board + pagesH / 2, 0]}>
-            <boxGeometry args={[width - 0.016, pagesH, depth - 0.012]} />
+          <group position={[0.001, board, 0]}>
+            <mesh geometry={geo.block} material={m.edges} />
+            <mesh geometry={geo.surface} material={m.page} />
+          </group>
+        </group>
+      ))}
+      {/* Cabezadas: en los extremos del pliegue, una banda de tela con un filete dorado. */}
+      {[-1, 1].map((end) => (
+        <group key={end} position={[0, board + gutterBase / 2, end * (depth / 2 + 0.0015)]}>
+          <mesh material={m.headband}>
+            <boxGeometry args={[0.012, gutterBase + 0.002, 0.003]} />
+          </mesh>
+          <mesh material={m.headbandGold} position={[0, gutterBase / 2 + 0.0012, 0]}>
+            <boxGeometry args={[0.012, 0.0012, 0.0032]} />
           </mesh>
         </group>
       ))}
-      {/* Fondo del lomo entre las dos páginas. */}
-      <mesh material={m.gutter} position={[0, pageTop - 0.0015, 0]}>
-        <boxGeometry args={[0.006, 0.003, depth - 0.014]} />
-      </mesh>
     </group>
   )
 }

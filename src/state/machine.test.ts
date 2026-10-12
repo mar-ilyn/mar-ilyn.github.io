@@ -39,7 +39,6 @@ describe('máquina de estados de la vista', () => {
       [{ name: 'toGallery' }, { type: 'OPEN', slug: 'turnapp' }],
       [{ name: 'gallery' }, { type: 'ARRIVED' }],
       [{ name: 'project', slug: 'turnapp' }, { type: 'OPEN', slug: 'docu-tool' }],
-      [{ name: 'project', slug: 'turnapp' }, { type: 'STEP_UP' }],
       [{ name: 'plaque', slug: 'turnapp' }, { type: 'STEP_DOWN' }],
     ]
     for (const [state, event] of cases) expect(transition(state, event)).toBe(state)
@@ -91,5 +90,10 @@ describe('máquina de estados de la vista', () => {
   it('Esc (BACK) retrocede un nivel', () => {
     expect(transition({ name: 'plaque', slug: 'a' }, { type: 'BACK' })).toEqual({ name: 'project', slug: 'a' })
     expect(transition({ name: 'project', slug: 'a' }, { type: 'BACK' })).toEqual({ name: 'gallery' })
+  })
+
+  it('subir desde un proyecto vuelve a la vista general; desde la placa, al proyecto', () => {
+    expect(transition({ name: 'project', slug: 'a' }, { type: 'STEP_UP' })).toEqual({ name: 'gallery' })
+    expect(transition({ name: 'plaque', slug: 'a' }, { type: 'STEP_UP' })).toEqual({ name: 'project', slug: 'a' })
   })
 })

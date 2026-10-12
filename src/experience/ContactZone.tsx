@@ -102,8 +102,9 @@ function Item({ id, interactive, noHover, reducedMotion, onSelect, children, pos
       lastGlow.current = glow
       group.current?.traverse((node) => {
         if (!(node instanceof Mesh)) return
-        const material = node.material as MeshStandardMaterial
-        if (material.emissive) material.emissive.copy(GLOW).multiplyScalar(glow)
+        for (const material of [node.material].flat() as MeshStandardMaterial[]) {
+          if (material.emissive) material.emissive.copy(GLOW).multiplyScalar(glow)
+        }
       })
       invalidate()
     }

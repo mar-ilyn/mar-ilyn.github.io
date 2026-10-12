@@ -13,8 +13,20 @@ export const test = base.extend({
     // Antes de cerrar, esperar a que el navegador termine los cuadros pendientes: con WebGL por software,
     // volver a una zona pesada (p. ej. "Reiniciar recorrido") deja segundos de trabajo en la GPU, y si la
     // página se cierra antes, ese trabajo bloquea la creación del contexto del test siguiente.
+    // gl.finish() espera además el trabajo ya encolado en la GPU (p. ej. compilaciones en paralelo).
     await page
-      .evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
+      .evaluate(
+        () =>
+          new Promise<void>((done) =>
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                const canvas = document.querySelector('canvas')
+                ;(canvas?.getContext('webgl2') ?? canvas?.getContext('webgl'))?.finish()
+                done()
+              }),
+            ),
+          ),
+      )
       .catch(() => {})
   },
 })
