@@ -80,13 +80,16 @@ export const INTRO_LABEL = {
   center: { x: -1.43, y: 2.25 },
 } as const
 
-// Distancia del encuadre final de la intro. En horizontal entra el panel entero y la mitad de cada columna
-// que lo rodea (sus centros están en los bordes del tramo, a bay / 2 del centro). En vertical, el texto y el
+// Distancia del encuadre final de la intro. En horizontal entra el panel entero y las columnas que lo
+// rodean (sus centros están en los bordes del tramo, a bay / 2 del centro), con 30 cm más a cada lado:
+// se ve cada columna completa, con su pedestal. En vertical, el texto y el
 // cuadro, sin alejarse tanto (las columnas quedarían muy lejos).
+const INTRO_COLUMN_MARGIN = 0.3
+
 function introFit(aspect: number): number {
   const { halfWidth, bay } = INTRO_LAYOUT
   if (aspect < 1) return Math.max(4.2, (halfWidth + 0.75) / (halfTan * aspect))
-  return Math.max(4.2, bay / 2 / (halfTan * aspect))
+  return Math.max(4.2, (bay / 2 + INTRO_COLUMN_MARGIN) / (halfTan * aspect))
 }
 
 export const INTRO_POSE = introPose(16 / 9)

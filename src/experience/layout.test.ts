@@ -85,11 +85,12 @@ describe('encuadres de cámara', () => {
     expect((-introLensShift(position[0], position[2], 35) / 35) * d).toBeCloseTo(INTRO_LAYOUT.frameX - INTRO_LAYOUT.centerX)
   })
 
-  it('en horizontal, el encuadre de la intro muestra la mitad de cada columna del tramo', () => {
+  it('en horizontal, el encuadre de la intro muestra completas las columnas del tramo', () => {
     for (const aspect of [1.33, 1.78]) {
       const { position } = poseFor({ name: 'intro' }, aspect, projects)
       const halfVisible = (position[2] - ROOM.wallZ) * halfTan * aspect
-      expect(halfVisible).toBeCloseTo(INTRO_LAYOUT.bay / 2, 1)
+      // Los centros de las columnas están a bay / 2; se ven con 30 cm de margen (fuste y pedestal enteros).
+      expect(halfVisible).toBeCloseTo(INTRO_LAYOUT.bay / 2 + 0.3, 1)
     }
   })
 })
