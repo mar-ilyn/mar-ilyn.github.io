@@ -20,8 +20,8 @@ export const DESK = {
 export const SURFACE = DESK.height + 0.002
 const TOP = SURFACE
 
-// Libro grande, cerrado, con el lomo a la izquierda: al abrirse la tapa gira sobre el lomo y el libro
-// abierto queda centrado en él.
+// Libro grande, siempre abierto: spineX es el lomo (el centro del libro abierto); width es el ancho de
+// cada mitad y pageTop la altura de las páginas sobre la tapa.
 export const BOOK = {
   spineX: DESK.x - 0.12,
   z: DESK.z + 0.03,
@@ -29,14 +29,16 @@ export const BOOK = {
   width: 0.3,
   depth: 0.4,
   thickness: 0.06,
+  pageTop: 0.036,
 } as const
 
 export const PEN = { position: [BOOK.spineX + 0.4, TOP, DESK.z + 0.06] as const, length: 0.15, rotation: 0.35 }
 export const INKWELL = { position: [DESK.x + 0.52, TOP, DESK.z - 0.2] as const }
-export const ENVELOPE = { position: [DESK.x + 0.5, TOP, DESK.z + 0.15] as const, width: 0.22, depth: 0.11, rotation: -0.15 }
+// El sobre queda fuera del cuadro del libro (en el borde de la pantalla, la perspectiva lo estiraba).
+export const ENVELOPE = { position: [DESK.x + 0.54, TOP, DESK.z + 0.16] as const, width: 0.22, depth: 0.11, rotation: -0.12 }
 
 // Centro del libro abierto (las dos páginas), donde se ancla el panel HTML.
-export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.thickness, BOOK.z] as const
+export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.pageTop, BOOK.z] as const
 
 // Objetos interactivos del escritorio y su clave de resaltado (hover o foco de su botón en el DOM).
 export type ContactItem = 'book' | 'pen' | 'envelope'

@@ -136,6 +136,10 @@ export default function ContactZone({ view, noHover, reducedMotion }: Props) {
   const send = useViewStore((s) => s.send)
   const highlighted = useViewStore((s) => s.highlighted)
   const interactive = view.name === 'contact'
+  // El sobre se abre cuando la cámara ya se acomodó frente al escritorio.
+  const cameraMoving = useViewStore((s) => s.cameraMoving)
+  const atDesk = view.name === 'contact' || view.name === 'contactBook'
+  const envelopeOpen = atDesk && (!cameraMoving || view.name === 'contactBook')
   const common = { interactive, noHover, reducedMotion }
 
   return (
@@ -146,14 +150,14 @@ export default function ContactZone({ view, noHover, reducedMotion }: Props) {
       <mesh material={lightPool} rotation={[-Math.PI / 2, 0, 0]} position={[DESK.x - 0.05, SURFACE + 0.004, DESK.z]} scale={[1.6, 0.9, 1]} renderOrder={2}>
         <planeGeometry />
       </mesh>
-      <Item id="book" {...common} position={[BOOK.spineX + BOOK.width / 2, BOOK.y, BOOK.z]} hit={[BOOK.width + 0.03, BOOK.thickness + 0.02, BOOK.depth + 0.03]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
-        <Book open={view.name === 'contactBook'} reducedMotion={reducedMotion} />
+      <Item id="book" {...common} position={[BOOK.spineX, BOOK.y, BOOK.z]} hit={[2 * BOOK.width + 0.03, BOOK.pageTop + 0.02, BOOK.depth + 0.03]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
+        <Book />
       </Item>
       <Item id="pen" {...common} position={PEN.position} rotation={PEN.rotation} hit={[PEN.length + 0.03, 0.04, 0.05]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
         <Pen nudge={highlighted === key('book')} reducedMotion={reducedMotion} />
       </Item>
-      <Item id="envelope" {...common} position={ENVELOPE.position} rotation={ENVELOPE.rotation} hit={[ENVELOPE.width + 0.03, 0.03, ENVELOPE.depth + 0.03]} onSelect={downloadCv}>
-        <Envelope />
+      <Item id="envelope" {...common} position={ENVELOPE.position} rotation={ENVELOPE.rotation} hit={[ENVELOPE.width + 0.03, 0.08, ENVELOPE.depth + 0.16]} onSelect={downloadCv}>
+        <Envelope open={envelopeOpen} reducedMotion={reducedMotion} />
       </Item>
       {/* Tintero decorativo: no es interactivo. */}
       <group name="contact-inkwell" position={[...INKWELL.position]}>

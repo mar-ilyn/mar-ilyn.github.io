@@ -166,7 +166,7 @@ test('la vista en lista incluye la línea de tiempo como lista ordenada', async 
   await expect(section.getByRole('heading', { level: 3 }).first()).toHaveText('Asistente de Documentación Internacional')
 })
 
-test('Contacto: desde el menú fijo al escritorio, abrir el libro con teclado, cerrarlo y reiniciar', async ({ page }) => {
+test('Contacto: desde el menú fijo al escritorio, acercarse al libro con teclado, volver y reiniciar', async ({ page }) => {
   test.setTimeout(90_000)
   await page.goto('/proyectos')
   await waitForGallery(page)
@@ -176,7 +176,7 @@ test('Contacto: desde el menú fijo al escritorio, abrir el libro con teclado, c
   await expect(page).toHaveURL(/\/contacto$/)
   await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole('button', { name: 'Abrir el libro de contacto' }).focus()
+  await page.getByRole('button', { name: 'Leer el libro de contacto' }).focus()
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/contacto\/libro$/)
   const book = page.getByRole('region', { name: 'Contacto' })

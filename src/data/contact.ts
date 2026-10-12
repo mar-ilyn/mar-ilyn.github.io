@@ -11,7 +11,7 @@ export const mailto = (email: string, subject: string) => `mailto:${email}?subje
 
 export const contact: ContactContent = {
   title: 'Contacto',
-  hint: 'Abrí el libro para escribirme o tomá el sobre para llevarte mi CV',
+  hint: 'Acercate al libro para escribirme o tomá el sobre para llevarte mi CV',
   channelsTitle: 'Mis canales',
   channelsIntro: 'Respondo por cualquiera de estos medios.',
   channels: [
@@ -28,8 +28,8 @@ export const contact: ContactContent = {
   cv: { label: 'Descargar CV', accessibleName: 'Descargar mi CV en PDF' },
   copy: { button: 'Copiar', done: (label) => `${label} copiado al portapapeles`, failed: 'No se pudo copiar: seleccioná el texto y copialo a mano.' },
   actions: {
-    openBook: 'Abrir el libro de contacto',
-    closeBook: 'Cerrar el libro',
+    openBook: 'Leer el libro de contacto',
+    closeBook: 'Volver al escritorio',
     backToGallery: 'Volver a la galería',
     restart: 'Reiniciar recorrido',
   },

@@ -1,17 +1,17 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import {
+  CanvasTexture,
   CylinderGeometry,
   ExtrudeGeometry,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   Shape,
-  SphereGeometry,
+  SRGBColorSpace,
   TorusGeometry,
   type Group,
 } from 'three'
 import { BOOK, ENVELOPE, PEN } from './deskLayout'
-import { ring } from './ornament'
 
 // Objetos del escritorio de contacto, modelados por código (assets propios): libro encuadernado en cuero,
 // pluma fuente, tintero de cristal y sobre con sello de lacre. Cada objeto crea sus propios materiales:
@@ -20,105 +20,38 @@ import { ring } from './ornament'
 const gold = () => new MeshStandardMaterial({ color: '#c99f55', metalness: 0.85, roughness: 0.3, envMapIntensity: 1 })
 const paper = (color: string) => new MeshStandardMaterial({ color, roughness: 0.9 })
 
-// Libro grande encuadernado en cuero bordó, con filetes dorados en la tapa y nervios en el lomo. Al
-// abrirse, la tapa gira sobre el lomo hasta quedar plana a la izquierda y aparece la otra mitad de las
-// hojas. El origen está en el centro del libro cerrado (así el agrandado del hover no lo desplaza).
-export function Book({ open, reducedMotion }: { open: boolean; reducedMotion: boolean }) {
-  const cover = useRef<Group>(null)
-  const leftPages = useRef<Group>(null)
-  const progress = useRef(open ? 1 : 0)
-  const { width, depth, thickness } = BOOK
+// Libro grande encuadernado en cuero bordó, siempre abierto sobre el escritorio: las dos tapas apoyadas,
+// la mitad de las hojas a cada lado del lomo y el canto de cuero asomando alrededor. El origen está en el lomo (el centro del libro abierto), así el
+// agrandado del hover no lo desplaza y coincide con el ancla del panel de contacto.
+export function Book() {
+  const { width, depth, pageTop } = BOOK
   const board = 0.008
+  const pagesH = pageTop - board
   const m = useMemo(
     () => ({
       leather: new MeshStandardMaterial({ color: '#5a1d19', roughness: 0.55, envMapIntensity: 0.6 }),
       pages: paper('#efe5cf'),
-      endpaper: paper('#e6d6b6'),
-      gilt: gold(),
+      gutter: paper('#d9ccb0'),
     }),
     [],
   )
-  const tooling = useMemo(
-    () => ({
-      outer: ring(width - 0.03, depth - 0.03, width - 0.036, depth - 0.036, 0.0006, 0),
-      inner: ring(width - 0.05, depth - 0.05, width - 0.053, depth - 0.053, 0.0006, 0),
-      lozenge: ring(0.07, 0.07, 0.062, 0.062, 0.0006, 0),
-      fleuron: new SphereGeometry(1, 10, 6),
-    }),
-    [width, depth],
-  )
-
-  useFrame(({ invalidate }, delta) => {
-    const target = open ? 1 : 0
-    const p = progress.current
-    const next = reducedMotion ? target : p + (target - p) * Math.min(1, delta * 4)
-    progress.current = Math.abs(next - target) < 0.002 ? target : next
-    // Tapa: de cerrada (0) a abierta y apoyada sobre las hojas de la izquierda (π).
-    if (cover.current) cover.current.rotation.z = progress.current * Math.PI
-    if (leftPages.current) {
-      leftPages.current.scale.y = Math.max(0.001, progress.current)
-      leftPages.current.visible = progress.current > 0.01
-    }
-    if (progress.current !== target) invalidate()
-  })
-
-  const corners = [-1, 1].flatMap((sx) => [-1, 1].map((sz) => [sx, sz] as const))
-
   return (
-    <group position={[-width / 2, 0, 0]}>
-      {/* Tapa de atrás y hojas, a la derecha del lomo. */}
-      <mesh material={m.leather} position={[width / 2, board / 2, 0]}>
-        <boxGeometry args={[width, board, depth]} />
-      </mesh>
-      <mesh material={m.pages} position={[width / 2, thickness / 2, 0]}>
-        <boxGeometry args={[width - 0.012, thickness - 2 * board, depth - 0.012]} />
-      </mesh>
-      {/* Lomo con cuatro nervios y filetes dorados. */}
-      <mesh material={m.leather} position={[-0.001, thickness / 2, 0]}>
-        <boxGeometry args={[0.014, thickness, depth]} />
-      </mesh>
-      {[-0.12, -0.04, 0.04, 0.12].map((z) => (
-        <group key={z}>
-          <mesh material={m.leather} position={[-0.008, thickness / 2, z]}>
-            <boxGeometry args={[0.004, thickness * 0.92, 0.009]} />
+    <group>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          {/* Tapa apoyada y media pila de hojas. */}
+          <mesh material={m.leather} position={[(side * width) / 2, board / 2, 0]}>
+            <boxGeometry args={[width, board, depth]} />
           </mesh>
-          {[-1, 1].map((s) => (
-            <mesh key={s} material={m.gilt} position={[-0.0085, thickness / 2, z + s * 0.009]}>
-              <boxGeometry args={[0.001, thickness * 0.9, 0.0015]} />
-            </mesh>
-          ))}
+          <mesh material={m.pages} position={[side * (width / 2 - 0.002), board + pagesH / 2, 0]}>
+            <boxGeometry args={[width - 0.016, pagesH, depth - 0.012]} />
+          </mesh>
         </group>
       ))}
-      {/* Hojas de la izquierda (las que se ven cuando el libro está abierto). */}
-      <group ref={leftPages} position={[-width / 2, 0, 0]}>
-        <mesh material={m.pages} position={[0, (thickness - board) / 2, 0]}>
-          <boxGeometry args={[width - 0.012, thickness - board, depth - 0.012]} />
-        </mesh>
-      </group>
-      {/* Tapa con bisagra en el lomo: filetes dorados, rombo central y florones en las esquinas. */}
-      <group ref={cover} position={[0, thickness, 0]}>
-        <mesh material={m.leather} position={[width / 2, -board / 2, 0]}>
-          <boxGeometry args={[width, board, depth]} />
-        </mesh>
-        <group position={[width / 2, 0.0002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <mesh geometry={tooling.outer} material={m.gilt} />
-          <mesh geometry={tooling.inner} material={m.gilt} />
-          <mesh geometry={tooling.lozenge} material={m.gilt} rotation={[0, 0, Math.PI / 4]} />
-        </group>
-        {corners.map(([sx, sz]) => (
-          <mesh
-            key={`${sx}${sz}`}
-            geometry={tooling.fleuron}
-            material={m.gilt}
-            position={[width / 2 + sx * (width / 2 - 0.04), 0.0006, sz * (depth / 2 - 0.04)]}
-            scale={[0.007, 0.0012, 0.007]}
-          />
-        ))}
-        {/* Guarda: la cara interna de la tapa, arriba a la izquierda con el libro abierto. */}
-        <mesh material={m.endpaper} position={[width / 2, -board - 0.001, 0]}>
-          <boxGeometry args={[width - 0.012, 0.002, depth - 0.012]} />
-        </mesh>
-      </group>
+      {/* Fondo del lomo entre las dos páginas. */}
+      <mesh material={m.gutter} position={[0, pageTop - 0.0015, 0]}>
+        <boxGeometry args={[0.006, 0.003, depth - 0.014]} />
+      </mesh>
     </group>
   )
 }
@@ -242,19 +175,70 @@ function sealGeometry(): CylinderGeometry {
   return g
 }
 
-// Sobre de papel marfil visto del lado de la solapa, cerrado con el sello de lacre.
-export function Envelope() {
+// Hoja del CV dentro del sobre: papel claro con "CV" grande en la parte que asoma. El lienzo tiene la
+// misma proporción que esa parte (si no, las letras salen estiradas). Se redibuja cuando termina de
+// cargar la tipografía del sitio (Cormorant).
+const SHEET = { width: 0.2, inside: 0.035, out: 0.07 }
+const CANVAS = { width: 512, height: Math.round((512 * SHEET.out) / SHEET.width) }
+
+function cvSheetTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas')
+  canvas.width = CANVAS.width
+  canvas.height = CANVAS.height
+  const texture = new CanvasTexture(canvas)
+  texture.colorSpace = SRGBColorSpace
+  texture.anisotropy = 4
+  const draw = () => {
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const { width: w, height: h } = CANVAS
+    ctx.fillStyle = '#f6f1e4'
+    ctx.fillRect(0, 0, w, h)
+    ctx.fillStyle = '#3a2a1e'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.font = `600 ${Math.round(h * 0.62)}px "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif`
+    ctx.fillText('CV', w / 2, h * 0.42)
+    // Dos filetes finos, como en un membrete.
+    ctx.fillRect(w * 0.27, h * 0.8, w * 0.46, 3)
+    ctx.fillRect(w * 0.35, h * 0.87, w * 0.3, 2)
+    texture.needsUpdate = true
+  }
+  draw()
+  void document.fonts?.ready.then(draw)
+  return texture
+}
+
+// Fases de la apertura (0 → 1): primero la solapa, después la hoja sale (dos tercios afuera) y al final
+// la parte que asoma se curva hacia arriba, de frente a la cámara.
+const smooth = (a: number, b: number, p: number) => {
+  const t = Math.min(1, Math.max(0, (p - a) / (b - a)))
+  return t * t * (3 - 2 * t)
+}
+const OPEN_SECONDS = 1.8
+const FLAP_OPEN = -0.8 * Math.PI
+const SHEET_BEND = 1.05
+
+// Sobre de papel marfil visto del lado de la solapa, cerrado con un sello de lacre. Cuando la cámara se
+// acomoda frente al escritorio (open), la solapa se abre y sale la hoja del CV hasta la mitad.
+export function Envelope({ open, reducedMotion }: { open: boolean; reducedMotion: boolean }) {
+  const flapHinge = useRef<Group>(null)
+  const sheetHinge = useRef<Group>(null)
+  const sheetTop = useRef<Group>(null)
+  const progress = useRef(0)
   const m = useMemo(
     () => ({
       paper: paper('#ece2cb'),
       flap: paper('#e4d8bc'),
       wax: new MeshPhysicalMaterial({ color: '#86201a', roughness: 0.4, clearcoat: 0.5, clearcoatRoughness: 0.35 }),
+      sheet: paper('#f6f1e4'),
+      cv: new MeshStandardMaterial({ map: cvSheetTexture(), roughness: 0.85 }),
     }),
     [],
   )
   const geo = useMemo(() => {
     const { width, depth } = ENVELOPE
-    // Solapa: triángulo desde el borde de atrás hasta un poco más allá del centro.
+    // Solapa: triángulo desde el borde de atrás (la bisagra) hasta un poco más allá del centro.
     const flap = new Shape()
     flap.moveTo(-width / 2, 0)
     flap.lineTo(width / 2, 0)
@@ -266,16 +250,46 @@ export function Envelope() {
       relief: new TorusGeometry(0.009, 0.0016, 8, 28),
     }
   }, [])
-  const apexZ = -ENVELOPE.depth / 2 + ENVELOPE.depth * 0.62
+
+  useFrame(({ invalidate }, delta) => {
+    const goal = open ? 1 : 0
+    // Se abre a su ritmo y se cierra rápido (al irse de la zona, para repetirse en la próxima llegada).
+    const step = delta / (open ? OPEN_SECONDS : 0.4)
+    const next = reducedMotion ? goal : goal > progress.current ? Math.min(goal, progress.current + step) : Math.max(goal, progress.current - step)
+    progress.current = next
+    const p = progress.current
+    if (flapHinge.current) flapHinge.current.rotation.x = FLAP_OPEN * smooth(0, 0.4, p)
+    // La hoja sale por el borde de atrás hasta que el pliegue llega al borde del sobre.
+    if (sheetHinge.current) {
+      const closed = SHEET.out - ENVELOPE.depth / 2 + 0.004
+      sheetHinge.current.position.z = closed + (-ENVELOPE.depth / 2 - closed) * smooth(0.35, 0.75, p)
+    }
+    if (sheetTop.current) sheetTop.current.rotation.x = SHEET_BEND * smooth(0.7, 1, p)
+    if (p !== goal) invalidate()
+  })
+
   return (
     <group>
       <mesh material={m.paper} position={[0, 0.0015, 0]}>
         <boxGeometry args={[ENVELOPE.width, 0.003, ENVELOPE.depth]} />
       </mesh>
-      {/* La solapa apoya sobre el papel (su cara de arriba, 0,6 mm más alta: sin caras coincidentes). */}
-      <mesh geometry={geo.flap} material={m.flap} position={[0, 0.0036, -ENVELOPE.depth / 2]} rotation={[Math.PI / 2, 0, 0]} />
-      <mesh geometry={geo.seal} material={m.wax} position={[0, 0.0055, apexZ - 0.004]} />
-      <mesh geometry={geo.relief} material={m.wax} position={[0, 0.0076, apexZ - 0.004]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1, 0.6]} />
+      {/* Hoja del CV: la parte de adentro y la que asoma, unidas por un pliegue. Cerrado, queda toda dentro del sobre. */}
+      <group ref={sheetHinge} position={[0, 0.0016, SHEET.out - ENVELOPE.depth / 2 + 0.004]}>
+        <mesh material={m.sheet} position={[0, 0, SHEET.inside / 2]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[SHEET.width, SHEET.inside]} />
+        </mesh>
+        <group ref={sheetTop}>
+          <mesh material={m.cv} position={[0, 0.0001, -SHEET.out / 2]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[SHEET.width, SHEET.out]} />
+          </mesh>
+        </group>
+      </group>
+      {/* Solapa con bisagra en el borde de atrás; el sello va pegado en su punta. */}
+      <group ref={flapHinge} position={[0, 0.0036, -ENVELOPE.depth / 2]}>
+        <mesh geometry={geo.flap} material={m.flap} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh geometry={geo.seal} material={m.wax} position={[0, 0.0019, ENVELOPE.depth * 0.62 - 0.004]} />
+        <mesh geometry={geo.relief} material={m.wax} position={[0, 0.004, ENVELOPE.depth * 0.62 - 0.004]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1, 0.6]} />
+      </group>
     </group>
   )
 }
