@@ -136,10 +136,10 @@ export default function ContactZone({ view, noHover, reducedMotion }: Props) {
   const send = useViewStore((s) => s.send)
   const highlighted = useViewStore((s) => s.highlighted)
   const interactive = view.name === 'contact'
-  // El sobre se abre cuando la cámara ya se acomodó frente al escritorio.
+  // El sobre se abre cuando la cámara ya se acomodó frente al escritorio y se cierra al acercarse al
+  // libro (al volver al escritorio se abre de nuevo).
   const cameraMoving = useViewStore((s) => s.cameraMoving)
-  const atDesk = view.name === 'contact' || view.name === 'contactBook'
-  const envelopeOpen = atDesk && (!cameraMoving || view.name === 'contactBook')
+  const envelopeOpen = view.name === 'contact' && !cameraMoving
   const common = { interactive, noHover, reducedMotion }
 
   return (
