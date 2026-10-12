@@ -10,6 +10,7 @@ import { beamLevel } from './beam'
 import { CameraRig } from './CameraRig'
 import { BookAnchor, ContactBook } from './ContactBook'
 import { DevSceneExport } from './DevSceneExport'
+import { IntroName } from './IntroName'
 import { IntroAnchor, IntroText } from './IntroText'
 import { FOV, INTRO_WIDE_POSE } from './layout'
 import { LightBeam } from './LightBeam'
@@ -52,6 +53,8 @@ export default function Experience({ view }: Props) {
   const setHighlighted = useViewStore((s) => s.setHighlighted)
   // Sin hover (pantallas táctiles): todos los pedestales con un haz suave constante.
   const noHover = useMediaQuery('(hover: none)')
+  // En vertical el texto de la intro es una tarjeta HTML: ahí el nombre va sin letras 3D.
+  const introCard = useMediaQuery('(max-aspect-ratio: 1/1)')
   const reducedMotion = usePrefersReducedMotion()
   const [{ quality, debug, render }] = useState(initialSettings)
   // Hasta compilar los shaders el canvas no dibuja: así el primer cuadro no congela la página.
@@ -67,6 +70,8 @@ export default function Experience({ view }: Props) {
   if (!contactLoaded && !render && CONTACT_READY_VIEWS.has(view.name)) setContactLoaded(true)
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
+
+  const name3d = !render && !introCard
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
 
@@ -119,6 +124,7 @@ export default function Experience({ view }: Props) {
         </Suspense>
         <CameraRig view={view} holdWide={render === 'fondo'} />
         <IntroAnchor target={introRef} />
+        {name3d && <IntroName target={introRef} visible={view.name === 'intro'} reducedMotion={reducedMotion} />}
         {aboutLoaded && (
           <Suspense fallback={null}>
             <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
@@ -135,7 +141,7 @@ export default function Experience({ view }: Props) {
         {import.meta.env.DEV && <DevSceneExport />}
       </Canvas>
       {/* El texto está desde el inicio, anclado a la pared: crece a la par del acercamiento. */}
-      <IntroText anchorRef={introRef} visible={view.name === 'intro'} />
+      <IntroText anchorRef={introRef} visible={view.name === 'intro'} name3d={name3d} />
       {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
       {view.name === 'contactBook' && <ContactBook anchorRef={bookRef} />}
       <LoadingScreen done={ready} />

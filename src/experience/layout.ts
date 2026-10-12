@@ -21,6 +21,8 @@ export const INTRO_LAYOUT = {
   // Ancho del panel especial de la intro: sus bordes coinciden con columnas de la pared (ver wallGeometry).
   bay: 8,
   textLeft: -2.6,
+  // Altura del borde de arriba del bloque de texto (el rol, sobre el nombre).
+  textTop: 3.24,
   frameX: 1.3,
   frame: { width: 1.55, height: 1.8, y: 2.25 },
   halfWidth: 2.6,

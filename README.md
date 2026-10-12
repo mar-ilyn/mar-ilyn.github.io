@@ -116,6 +116,7 @@ Medido con Chromium usando la GPU real de una notebook con **Intel UHD Graphics 
 - **Segunda luz**: ventanas altas en la pared de enfrente (solo en el horneado, detrás de la cámara) con un sol de tarde que deja dos manchas de luz en el piso entre los pedestales, sin tocar la pared.
 - **Lámpara de cuadro** (`PictureLamp.tsx`): barra de bronce con brazo, sobre el marco. Un foco cerrado y de alcance corto (1,25 m) ilumina solo la parte superior del cuadro.
 - **Texto en HTML anclado a la pared** (`IntroText.tsx`): nombre, rol, frase, botones y stack son HTML real (accesible y nítido). Cada cuadro se proyecta el panel a la pantalla y se escalan las tipografías según cuántos píxeles mide un metro, así parece pintado en la pared. En pantallas verticales pasa a una tarjeta abajo.
+- **Nombre en letras 3D** (`IntroName.tsx`): "Marilyn Diaz" son letras de bronce dorado en relieve, con bisel y una sombra suave sobre la pared. El h1 sigue en el HTML, transparente (lo leen los lectores de pantalla y se puede seleccionar; en modo de alto contraste vuelve a verse), y cada cuadro las letras se ubican donde está ese texto y con su tamaño, así acompañan el acercamiento sin desalinearse. Los contornos salen de Cormorant Garamond 500, la misma tipografía del sitio: `npm run name-font` (con `fontkit`, solo en desarrollo) exporta únicamente las letras del nombre a `nameFont.json` (6 KB). En vertical, con la tarjeta, el nombre va en HTML.
 
 ### Zona "Sobre mí"
 
@@ -180,6 +181,7 @@ Todos de [Poly Haven](https://polyhaven.com), licencia **CC0** (dominio público
 | Nogal del mueble "Sobre mí" | [black_walnut_veneer_01](https://polyhaven.com/a/black_walnut_veneer_01), de Jenelle van Heerden | 3 JPG 1k, 1,81 MB | KTX2 ETC1S, 427 KB |
 | Marco con atril de los certificados (la obra se reemplaza por papel en blanco) | [standing_picture_frame_02](https://polyhaven.com/a/standing_picture_frame_02), de James Ray Cock | glTF 1k, 0,57 MB | GLB meshopt + KTX2 256 px, 87 KB |
 | HDRI para reflejos | [ballroom](https://polyhaven.com/a/ballroom), de Sergej Majboroda | HDR 1k, 1,67 MB | PMREM horneado, PNG RGBE 336×256, 119 KB |
+| Letras 3D del nombre | Cormorant Garamond, de Christian Thalmann (SIL Open Font License 1.1), vía `@fontsource-variable/cormorant-garamond` | woff2 variable | Contornos de las 10 letras del nombre en peso 500, JSON de 6 KB |
 
 ### Peso de la carga inicial
 

@@ -9,7 +9,7 @@ import { INTRO_LAYOUT, INTRO_X, ROOM } from './layout'
 // IntroAnchor proyecta el panel a la pantalla y le pasa al bloque su posición y cuántos píxeles
 // mide un metro (--ppm), así la tipografía escala como si estuviera pintada en la pared.
 
-const TEXT_TOP_Y = 3.24
+const TEXT_TOP_Y = INTRO_LAYOUT.textTop
 const a = new Vector3()
 const b = new Vector3()
 
@@ -31,7 +31,14 @@ export function IntroAnchor({ target }: { target: RefObject<HTMLDivElement | nul
   return null
 }
 
-export function IntroText({ anchorRef, visible }: { anchorRef: RefObject<HTMLDivElement | null>; visible: boolean }) {
+interface IntroTextProps {
+  anchorRef: RefObject<HTMLDivElement | null>
+  visible: boolean
+  // El nombre se ve en letras 3D sobre la pared (IntroName): el h1 queda transparente, en su lugar.
+  name3d: boolean
+}
+
+export function IntroText({ anchorRef, visible, name3d }: IntroTextProps) {
   const send = useViewStore((s) => s.send)
   return (
     <section ref={anchorRef} className={`intro-text ${visible ? '' : 'intro-text--hidden'}`} aria-labelledby="intro-name" aria-hidden={!visible}>
@@ -40,7 +47,7 @@ export function IntroText({ anchorRef, visible }: { anchorRef: RefObject<HTMLDiv
         <path d="M2 6h44M74 6h44" stroke="currentColor" strokeWidth="0.8" />
         <path d="M60 1c3 2 3 8 0 10-3-2-3-8 0-10Z M52 6c3-2 6-2 8 0-2 2-5 2-8 0Z M68 6c-3-2-6-2-8 0 2 2 5 2 8 0Z" fill="currentColor" />
       </svg>
-      <h1 id="intro-name" className="intro-text__name">
+      <h1 id="intro-name" className={`intro-text__name ${name3d ? 'intro-text__name--3d' : ''}`}>
         {profile.name}
       </h1>
       <p className="intro-text__tagline">{profile.tagline}</p>
