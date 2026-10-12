@@ -13,6 +13,7 @@ import {
   entryX,
   FRIEZE,
   rowOf,
+  SECTION_LABEL,
   SECTIONS,
   timeline,
   type Row,
@@ -25,6 +26,7 @@ import { AssetBoundary } from './AssetBoundary'
 import { CERT_FRAME_MODEL, WALNUT } from './assets'
 import { ROOM } from './layout'
 import { HitBox } from './HitBox'
+import { Lettering } from './Lettering'
 import { useGroupHover } from './useGroupHover'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
 import { ktx2Loader, useKTX2 } from './ktx2'
@@ -349,6 +351,17 @@ export default function AboutZone({ view, noHover, reducedMotion }: Props) {
   return (
     <group name="about-zone">
       <Cabinet />
+      {/* Título de cada compartimento, sobre el fondo claro, en bronce más oscuro que el de la pared. */}
+      {ROWS.map((row) => (
+        <Lettering
+          key={row}
+          text={SECTION_LABEL[row].toLocaleUpperCase('es')}
+          position={[CABINET.cx, SECTIONS[row].floor + FRIEZE.title, Z + BACKING_Z + 0.006]}
+          size={0.06}
+          tracking={0.16}
+          color="#8f6a32"
+        />
+      ))}
       {ROWS.map((row) => (
         <Frieze key={row} row={row} />
       ))}

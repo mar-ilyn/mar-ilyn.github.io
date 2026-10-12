@@ -7,7 +7,7 @@ import { Group, InstancedMesh, Mesh, MeshStandardMaterial, type Material, type O
 // Las piezas que se mueven o son efectos de luz no proyectan oclusión y se excluyen.
 // Las molduras doradas son planos con transparencia: exportadas sin ella oscurecerían todo el panel.
 // Tampoco proyectan los materiales transparentes (vidrio del mueble, manchas de luz, zonas de clic).
-const DYNAMIC = /^(exhibit|light-beam|light-pool|gilt-frames|gilt-frame-intro|intro-name)$/
+const DYNAMIC = /^(exhibit|light-beam|light-pool|gilt-frames|gilt-frame-intro|intro-name|lettering)$/
 
 declare global {
   interface Window {

@@ -1,7 +1,7 @@
 import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { lazy, Suspense, useCallback, useRef, useState } from 'react'
-import { projects } from '../data/projects'
+import { PROJECTS_TITLE, projects } from '../data/projects'
 import { sectionOf, type ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
 import { AboutLabels, AboutLabelsAnchor } from './AboutLabels'
@@ -11,8 +11,9 @@ import { CameraRig } from './CameraRig'
 import { BookAnchor, ContactBook } from './ContactBook'
 import { DevSceneExport } from './DevSceneExport'
 import { IntroName } from './IntroName'
+import { Lettering } from './Lettering'
 import { IntroAnchor, IntroText } from './IntroText'
-import { FOV, INTRO_WIDE_POSE } from './layout'
+import { FOV, INTRO_WIDE_POSE, ROOM } from './layout'
 import { LightBeam } from './LightBeam'
 import { LoadingScreen } from './LoadingScreen'
 import { Overlays } from './Overlays'
@@ -101,6 +102,8 @@ export default function Experience({ view }: Props) {
         <Suspense fallback={null}>
           <Atmosphere quality={quality} />
           <Room quality={quality} bare={render === 'fondo'} />
+          {/* Título de los proyectos en la pared, en el centro, sobre los pedestales. */}
+          {!render && <Lettering text={PROJECTS_TITLE.toLocaleUpperCase('es')} position={[0, 2.5, ROOM.wallZ + 0.003]} size={0.27} tracking={0.16} />}
           {projects.map((p) => (
             <Pedestal
               key={p.slug}

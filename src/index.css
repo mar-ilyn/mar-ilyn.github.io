@@ -1032,15 +1032,6 @@ html.is-gallery body {
   font-weight: 600;
   font-size: 1.15em;
 }
-/* Título de cada compartimento del mueble. */
-.about-label--title {
-  font-family: var(--serif);
-  font-size: clamp(9px, calc(var(--ppm) * 0.05px), 28px);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #4a3520;
-}
 .about-label--year {
   font-family: var(--serif);
   font-size: clamp(7px, calc(var(--ppm) * 0.032px), 18px);

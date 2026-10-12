@@ -1,10 +1,11 @@
-// Genera src/experience/nameFont.json: los contornos de las letras del nombre (profile.name) en Cormorant
-// Garamond peso 500, en el formato de fuente de three.js (typeface), para las letras 3D de la intro.
-// Solo entran los caracteres del nombre: el archivo pesa unos pocos KB.
+// Genera src/experience/letteringFont.json: los contornos de Cormorant Garamond peso 500 en el formato de
+// fuente de three.js (typeface), para las letras 3D de bronce: el nombre de la intro y los títulos en
+// mayúsculas de las zonas (Proyectos, Experiencia, Estudios). Solo entran los caracteres que se usan: el
+// archivo pesa unos pocos KB. Un test (letteringGeometry.test.ts) avisa si un texto pide una letra que falta.
 // Tipografía: Cormorant Garamond (Christian Thalmann), SIL Open Font License 1.1, desde el paquete
 // @fontsource-variable/cormorant-garamond que ya usa el sitio.
 //
-// Uso: npm run name-font (volver a correrlo si cambia el nombre en src/data/profile.ts).
+// Uso: npm run lettering-font (volver a correrlo si cambia el nombre o un título).
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -13,19 +14,30 @@ import * as fontkit from 'fontkit'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const FONT = join(ROOT, 'node_modules/@fontsource-variable/cormorant-garamond/files/cormorant-garamond-latin-wght-normal.woff2')
-const OUT = join(ROOT, 'src/experience/nameFont.json')
+const OUT = join(ROOT, 'src/experience/letteringFont.json')
 const WEIGHT = 500
 
-const profile = await readFile(join(ROOT, 'src/data/profile.ts'), 'utf8')
-const name = /name:\s*'([^']+)'/.exec(profile)?.[1]
-if (!name) throw new Error('No se encontró el nombre en src/data/profile.ts')
+const read = (file) => readFile(join(ROOT, file), 'utf8')
+const match = (source, re, what) => {
+  const found = re.exec(source)?.[1]
+  if (!found) throw new Error(`No se encontró ${what}`)
+  return found
+}
+const profile = await read('src/data/profile.ts')
+const projects = await read('src/data/projects.ts')
+const timeline = await read('src/data/timeline.ts')
+const name = match(profile, /name:\s*'([^']+)'/, 'el nombre en src/data/profile.ts')
+const titles = [
+  match(projects, /PROJECTS_TITLE\s*=\s*'([^']+)'/, 'PROJECTS_TITLE en src/data/projects.ts'),
+  ...[...match(timeline, /SECTION_LABEL[^{]*\{([^}]+)\}/, 'SECTION_LABEL en src/data/timeline.ts').matchAll(/'([^']+)'/g)].map((m) => m[1]),
+]
+// Los títulos van en mayúsculas.
+const text = name + titles.join('').toLocaleUpperCase('es')
 
 // getVariation() de fontkit no funciona con woff2 (pierde la tabla de caracteres): el peso se fija en
 // la fuente original, antes de leer cualquier glifo (el procesador de variaciones se calcula una vez).
-const base = fontkit.create(await readFile(FONT))
-const axes = base.fvar.axis.map((axis) => (axis.axisTag.trim() === 'wght' ? WEIGHT : axis.defaultValue))
-base.variationCoords = axes
-const font = base
+const font = fontkit.create(await readFile(FONT))
+font.variationCoords = font.fvar.axis.map((axis) => (axis.axisTag.trim() === 'wght' ? WEIGHT : axis.defaultValue))
 const round = (v) => Math.round(v)
 
 // Contorno en la notación de typeface.js: m/l x y, q x y cx cy (punto final y control),
@@ -43,7 +55,7 @@ function outline(path) {
 }
 
 const glyphs = {}
-for (const char of new Set(name)) {
+for (const char of [...new Set(text)].sort()) {
   const glyph = font.glyphForCodePoint(char.codePointAt(0))
   const { minX, maxX } = glyph.bbox
   glyphs[char] = {
@@ -56,17 +68,19 @@ for (const char of new Set(name)) {
 
 const json = {
   glyphs,
-  familyName: base.familyName,
-  ascender: round(base.ascent),
-  descender: round(base.descent),
-  underlinePosition: round(base.underlinePosition),
-  underlineThickness: round(base.underlineThickness),
-  boundingBox: { xMin: round(base.bbox.minX), yMin: round(base.bbox.minY), xMax: round(base.bbox.maxX), yMax: round(base.bbox.maxY) },
-  resolution: base.unitsPerEm,
-  original_font_information: { format: 0, fontFamily: base.familyName, weight: WEIGHT, license: 'SIL Open Font License 1.1' },
+  familyName: font.familyName,
+  ascender: round(font.ascent),
+  descender: round(font.descent),
+  // Altura de las mayúsculas (para centrar los títulos en vertical).
+  capHeight: round(font.capHeight),
+  underlinePosition: round(font.underlinePosition),
+  underlineThickness: round(font.underlineThickness),
+  boundingBox: { xMin: round(font.bbox.minX), yMin: round(font.bbox.minY), xMax: round(font.bbox.maxX), yMax: round(font.bbox.maxY) },
+  resolution: font.unitsPerEm,
+  original_font_information: { format: 0, fontFamily: font.familyName, weight: WEIGHT, license: 'SIL Open Font License 1.1' },
   cssFontWeight: 'normal',
   cssFontStyle: 'normal',
 }
 
 await writeFile(OUT, JSON.stringify(json))
-console.log(`${OUT}: ${Object.keys(glyphs).length} glifos (${[...new Set(name)].join('')}), ${(JSON.stringify(json).length / 1024).toFixed(1)} KB`)
+console.log(`${OUT}: ${Object.keys(glyphs).length} glifos (${Object.keys(glyphs).join('')}), ${(JSON.stringify(json).length / 1024).toFixed(1)} KB`)

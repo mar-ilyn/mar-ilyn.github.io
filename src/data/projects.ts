@@ -9,6 +9,9 @@ const img = (slug: string, alt: string) => ({
 
 // Textos de ejemplo: se reemplazan por el contenido final de cada proyecto.
 // pedestal: posición en la sala (x a lo largo de la galería). Las vistas de cámara miran al objeto (detail) y a la placa (plaque).
+// Título de la zona de los pedestales (en la pared, en letras de bronce).
+export const PROJECTS_TITLE = 'Proyectos'
+
 export const projects: readonly Project[] = [
   {
     slug: 'turnapp',

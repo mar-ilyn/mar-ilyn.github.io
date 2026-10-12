@@ -1,11 +1,11 @@
 import { useFrame } from '@react-three/fiber'
 import type { RefObject } from 'react'
 import { Vector3 } from 'three'
-import { axisYears, CABINET, entryX, formatRange, FRIEZE, rowOf, SECTION_LABEL, SECTIONS, timeline, type Row } from '../data/timeline'
+import { axisYears, entryX, formatRange, FRIEZE, rowOf, SECTIONS, timeline, type Row } from '../data/timeline'
 import { ROOM } from './layout'
 import { BACKING_Z } from './vitrineGeometry'
 
-// Textos de la zona "Sobre mí" en HTML (títulos, cartelas y años del eje), anclados a puntos de la escena:
+// Textos de la zona "Sobre mí" en HTML (cartelas y años del eje; los títulos son letras 3D), anclados a puntos de la escena:
 // cada elemento declara su posición en metros (data-x/y/z) y el ancla lo proyecta a la pantalla.
 // La escala sigue a la cámara (--ppm = píxeles por metro en ese punto).
 
@@ -44,17 +44,6 @@ interface Props {
 export function AboutLabels({ anchorRef, section }: Props) {
   return (
     <div ref={anchorRef} className={`about-labels ${section ? '' : 'about-labels--hidden'}`} aria-hidden="true">
-      {ROWS.map((row) => (
-        <div
-          key={row}
-          className={`about-label about-label--title ${row === section ? '' : 'about-label--off'}`}
-          data-x={CABINET.cx}
-          data-y={SECTIONS[row].floor + FRIEZE.title}
-          data-z={WALL}
-        >
-          {SECTION_LABEL[row]}
-        </div>
-      ))}
       {timeline.map((e) => (
         <div
           key={e.slug}
