@@ -5,12 +5,15 @@ import { SERIF } from './museumLabel'
 // recortadas en cuarto de círculo, con un tornillo chico en cada esquina. El título va en EB Garamond y la fecha en
 // mayúsculas espaciadas, como las placas grabadas de museo. Medidas en metros.
 
-export const PLAQUE = { width: 0.5, height: 0.15, depth: 0.004, corner: 0.014, rim: 0.005 } as const
+export const PLAQUE = { width: 0.5, height: 0.16, depth: 0.004, corner: 0.014, rim: 0.005 } as const
 
 // El título usa hasta dos líneas: si no entra, se achica hasta minSize.
-const TITLE = { size: 0.034, minSize: 0.026, weight: 650, lineHeight: 1.1 }
-const DATE = { size: 0.022, weight: 680, tracking: 0.08, gap: 0.008 }
-const SIDE = 0.032
+const TITLE = { size: 0.038, minSize: 0.03, weight: 650, lineHeight: 1.1 }
+const DATE = { size: 0.025, weight: 680, tracking: 0.08, gap: 0.008 }
+const SIDE = 0.028
+// Altura de las mayúsculas y largo de los trazos descendentes de EB Garamond, en em.
+const CAP = 0.65
+const DESCENT = 0.27
 const INK = '#2e2116'
 
 type Point = [number, number]
@@ -168,16 +171,20 @@ export function plaqueTexture(title: string, date: string | null, pxPerM: number
       rows = wrap(ctx, title, m(width - 2 * SIDE))
       if (rows.length <= 2 || size <= TITLE.minSize) break
     }
+    // El bloque va de la altura de las mayúsculas del título a la línea de base de la fecha (o a los
+    // trazos descendentes del título, sin fecha), centrado en la placa.
     const step = size * TITLE.lineHeight
-    const block = rows.length * step + (date ? DATE.gap + DATE.size : -step + size)
-    let y = (height - block) / 2 + size * 0.86
+    const titleBlock = CAP * size + (rows.length - 1) * step
+    const dateBlock = DESCENT * size + DATE.gap + CAP * DATE.size
+    const block = titleBlock + (date ? dateBlock : DESCENT * size)
+    let y = (height - block) / 2 + CAP * size
     ctx.textAlign = 'center'
-    for (const row of rows) {
+    rows.forEach((row, i) => {
+      if (i) y += step
       ctx.fillText(row, m(width / 2), m(y))
-      y += step
-    }
+    })
     if (date) {
-      y += DATE.gap + DATE.size * 0.1
+      y += dateBlock
       ctx.textAlign = 'left'
       ctx.font = `${DATE.weight} ${m(DATE.size)}px ${SERIF}`
       fillTracked(ctx, date.toLocaleUpperCase('es'), m(width / 2), m(y), m(DATE.size * DATE.tracking))
