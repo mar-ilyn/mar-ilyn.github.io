@@ -2,53 +2,118 @@ import { useThree } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
 import { profile } from '../data/profile'
 import { INTRO_LABEL, INTRO_X, introLabelX, ROOM, tallIntro } from './layout'
-import { labelBoard, labelFace, labelShadow, listWithY, museumLabelTexture, type LabelLine } from './museumLabel'
+import { Lettering } from './Lettering'
+import { labelFace, labelShadow, listWithY } from './museumLabel'
+import { fillTracked, INK, plaqueBrass, plaqueGeometry, plaqueTexture, serifFont, SOFT_INK, wrap, type PlaqueStyle } from './plaque'
 import type { Quality } from './quality'
 
-// Cartela de museo junto al retrato: un cartón claro y mate montado en la pared, con el texto impreso
-// como en las cartelas de sala (nombre, rol, título en negrita con el año, técnica y una línea de
-// texto). El mismo contenido está en el HTML (IntroText, oculto a la vista) para lectores de pantalla y
-// buscadores. En pantallas verticales es angosta, con el texto más grande en proporción, y va pegada al
-// retrato para que la cámara encuadre los dos de cerca (introPose).
+// Cartela de la intro, junto al retrato: la misma placa de museo que las plaquitas del friso (plaque.ts),
+// con el nombre en letras de bronce en relieve, como el título de los proyectos en la pared, y debajo,
+// impresos, el rol, "Portfolio" con el año, el stack y la frase. El mismo contenido está en el HTML
+// (IntroText, oculto a la vista) para lectores de pantalla y buscadores. En pantallas verticales es
+// angosta, con el nombre en dos líneas, y va pegada al retrato para que la cámara encuadre los dos de
+// cerca (introPose). Medidas sin la escala de la cartela (INTRO_LABEL.scale).
 
 const year = String(new Date().getFullYear())
 
-const WIDE_LINES: readonly LabelLine[] = [
-  // Nombre y rol, como el artista y su nacionalidad.
-  { parts: [{ text: profile.name }], size: 0.14, gap: 0.1 },
-  { parts: [{ text: profile.role }], size: 0.062, soft: true, gap: 0.15 },
-  // Título en negrita con el año, como la obra.
-  { parts: [{ text: profile.label.title, weight: 600 }, { text: year }], size: 0.062, gap: 0.088 },
-  // Técnica: el stack.
-  { parts: [{ text: listWithY(profile.stack) }], size: 0.062, gap: 0.13 },
-  // Texto, como la línea de procedencia.
-  { parts: [{ text: profile.tagline }], size: 0.052, soft: true, wrap: true, lineHeight: 0.074, gap: 0 },
-]
+interface Line {
+  text: string
+  size: number
+  // Línea de base (desde arriba de la placa); con wrap, la de la primera línea.
+  y: number
+  weight?: number
+  soft?: boolean
+  // Mayúsculas espaciadas (em).
+  tracking?: number
+  // Ancho máximo: el texto se corta en varias líneas separadas por lineHeight.
+  wrap?: number
+  lineHeight?: number
+  // Segunda parte en peso normal, a continuación (el año después de "Portfolio").
+  after?: string
+}
 
-const TALL_LINES: readonly LabelLine[] = [
-  { parts: [{ text: profile.name }], size: 0.105, gap: 0.09 },
-  { parts: [{ text: profile.role }], size: 0.056, soft: true, wrap: true, lineHeight: 0.076, gap: 0.115 },
-  { parts: [{ text: profile.label.title, weight: 600 }, { text: year }], size: 0.064, gap: 0.085 },
-  { parts: [{ text: listWithY(profile.stack) }], size: 0.064, wrap: true, lineHeight: 0.084, gap: 0.115 },
-  { parts: [{ text: profile.tagline }], size: 0.058, soft: true, wrap: true, lineHeight: 0.08, gap: 0 },
-]
+interface Design {
+  style: PlaqueStyle
+  // Nombre en letras de bronce: un renglón por línea, con el centro de las mayúsculas a esas alturas.
+  name: { lines: string[]; size: number; y: number[] }
+  lines: Line[]
+  pxScale: number
+}
+
+const NAME = profile.name.toLocaleUpperCase('es')
+const NAME_TRACKING = 0.16
+
+const WIDE: Design = {
+  style: { width: INTRO_LABEL.width, height: INTRO_LABEL.height, corner: 0.05, rim: 0.014, detail: 3 },
+  name: { lines: [NAME], size: 0.15, y: [0.19] },
+  lines: [
+    { text: profile.role.toLocaleUpperCase('es'), size: 0.05, y: 0.33, weight: 600, soft: true, tracking: 0.12 },
+    { text: profile.label.title, after: year, size: 0.07, y: 0.455, weight: 650 },
+    { text: listWithY(profile.stack), size: 0.07, y: 0.545 },
+    { text: profile.tagline, size: 0.058, y: 0.655, soft: true, wrap: 1.42, lineHeight: 0.08 },
+  ],
+  pxScale: 1,
+}
+
+const TALL: Design = {
+  style: { width: INTRO_LABEL.tall.width, height: INTRO_LABEL.tall.height, corner: 0.032, rim: 0.009, detail: 2 },
+  name: { lines: NAME.split(' '), size: 0.1, y: [0.165, 0.275] },
+  lines: [
+    { text: profile.role.toLocaleUpperCase('es'), size: 0.035, y: 0.385, weight: 600, soft: true, tracking: 0.06 },
+    { text: profile.label.title, after: year, size: 0.06, y: 0.485, weight: 650 },
+    { text: listWithY(profile.stack), size: 0.06, y: 0.56, wrap: 0.7, lineHeight: 0.07 },
+    { text: profile.tagline, size: 0.054, y: 0.725, soft: true, wrap: 0.7, lineHeight: 0.07 },
+  ],
+  pxScale: 1.3,
+}
+
+function drawLines(ctx: CanvasRenderingContext2D, m: (v: number) => number, width: number, lines: Line[]) {
+  const cx = m(width / 2)
+  for (const line of lines) {
+    const weight = line.weight ?? 500
+    ctx.font = serifFont(weight, m(line.size))
+    ctx.fillStyle = line.soft ? SOFT_INK : INK
+    if (line.tracking) {
+      ctx.textAlign = 'left'
+      fillTracked(ctx, line.text, cx, m(line.y), m(line.size * line.tracking))
+    } else if (line.after) {
+      // "Portfolio" en negrita y el año en peso normal, centrados como un solo texto.
+      const first = ctx.measureText(line.text).width
+      const gap = ctx.measureText('  ').width
+      ctx.font = serifFont(450, m(line.size))
+      const second = ctx.measureText(line.after).width
+      const left = cx - (first + gap + second) / 2
+      ctx.textAlign = 'left'
+      ctx.fillText(line.after, left + first + gap, m(line.y))
+      ctx.font = serifFont(weight, m(line.size))
+      ctx.fillText(line.text, left, m(line.y))
+    } else {
+      ctx.textAlign = 'center'
+      const rows = line.wrap ? wrap(ctx, line.text, m(line.wrap)) : [line.text]
+      rows.forEach((row, i) => ctx.fillText(row, cx, m(line.y + i * (line.lineHeight ?? line.size * 1.3))))
+    }
+  }
+}
 
 // En calidad baja, una textura más chica (menos píxeles que subir a la GPU).
-function introLabelTexture(quality: Quality, tall: boolean) {
-  const { width, height } = tall ? INTRO_LABEL.tall : INTRO_LABEL
-  const pxPerM = quality === 'high' ? 1100 : 700
-  return tall
-    ? museumLabelTexture({ width, height, left: 0.06, top: 0.17, pxPerM: pxPerM * 1.3 }, TALL_LINES)
-    : museumLabelTexture({ width, height, left: 0.12, top: 0.22, pxPerM }, WIDE_LINES)
+function introPlaqueFace(design: Design, quality: Quality) {
+  const pxPerM = (quality === 'high' ? 1100 : 700) * design.pxScale
+  const texture = plaqueTexture(design.style, pxPerM, [450, 500, 600, 650], (ctx, m) => drawLines(ctx, m, design.style.width, design.lines))
+  const material = labelFace(texture)
+  // Fuera del contorno (los recortes de las esquinas) la textura es transparente.
+  material.alphaTest = 0.5
+  return material
 }
 
 export function IntroLabel({ quality }: { quality: Quality }) {
   const tall = useThree((s) => tallIntro(s.size.width / Math.max(1, s.size.height)))
+  const design = tall ? TALL : WIDE
+  const { width, height, corner } = design.style
   const { depth, standoff, center, scale } = INTRO_LABEL
-  const { width, height } = tall ? INTRO_LABEL.tall : INTRO_LABEL
-  const face = useMemo(() => labelFace(introLabelTexture(quality, tall)), [quality, tall])
+  const face = useMemo(() => introPlaqueFace(design, quality), [design, quality])
+  const body = useMemo(() => plaqueGeometry(width, height, corner, depth), [width, height, corner, depth])
   const shadow = useMemo(() => labelShadow(), [])
-  // Al girar la pantalla cambia la cartela: se liberan la textura y el material de la anterior.
+  // Al girar la pantalla cambia la cartela: se liberan la textura, el material y el cuerpo de la anterior.
   useEffect(
     () => () => {
       face.map?.dispose()
@@ -56,18 +121,27 @@ export function IntroLabel({ quality }: { quality: Quality }) {
     },
     [face],
   )
+  useEffect(() => () => body.dispose(), [body])
+  const front = standoff + depth
   return (
     <group name="intro-label" position={[INTRO_X + introLabelX(tall), center.y, ROOM.wallZ]} scale={scale}>
       <mesh material={shadow} position={[0.015, -0.03, 0.002]} scale={[width * 1.08, height * 1.1, 1]} renderOrder={1}>
         <planeGeometry />
       </mesh>
-      {/* Cartón (los cantos) y la cara impresa al frente. */}
-      <mesh material={labelBoard} position={[0, 0, standoff + depth / 2]}>
-        <boxGeometry args={[width, height, depth]} />
-      </mesh>
-      <mesh material={face} position={[0, 0, standoff + depth + 0.0005]}>
+      {/* Cuerpo de latón y la cara impresa al frente. */}
+      <mesh geometry={body} material={plaqueBrass} position={[0, 0, standoff]} />
+      <mesh material={face} position={[0, 0, front + 0.0005]}>
         <planeGeometry args={[width, height]} />
       </mesh>
+      {design.name.lines.map((line, i) => (
+        <Lettering
+          key={line}
+          text={line}
+          position={[0, height / 2 - design.name.y[i], front + 0.001]}
+          size={design.name.size}
+          tracking={NAME_TRACKING}
+        />
+      ))}
     </group>
   )
 }

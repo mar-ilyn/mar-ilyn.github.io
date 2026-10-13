@@ -1,7 +1,7 @@
 // Genera src/experience/letteringFont.json: los contornos de EB Garamond peso 500 en el formato de
 // fuente de three.js (typeface), para las letras 3D de bronce: los títulos en mayúsculas de las zonas
-// (Proyectos, Experiencia, Estudios). Solo entran los caracteres que se usan: el
-// archivo pesa unos pocos KB. Un test (letteringGeometry.test.ts) avisa si un texto pide una letra que falta.
+// (Proyectos, Experiencia, Estudios) y el nombre de la cartela de la intro. Solo entran los caracteres
+// que se usan: el archivo pesa unos pocos KB. Un test (letteringGeometry.test.ts) avisa si un texto pide una letra que falta.
 // Tipografía: EB Garamond (Georg Duffner y Octavio Pardo), SIL Open Font License 1.1. Se lee la versión
 // estática de peso 500 en woff (@fontsource/eb-garamond, solo para este script): fontkit no puede leer los
 // glifos compuestos de la variable en woff2 que usa el sitio.
@@ -26,8 +26,10 @@ const match = (source, re, what) => {
 }
 const projects = await read('src/data/projects.ts')
 const timeline = await read('src/data/timeline.ts')
+const profile = await read('src/data/profile.ts')
 const titles = [
   match(projects, /PROJECTS_TITLE\s*=\s*'([^']+)'/, 'PROJECTS_TITLE en src/data/projects.ts'),
+  match(profile, /\bname:\s*'([^']+)'/, 'name en src/data/profile.ts'),
   ...[...match(timeline, /SECTION_LABEL[^{]*\{([^}]+)\}/, 'SECTION_LABEL en src/data/timeline.ts').matchAll(/'([^']+)'/g)].map((m) => m[1]),
 ]
 // Los títulos van en mayúsculas.

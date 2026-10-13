@@ -29,7 +29,7 @@ import { ROOM } from './layout'
 import { HitBox } from './HitBox'
 import { labelFace } from './museumLabel'
 import type { Quality } from './quality'
-import { PLAQUE, plaqueGeometry, plaqueTexture } from './timelinePlaque'
+import { PLAQUE, timelinePlaqueBody, timelinePlaqueTexture } from './timelinePlaque'
 import { Lettering } from './Lettering'
 import { useGroupHover } from './useGroupHover'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
@@ -229,12 +229,12 @@ interface EntryProps {
 
 // Plaquita de la entrada, montada sobre el fondo al final de la línea guía: el canto de latón y la cara
 // impresa (título y fecha), con la textura a menor resolución en calidad baja.
-const plaqueBody = plaqueGeometry()
+const plaqueBody = timelinePlaqueBody()
 
 function EntryPlaque({ entry, quality, position }: { entry: TimelineEntry; quality: Quality; position: [number, number, number] }) {
   const face = useMemo(
     () => {
-      const material = labelFace(plaqueTexture(entry.title, entry.start ? formatRange(entry) : null, quality === 'high' ? 2600 : 1500))
+      const material = labelFace(timelinePlaqueTexture(entry.title, entry.start ? formatRange(entry) : null, quality === 'high' ? 2600 : 1500))
       // Fuera del contorno (los recortes de las esquinas) la textura es transparente.
       material.alphaTest = 0.5
       return material
