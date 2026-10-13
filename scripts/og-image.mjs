@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url'
 const font = (pkg, file) =>
   readFileSync(fileURLToPath(import.meta.resolve(`${pkg}/files/${file}`))).toString('base64')
 
-const serif = font('@fontsource-variable/cormorant-garamond', 'cormorant-garamond-latin-wght-normal.woff2')
+const serif = font('@fontsource-variable/eb-garamond', 'eb-garamond-latin-wght-normal.woff2')
 const sans = font('@fontsource-variable/inter', 'inter-latin-wght-normal.woff2')
 
 const html = `<!doctype html><html><head><style>
-@font-face{font-family:S;src:url(data:font/woff2;base64,${serif}) format('woff2');font-weight:300 700}
+@font-face{font-family:S;src:url(data:font/woff2;base64,${serif}) format('woff2');font-weight:400 800}
 @font-face{font-family:I;src:url(data:font/woff2;base64,${sans}) format('woff2');font-weight:100 900}
 *{margin:0;box-sizing:border-box}
 body{width:1200px;height:630px;background:#f4efe6;color:#2a2420;font-family:I;display:flex;align-items:center;gap:72px;padding:0 96px;position:relative;overflow:hidden}

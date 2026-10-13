@@ -126,7 +126,7 @@ export default function Experience({ view }: Props) {
         {!render && <IntroLabel quality={quality} />}
         {aboutLoaded && (
           <Suspense fallback={null}>
-            <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
+            <AboutZone view={view} noHover={noHover} reducedMotion={reducedMotion} quality={quality} />
             <AboutLabelsAnchor target={aboutRef} />
           </Suspense>
         )}

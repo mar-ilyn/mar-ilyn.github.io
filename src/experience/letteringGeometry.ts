@@ -4,7 +4,7 @@ import { FontLoader, type FontData } from 'three/examples/jsm/loaders/FontLoader
 import fontData from './letteringFont.json'
 
 // Letras de bronce en relieve (los títulos de las zonas), con los contornos de
-// Cormorant Garamond 500 (letteringFont.json, npm run lettering-font). Medidas en em: el componente
+// EB Garamond 500 (letteringFont.json, npm run lettering-font). Medidas en em: el componente
 // escala el grupo al tamaño de letra en metros. El origen es la línea base, al comienzo del texto.
 
 export const font = new FontLoader().parse(fontData as unknown as FontData)

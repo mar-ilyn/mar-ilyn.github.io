@@ -10,7 +10,7 @@
   --accent-ink: #fbf8f2;
   --focus: #1d5fa8;
 
-  --serif: 'Cormorant Garamond Variable', 'Cormorant Garamond', Georgia, serif;
+  --serif: 'EB Garamond Variable', 'EB Garamond', Garamond, Georgia, serif;
   --sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --gutter: clamp(16px, 4vw, 48px);
@@ -925,21 +925,6 @@ html.is-gallery body {
   text-align: center;
   color: #2f2218;
   white-space: nowrap;
-}
-/* La cartela ocupa el ancho de su columna en el estante (0,5 m) y el título corta en dos líneas. */
-.about-label--cartela {
-  display: grid;
-  gap: 0.15em;
-  width: calc(var(--ppm) * 0.5px);
-  white-space: normal;
-  font-size: clamp(7px, calc(var(--ppm) * 0.03px), 18px);
-  line-height: 1.15;
-  text-wrap: balance;
-}
-.about-label--cartela strong {
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 1.15em;
 }
 .about-label--year {
   font-family: var(--serif);

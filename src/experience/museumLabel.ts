@@ -7,6 +7,8 @@ import { CanvasTexture, MeshBasicMaterial, MeshStandardMaterial, SRGBColorSpace 
 const INK = '#2b2926'
 const SOFT = '#45413b'
 const SANS = '"Inter Variable", Inter, "Helvetica Neue", Arial, sans-serif'
+// La serif del sitio (--serif en index.css), para los textos dibujados en lienzos.
+export const SERIF = '"EB Garamond Variable", "EB Garamond", Garamond, Georgia, serif'
 
 export interface LabelLine {
   // Partes de una misma línea (p. ej. un título en negrita seguido del año).

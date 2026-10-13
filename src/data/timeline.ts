@@ -147,7 +147,7 @@ const drafts: Draft[] = [
   {
     slug: 'ingles-c1',
     kind: 'certificacion',
-    title: 'Inglés C1',
+    title: 'Certificado Inglés C1',
     organization: 'EF SET',
     start: null,
     end: null,

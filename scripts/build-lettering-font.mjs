@@ -1,9 +1,10 @@
-// Genera src/experience/letteringFont.json: los contornos de Cormorant Garamond peso 500 en el formato de
+// Genera src/experience/letteringFont.json: los contornos de EB Garamond peso 500 en el formato de
 // fuente de three.js (typeface), para las letras 3D de bronce: los títulos en mayúsculas de las zonas
 // (Proyectos, Experiencia, Estudios). Solo entran los caracteres que se usan: el
 // archivo pesa unos pocos KB. Un test (letteringGeometry.test.ts) avisa si un texto pide una letra que falta.
-// Tipografía: Cormorant Garamond (Christian Thalmann), SIL Open Font License 1.1, desde el paquete
-// @fontsource-variable/cormorant-garamond que ya usa el sitio.
+// Tipografía: EB Garamond (Georg Duffner y Octavio Pardo), SIL Open Font License 1.1. Se lee la versión
+// estática de peso 500 en woff (@fontsource/eb-garamond, solo para este script): fontkit no puede leer los
+// glifos compuestos de la variable en woff2 que usa el sitio.
 //
 // Uso: npm run lettering-font (volver a correrlo si cambia un título).
 
@@ -13,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import * as fontkit from 'fontkit'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const FONT = join(ROOT, 'node_modules/@fontsource-variable/cormorant-garamond/files/cormorant-garamond-latin-wght-normal.woff2')
+const FONT = join(ROOT, 'node_modules/@fontsource/eb-garamond/files/eb-garamond-latin-500-normal.woff')
 const OUT = join(ROOT, 'src/experience/letteringFont.json')
 const WEIGHT = 500
 
@@ -32,10 +33,7 @@ const titles = [
 // Los títulos van en mayúsculas.
 const text = titles.join('').toLocaleUpperCase('es')
 
-// getVariation() de fontkit no funciona con woff2 (pierde la tabla de caracteres): el peso se fija en
-// la fuente original, antes de leer cualquier glifo (el procesador de variaciones se calcula una vez).
 const font = fontkit.create(await readFile(FONT))
-font.variationCoords = font.fvar.axis.map((axis) => (axis.axisTag.trim() === 'wght' ? WEIGHT : axis.defaultValue))
 const round = (v) => Math.round(v)
 
 // Contorno en la notación de typeface.js: m/l x y, q x y cx cy (punto final y control),

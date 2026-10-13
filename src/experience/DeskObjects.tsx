@@ -14,6 +14,7 @@ import {
   type Group,
 } from 'three'
 import { BOOK, BOOK_SHEETS, ENVELOPE, PEN } from './deskLayout'
+import { SERIF } from './museumLabel'
 
 // Objetos del escritorio de contacto, modelados por código (assets propios): libro encuadernado en cuero,
 // pluma fuente, tintero de cristal y sobre con sello de lacre. Cada objeto crea sus propios materiales:
@@ -337,7 +338,7 @@ function sealGeometry(): CylinderGeometry {
 
 // Hoja del CV dentro del sobre: papel claro con "CV" grande en la parte que asoma. El lienzo tiene la
 // misma proporción que esa parte (si no, las letras salen estiradas). Se redibuja cuando termina de
-// cargar la tipografía del sitio (Cormorant).
+// cargar la tipografía del sitio (EB Garamond).
 const SHEET = { width: 0.2, inside: 0.035, out: 0.07 }
 const CANVAS = { width: 512, height: Math.round((512 * SHEET.out) / SHEET.width) }
 
@@ -357,7 +358,7 @@ function cvSheetTexture(): CanvasTexture {
     ctx.fillStyle = '#3a2a1e'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.font = `600 ${Math.round(h * 0.62)}px "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif`
+    ctx.font = `600 ${Math.round(h * 0.62)}px ${SERIF}`
     ctx.fillText('CV', w / 2, h * 0.42)
     // Dos filetes finos, como en un membrete.
     ctx.fillRect(w * 0.27, h * 0.8, w * 0.46, 3)

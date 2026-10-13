@@ -1,6 +1,6 @@
 import { useCursor } from '@react-three/drei'
 import { useFrame, useLoader, useThree, type ThreeEvent } from '@react-three/fiber'
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Box3, Color, Mesh, type Group, type Material, type MeshStandardMaterial, type Object3D } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
@@ -10,6 +10,7 @@ import {
   CABINET,
   durationSpan,
   entriesOf,
+  formatRange,
   entryX,
   FRIEZE,
   rowOf,
@@ -26,6 +27,9 @@ import { AssetBoundary } from './AssetBoundary'
 import { CERT_FRAME_MODEL, WALNUT } from './assets'
 import { ROOM } from './layout'
 import { HitBox } from './HitBox'
+import { labelFace } from './museumLabel'
+import type { Quality } from './quality'
+import { PLAQUE, plaqueGeometry, plaqueTexture } from './timelinePlaque'
 import { Lettering } from './Lettering'
 import { useGroupHover } from './useGroupHover'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
@@ -220,6 +224,38 @@ interface EntryProps {
   interactive: boolean
   noHover: boolean
   reducedMotion: boolean
+  quality: Quality
+}
+
+// Plaquita de la entrada, montada sobre el fondo al final de la línea guía: el canto de latón y la cara
+// impresa (título y fecha), con la textura a menor resolución en calidad baja.
+const plaqueBody = plaqueGeometry()
+
+function EntryPlaque({ entry, quality, position }: { entry: TimelineEntry; quality: Quality; position: [number, number, number] }) {
+  const face = useMemo(
+    () => {
+      const material = labelFace(plaqueTexture(entry.title, entry.start ? formatRange(entry) : null, quality === 'high' ? 2600 : 1500))
+      // Fuera del contorno (los recortes de las esquinas) la textura es transparente.
+      material.alphaTest = 0.5
+      return material
+    },
+    [entry, quality],
+  )
+  useEffect(
+    () => () => {
+      face.map?.dispose()
+      face.dispose()
+    },
+    [face],
+  )
+  return (
+    <group position={position}>
+      <mesh geometry={plaqueBody} material={M.agedBrass} />
+      <mesh material={face} position={[0, 0, PLAQUE.depth + 0.0004]}>
+        <planeGeometry args={[PLAQUE.width, PLAQUE.height]} />
+      </mesh>
+    </group>
+  )
 }
 
 function EntryObject({ entry }: { entry: TimelineEntry }): ReactNode {
@@ -252,9 +288,8 @@ for (const row of ROWS) {
     .forEach((e, i) => LANES.set(e.slug, i))
 }
 
-// Una entrada: barra de duración en el friso, línea guía hasta su cartela (texto en HTML) y su objeto
-// en el estante.
-function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
+// Una entrada: barra de duración en el friso, línea guía hasta su plaquita y su objeto en el estante.
+function Entry({ entry, interactive, noHover, reducedMotion, quality }: EntryProps) {
   const send = useViewStore((s) => s.send)
   const highlighted = useViewStore((s) => s.highlighted)
   const setHighlighted = useViewStore((s) => s.setHighlighted)
@@ -271,7 +306,7 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
   const glow = active ? 0.6 : interactive && noHover ? 0.15 : 0
   const barY = floor + FRIEZE.lane - (LANES.get(entry.slug) ?? 0) * FRIEZE.laneStep
   const elbowY = floor + FRIEZE.elbow
-  const cartelaTop = floor + FRIEZE.cartela + 0.06
+  const cartelaTop = floor + FRIEZE.cartela + PLAQUE.height / 2
 
   useFrame(({ invalidate }, delta) => {
     const target = active ? 1.06 : 1
@@ -309,8 +344,8 @@ function Entry({ entry, interactive, noHover, reducedMotion }: EntryProps) {
           <Segment from={[x, elbowY]} to={[x, cartelaTop]} material={lineMat} />
         </>
       )}
-      {/* Zona de clic sobre la cartela (el texto es HTML y no recibe eventos). */}
-      <HitBox size={[0.48, 0.16, 0.01]} position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events} />
+      <EntryPlaque entry={entry} quality={quality} position={[x, floor + FRIEZE.cartela, FRIEZE_Z - 0.002]} />
+      <HitBox size={[PLAQUE.width, PLAQUE.height, 0.01]} position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events} />
       <group position={[x, floor, OBJ_Z]}>
         <ShelfLight width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.06} />
         <Riser width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.04} />
@@ -344,9 +379,10 @@ interface Props {
   view: ViewState
   noHover: boolean
   reducedMotion: boolean
+  quality: Quality
 }
 
-export default function AboutZone({ view, noHover, reducedMotion }: Props) {
+export default function AboutZone({ view, noHover, reducedMotion, quality }: Props) {
   const interactive = view.name === 'about' || view.name === 'aboutEntry'
   return (
     <group name="about-zone">
@@ -366,7 +402,7 @@ export default function AboutZone({ view, noHover, reducedMotion }: Props) {
         <Frieze key={row} row={row} />
       ))}
       {timeline.map((e) => (
-        <Entry key={e.slug} entry={e} interactive={interactive} noHover={noHover} reducedMotion={reducedMotion} />
+        <Entry key={e.slug} entry={e} interactive={interactive} noHover={noHover} reducedMotion={reducedMotion} quality={quality} />
       ))}
     </group>
   )

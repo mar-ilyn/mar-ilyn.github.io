@@ -1,11 +1,11 @@
 import { useFrame } from '@react-three/fiber'
 import type { RefObject } from 'react'
 import { Vector3 } from 'three'
-import { axisYears, entryX, formatRange, FRIEZE, rowOf, SECTIONS, timeline, type Row } from '../data/timeline'
+import { axisYears, FRIEZE, SECTIONS, type Row } from '../data/timeline'
 import { ROOM } from './layout'
 import { BACKING_Z } from './vitrineGeometry'
 
-// Textos de la zona "Sobre mí" en HTML (cartelas y años del eje; los títulos son letras 3D), anclados a puntos de la escena:
+// Años del eje del friso de "Sobre mí", en HTML (los títulos son letras 3D y las plaquitas, texturas), anclados a la escena:
 // cada elemento declara su posición en metros (data-x/y/z) y el ancla lo proyecta a la pantalla.
 // La escala sigue a la cámara (--ppm = píxeles por metro en ese punto).
 
@@ -44,18 +44,6 @@ interface Props {
 export function AboutLabels({ anchorRef, section }: Props) {
   return (
     <div ref={anchorRef} className={`about-labels ${section ? '' : 'about-labels--hidden'}`} aria-hidden="true">
-      {timeline.map((e) => (
-        <div
-          key={e.slug}
-          className={`about-label about-label--cartela ${rowOf(e.kind) === section ? '' : 'about-label--off'}`}
-          data-x={entryX(e)}
-          data-y={SECTIONS[rowOf(e.kind)].floor + FRIEZE.cartela}
-          data-z={WALL}
-        >
-          <strong>{e.title}</strong>
-          <span>{formatRange(e)}</span>
-        </div>
-      ))}
       {ROWS.flatMap((row) =>
         axisYears().map(({ year, x }) => (
           <div
