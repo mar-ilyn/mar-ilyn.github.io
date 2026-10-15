@@ -76,7 +76,7 @@ export function introLensShift(cameraX: number, cameraZ: number, filmWidth: numb
 export const INTRO_LABEL = {
   width: 1.7,
   height: 0.9,
-  tall: { width: 0.82, height: 1.08, gap: 0.15 },
+  tall: { width: 0.82, height: 1.12, gap: 0.15 },
   depth: 0.012,
   standoff: 0.004,
   scale: 1.25,

@@ -47,10 +47,10 @@ const WIDE: Design = {
   style: { width: INTRO_LABEL.width, height: INTRO_LABEL.height, corner: 0.05, rim: 0.014, detail: 3 },
   name: { lines: [NAME], size: 0.15, y: [0.19] },
   lines: [
-    { text: profile.role.toLocaleUpperCase('es'), size: 0.05, y: 0.33, weight: 600, soft: true, tracking: 0.12 },
-    { text: profile.label.title, after: year, size: 0.07, y: 0.455, weight: 650 },
-    { text: listWithY(profile.stack), size: 0.07, y: 0.545 },
-    { text: profile.tagline, size: 0.058, y: 0.655, soft: true, wrap: 1.42, lineHeight: 0.08 },
+    { text: profile.role.toLocaleUpperCase('es'), size: 0.058, y: 0.335, weight: 600, soft: true, tracking: 0.12 },
+    { text: profile.label.title, after: year, size: 0.084, y: 0.465, weight: 650 },
+    { text: listWithY(profile.stack), size: 0.084, y: 0.565 },
+    { text: profile.tagline, size: 0.066, y: 0.675, soft: true, wrap: 1.56, lineHeight: 0.09 },
   ],
   pxScale: 1,
 }
@@ -59,10 +59,10 @@ const TALL: Design = {
   style: { width: INTRO_LABEL.tall.width, height: INTRO_LABEL.tall.height, corner: 0.032, rim: 0.009, detail: 2 },
   name: { lines: NAME.split(' '), size: 0.1, y: [0.165, 0.275] },
   lines: [
-    { text: profile.role.toLocaleUpperCase('es'), size: 0.035, y: 0.385, weight: 600, soft: true, tracking: 0.06 },
-    { text: profile.label.title, after: year, size: 0.06, y: 0.485, weight: 650 },
-    { text: listWithY(profile.stack), size: 0.06, y: 0.56, wrap: 0.7, lineHeight: 0.07 },
-    { text: profile.tagline, size: 0.054, y: 0.725, soft: true, wrap: 0.7, lineHeight: 0.07 },
+    { text: profile.role.toLocaleUpperCase('es'), size: 0.038, y: 0.385, weight: 600, soft: true, tracking: 0.05 },
+    { text: profile.label.title, after: year, size: 0.07, y: 0.49, weight: 650 },
+    { text: listWithY(profile.stack), size: 0.07, y: 0.575, wrap: 0.72, lineHeight: 0.08 },
+    { text: profile.tagline, size: 0.062, y: 0.75, soft: true, wrap: 0.72, lineHeight: 0.078 },
   ],
   pxScale: 1.3,
 }
