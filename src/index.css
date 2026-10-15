@@ -121,6 +121,17 @@ a {
   line-height: 1.1;
   background: var(--tab);
   border-bottom-right-radius: var(--notch);
+  transition:
+    transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s linear 0s;
+}
+/* En la intro la pestaña no está: sube detrás del borde del marco (con su esquina cóncava de abajo). */
+.site-header__id--away {
+  visibility: hidden;
+  transform: translateY(calc(-100% - var(--notch)));
+  transition:
+    transform 400ms ease-in,
+    visibility 0s linear 400ms;
 }
 /* Esquinas cóncavas: arriba a la derecha (contra el borde de arriba del marco) y abajo a la izquierda. */
 .site-header__id::before,
