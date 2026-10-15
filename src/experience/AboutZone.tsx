@@ -29,7 +29,7 @@ import { ROOM } from './layout'
 import { HitBox } from './HitBox'
 import { labelFace } from './museumLabel'
 import type { Quality } from './quality'
-import { PLAQUE, timelinePlaqueBody, timelinePlaqueTexture } from './timelinePlaque'
+import { PLAQUE_DEPTH, plaqueSize, timelinePlaqueBody, timelinePlaqueTexture } from './timelinePlaque'
 import { Lettering } from './Lettering'
 import { useGroupHover } from './useGroupHover'
 import { BACKING_Z, cabinetGeometries, objectGeometry, RISER, riserGeometry } from './vitrineGeometry'
@@ -228,18 +228,20 @@ interface EntryProps {
 }
 
 // Plaquita de la entrada, montada sobre el fondo al final de la línea guía: el canto de latón y la cara
-// impresa (título y fecha), con la textura a menor resolución en calidad baja.
-const plaqueBody = timelinePlaqueBody()
+// impresa (título y fecha), con la textura a menor resolución en calidad baja. Sin fecha, más chica.
+const plaqueBodies = { dated: timelinePlaqueBody(true), undated: timelinePlaqueBody(false) }
 
 function EntryPlaque({ entry, quality, position }: { entry: TimelineEntry; quality: Quality; position: [number, number, number] }) {
+  const dated = entry.start !== null
+  const { width, height } = plaqueSize(dated)
   const face = useMemo(
     () => {
-      const material = labelFace(timelinePlaqueTexture(entry.title, entry.start ? formatRange(entry) : null, quality === 'high' ? 2600 : 1500))
+      const material = labelFace(timelinePlaqueTexture(entry.title, dated ? formatRange(entry) : null, quality === 'high' ? 2600 : 1500))
       // Fuera del contorno (los recortes de las esquinas) la textura es transparente.
       material.alphaTest = 0.5
       return material
     },
-    [entry, quality],
+    [entry, quality, dated],
   )
   useEffect(
     () => () => {
@@ -250,9 +252,9 @@ function EntryPlaque({ entry, quality, position }: { entry: TimelineEntry; quali
   )
   return (
     <group position={position}>
-      <mesh geometry={plaqueBody} material={M.agedBrass} />
-      <mesh material={face} position={[0, 0, PLAQUE.depth + 0.0004]}>
-        <planeGeometry args={[PLAQUE.width, PLAQUE.height]} />
+      <mesh geometry={dated ? plaqueBodies.dated : plaqueBodies.undated} material={M.agedBrass} />
+      <mesh material={face} position={[0, 0, PLAQUE_DEPTH + 0.0004]}>
+        <planeGeometry args={[width, height]} />
       </mesh>
     </group>
   )
@@ -306,7 +308,8 @@ function Entry({ entry, interactive, noHover, reducedMotion, quality }: EntryPro
   const glow = active ? 0.6 : interactive && noHover ? 0.15 : 0
   const barY = floor + FRIEZE.lane - (LANES.get(entry.slug) ?? 0) * FRIEZE.laneStep
   const elbowY = floor + FRIEZE.elbow
-  const cartelaTop = floor + FRIEZE.cartela + PLAQUE.height / 2
+  const plaque = plaqueSize(entry.start !== null)
+  const cartelaTop = floor + FRIEZE.cartela + plaque.height / 2
 
   useFrame(({ invalidate }, delta) => {
     const target = active ? 1.06 : 1
@@ -345,7 +348,7 @@ function Entry({ entry, interactive, noHover, reducedMotion, quality }: EntryPro
         </>
       )}
       <EntryPlaque entry={entry} quality={quality} position={[x, floor + FRIEZE.cartela, FRIEZE_Z - 0.002]} />
-      <HitBox size={[PLAQUE.width, PLAQUE.height, 0.01]} position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events} />
+      <HitBox size={[plaque.width, plaque.height, 0.01]} position={[x, floor + FRIEZE.cartela, FRIEZE_Z + 0.01]} {...events} />
       <group position={[x, floor, OBJ_Z]}>
         <ShelfLight width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.06} />
         <Riser width={OBJECT_WIDTH[entry.object.kind] * OBJECT_SCALE + 0.04} />
