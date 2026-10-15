@@ -5,9 +5,10 @@ test('la home muestra identidad, contacto y proyectos', async ({ page }) => {
   await expect(page).toHaveTitle(/Marilyn Diaz/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
 
+  // El panel de Contacto del header tiene los canales y la descarga del CV.
   const header = page.getByRole('banner')
-  await expect(header.getByRole('link', { name: /CV/ })).toBeVisible()
   await header.getByRole('button', { name: 'Contacto' }).click()
+  await expect(header.getByRole('link', { name: /CV/ })).toBeVisible()
   for (const name of [/github\.com\/mar-ilyn/, /linkedin\.com\/in\/marilyn-d/]) {
     await expect(header.getByRole('link', { name })).toBeVisible()
   }
@@ -24,6 +25,7 @@ test('el contacto sigue visible al bajar hasta el final', async ({ page }) => {
 
 test('el CV y las imágenes de proyectos se sirven', async ({ page, request }) => {
   await page.goto('/lista')
+  await page.getByRole('banner').getByRole('button', { name: 'Contacto' }).click()
   const cv = await page.getByRole('banner').getByRole('link', { name: /CV/ }).getAttribute('href')
   expect((await request.get(cv ?? '')).status()).toBe(200)
 

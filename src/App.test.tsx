@@ -12,14 +12,14 @@ describe('<App /> sin WebGL', () => {
     expect(screen.getAllByText('Desarrolladora Full Stack').length).toBeGreaterThan(0)
   })
 
-  it('el header tiene el CV y un botón de contacto fijo con los canales', () => {
+  it('el header tiene un botón de contacto fijo con los canales y el CV', () => {
     render(<App />)
     const header = within(screen.getByRole('banner'))
-    expect(header.getByRole('link', { name: /CV/ })).toHaveAttribute('href', '/cv/marilyn-diaz-cv.pdf')
     const toggle = header.getByRole('button', { name: 'Contacto' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(header.getByRole('link', { name: /CV/ })).toHaveAttribute('href', '/cv/marilyn-diaz-cv.pdf')
     expect(header.getByRole('link', { name: /github\.com\/mar-ilyn/ })).toHaveAttribute('href', 'https://github.com/mar-ilyn')
     expect(header.getByRole('link', { name: /linkedin\.com\/in\/marilyn-d/ })).toHaveAttribute(
       'href',

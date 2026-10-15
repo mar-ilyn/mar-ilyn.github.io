@@ -116,8 +116,10 @@ test('nombre, rol y contacto visibles en la galería', async ({ page }) => {
   const header = page.getByRole('banner')
   await expect(header.getByText('Marilyn Diaz')).toBeInViewport()
   await expect(header.getByText('Desarrolladora Full Stack')).toBeInViewport()
-  await expect(header.getByRole('link', { name: /CV/ })).toBeInViewport()
   await expect(header.getByRole('button', { name: 'Contacto' })).toBeInViewport()
+  // El CV se descarga desde el panel de Contacto.
+  await header.getByRole('button', { name: 'Contacto' }).click()
+  await expect(header.getByRole('link', { name: /CV/ })).toBeInViewport()
 })
 
 test('subir desde la galería vuelve a la intro', async ({ page }) => {
