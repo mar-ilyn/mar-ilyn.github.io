@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { CV_URL } from '../config'
 import { contact, messageHref } from '../data/contact'
 import { routeToPath } from '../state/routes'
 import { useViewStore } from '../state/store'
@@ -9,7 +10,8 @@ interface Props {
 }
 
 // Botón de contacto fijo en el header, en todas las zonas y también en la vista en lista: abre un panel
-// HTML con los canales (sin depender de la escena 3D) y un acceso al escritorio de contacto.
+// HTML con los canales (sin depender de la escena 3D), la descarga del CV y un acceso al escritorio de
+// contacto.
 export function ContactMenu({ mode }: Props) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -60,6 +62,9 @@ export function ContactMenu({ mode }: Props) {
         <div className="contact-menu__actions">
           <a className="button button--primary" href={messageHref}>
             {contact.message.button}
+          </a>
+          <a className="button" href={CV_URL} download>
+            {contact.cv.label}
           </a>
           <a className="site-header__toggle" href={deskHref} onClick={onDesk}>
             {mode === 'gallery' ? 'Ir al escritorio de contacto' : 'Ir a la sección Contacto'}

@@ -73,7 +73,7 @@ export default function Experience({ view }: Props) {
 
   return (
     <div
-      className={`experience experience--${quality}`}
+      className={`experience experience--${quality} ${render ? '' : 'experience--framed'}`}
       data-view={view.name}
       data-ready={ready}
       data-moving={moving}

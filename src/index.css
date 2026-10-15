@@ -91,77 +91,102 @@ a {
   top: 8px;
 }
 
-/* Header flotante: nombre, rol y contacto siempre visibles, en dos islas de vidrio esmerilado (sin barra):
-   a la izquierda el nombre; a la derecha la navegación, con "Descargar CV" como botón oscuro. */
-.glass {
-  background: color-mix(in srgb, var(--paper) 62%, transparent);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  border: 1px solid rgb(255 255 255 / 0.55);
-  border-radius: 10px;
-  box-shadow: 0 10px 28px -16px rgb(40 28 18 / 0.45);
-}
+/* Header: nombre, rol y contacto siempre visibles. A la izquierda, una pestaña del color del marco de la
+   galería, pegada a la esquina, con esquinas cóncavas donde se une al marco; a la derecha, una cápsula clara
+   con la navegación. */
 .site-header {
+  --tab: var(--wall);
+  --notch: 18px;
   position: sticky;
   top: 0;
   z-index: 5;
   pointer-events: none;
 }
 .site-header__inner {
-  padding: 14px clamp(12px, 2.4vw, 28px);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 .site-header__id,
-.site-nav {
+.site-header__end {
   pointer-events: auto;
 }
 .site-header__id {
+  position: relative;
   margin: 0;
-  padding: 0.45rem 0.85rem 0.5rem;
+  padding: calc(var(--frame, 0px) + 0.55rem) 1.4rem 0.8rem calc(var(--frame, 0px) + clamp(10px, 1.6vw, 18px));
   display: flex;
-  flex-direction: column;
-  line-height: 1.15;
+  flex-direction: column-reverse;
+  line-height: 1.1;
+  background: var(--tab);
+  border-bottom-right-radius: var(--notch);
+}
+/* Esquinas cóncavas: arriba a la derecha (contra el borde de arriba del marco) y abajo a la izquierda. */
+.site-header__id::before,
+.site-header__id::after {
+  content: '';
+  position: absolute;
+  width: var(--notch);
+  height: var(--notch);
+  background: radial-gradient(circle at 100% 100%, transparent calc(var(--notch) - 0.5px), var(--tab) var(--notch));
+}
+.site-header__id::before {
+  left: 100%;
+  top: var(--frame, 0px);
+}
+.site-header__id::after {
+  left: var(--frame, 0px);
+  top: 100%;
 }
 .site-header__name {
   font-family: var(--serif);
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: var(--title-tracking);
+  text-transform: uppercase;
 }
 .site-header__role {
-  font-size: 0.74rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  letter-spacing: 0.04em;
 }
 
+.site-header__end {
+  display: flex;
+  align-items: flex-start;
+  padding: calc(var(--frame, 0px) + 12px) calc(var(--frame, 0px) + 12px) 0 0;
+}
 .site-nav {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 5px;
+  gap: 0.1rem;
+  margin-top: 8px;
+  padding: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wall) 86%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px -20px rgb(40 28 18 / 0.55);
 }
 .site-nav__links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0.1rem;
 }
 .site-nav__link {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 0.9rem;
   border: 0;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 1.02rem;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -169,75 +194,31 @@ a {
 }
 .site-nav__link:hover,
 .site-nav__link[aria-expanded='true'] {
-  background: rgb(42 36 32 / 0.08);
+  background: rgb(42 36 32 / 0.07);
 }
 .site-nav__link[aria-current='page'] {
   text-decoration: underline;
   text-decoration-color: var(--accent);
   text-underline-offset: 5px;
 }
-.site-nav__cta {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 0 1rem;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 160ms ease;
+.site-nav__social {
+  display: flex;
+  gap: 0.1rem;
+  margin: 0 0 0 0.35rem;
+  padding: 0;
+  list-style: none;
 }
-.site-nav__cta:hover {
-  background: #3a312b;
-}
-.site-nav__cta-short {
-  display: none;
-}
-/* Recuadro de vidrio oscuro que se despliega bajo el botón, con la flecha de descarga. */
-.site-nav__tile {
-  position: absolute;
-  top: calc(100% + 11px);
-  right: -5px;
-  width: calc(100% + 10px);
-  aspect-ratio: 4 / 3;
+.site-nav__icon {
   display: grid;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--ink) 62%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  color: var(--paper);
-  box-shadow: 0 14px 30px -16px rgb(20 14 10 / 0.6);
-  opacity: 0;
-  transform: translateY(-8px) scale(0.96);
-  transform-origin: top center;
-  pointer-events: none;
-  transition:
-    opacity 200ms ease,
-    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  color: var(--ink);
+  transition: background-color 160ms ease;
 }
-.site-nav__tile svg {
-  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-@media (hover: hover) {
-  .site-nav__cta:hover .site-nav__tile {
-    opacity: 1;
-    transform: none;
-  }
-  .site-nav__cta:hover .site-nav__tile svg {
-    transform: translateY(2px);
-  }
-}
-.site-nav__cta:focus-visible .site-nav__tile {
-  opacity: 1;
-  transform: none;
+.site-nav__icon:hover {
+  background: rgb(42 36 32 / 0.07);
 }
 .site-nav__more {
   display: none;
@@ -245,50 +226,48 @@ a {
   width: 38px;
   height: 38px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
   color: var(--ink);
   cursor: pointer;
 }
 .site-nav__more[aria-expanded='true'],
 .site-nav__more:hover {
-  background: rgb(42 36 32 / 0.08);
+  background: rgb(42 36 32 / 0.07);
 }
-
-/* Pantallas angostas: Contacto y el CV a la vista; los otros links, en un menú que se despliega debajo. */
+/* Pantallas angostas: Contacto a la vista; los otros links, en un menú que se despliega debajo, y las redes
+   quedan en el panel de Contacto. */
 @media (max-width: 720px) {
-  .site-header__inner {
-    padding: 10px 12px;
+  .site-header {
+    --notch: 14px;
   }
   .site-header__id {
-    padding: 0.35rem 0.65rem 0.4rem;
+    padding-right: 0.9rem;
+    padding-bottom: 0.6rem;
   }
   .site-header__name {
-    font-size: 1.1rem;
+    font-size: 1.02rem;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
   }
   .site-header__role {
     font-size: 0.66rem;
   }
+  .site-header__end {
+    padding-top: calc(var(--frame, 0px) + 8px);
+    padding-right: calc(var(--frame, 0px) + 8px);
+  }
   .site-nav {
-    padding: 4px;
+    margin-top: 6px;
+    padding: 0.25rem;
   }
-  .site-nav__link,
-  .site-nav__cta {
+  .site-nav__link {
     min-height: 36px;
-    padding: 0 0.6rem;
-    font-size: 0.74rem;
-    letter-spacing: 0.1em;
+    padding: 0 0.65rem;
+    font-size: 0.92rem;
   }
-  .site-nav__cta-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  .site-nav__cta-short {
-    display: inline;
+  .site-nav__social {
+    display: none;
   }
   .site-nav__more {
     display: grid;
@@ -304,12 +283,11 @@ a {
     flex-direction: column;
     align-items: stretch;
     min-width: 200px;
-    padding: 5px;
-    border: 1px solid rgb(255 255 255 / 0.55);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--paper) 82%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    padding: 6px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--wall) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 14px 32px -14px rgb(40 28 18 / 0.45);
   }
   .site-nav__links--open {
@@ -768,6 +746,23 @@ html.is-gallery body {
   position: fixed;
   inset: 0;
   touch-action: none;
+}
+/* Marco crema alrededor de la escena (el mismo color que la pestaña del nombre en el header). */
+html.is-gallery {
+  --frame: 10px;
+}
+.experience--framed {
+  inset: var(--frame);
+  border-radius: 18px;
+  overflow: hidden;
+}
+@media (max-width: 720px) {
+  html.is-gallery {
+    --frame: 6px;
+  }
+  .experience--framed {
+    border-radius: 14px;
+  }
 }
 .experience__canvas {
   position: absolute !important;
