@@ -1,12 +1,11 @@
 import { CanvasTexture, MeshBasicMaterial, MeshStandardMaterial, SRGBColorSpace } from 'three'
 
 // Cartelas de museo (la de la intro y las de los pedestales): un cartón claro y mate con el texto impreso,
-// dibujado en una textura con la tipografía del sitio (Inter). La textura se redibuja cuando termina de
+// dibujado en una textura con la tipografía del sitio (EB Garamond). La textura se redibuja cuando termina de
 // cargar la fuente. Medidas en metros.
 
 const INK = '#2b2926'
 const SOFT = '#45413b'
-const SANS = '"Inter Variable", Inter, "Helvetica Neue", Arial, sans-serif'
 // La serif del sitio (--serif en index.css), para los textos dibujados en lienzos.
 export const SERIF = '"EB Garamond Variable", "EB Garamond", Garamond, Georgia, serif'
 
@@ -67,7 +66,7 @@ export function museumLabelTexture(layout: LabelLayout, lines: readonly LabelLin
       ctx.fillStyle = line.soft ? SOFT : INK
       if (line.wrap) {
         const step = m(line.lineHeight ?? line.size * 1.4)
-        ctx.font = `${line.parts[0]?.weight ?? 400} ${m(line.size)}px ${SANS}`
+        ctx.font = `${line.parts[0]?.weight ?? 400} ${m(line.size)}px ${SERIF}`
         const rows = wrap(ctx, line.parts.map((p) => p.text).join(' '), textWidth)
         rows.forEach((text, i) => {
           ctx.fillText(text, left, y)
@@ -78,7 +77,7 @@ export function museumLabelTexture(layout: LabelLayout, lines: readonly LabelLin
       }
       let x = left
       for (const part of line.parts) {
-        ctx.font = `${part.weight ?? 400} ${m(line.size)}px ${SANS}`
+        ctx.font = `${part.weight ?? 400} ${m(line.size)}px ${SERIF}`
         ctx.fillText(part.text, x, y)
         x += ctx.measureText(`${part.text}  `).width
       }
@@ -87,7 +86,7 @@ export function museumLabelTexture(layout: LabelLayout, lines: readonly LabelLin
     texture.needsUpdate = true
   }
   draw()
-  void document.fonts?.load(`600 40px ${SANS}`).then(draw)
+  void document.fonts?.load(`600 40px ${SERIF}`).then(draw)
   void document.fonts?.ready.then(draw)
   return texture
 }

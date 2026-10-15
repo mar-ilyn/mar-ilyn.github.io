@@ -39,9 +39,9 @@ La primera vez que se corre Playwright hay que instalar Chromium: `npx playwrigh
 
 - **HTML real primero.** La página base es la versión accesible y la que leen buscadores y previews de links. En el hito 6 se convierte en la vista "Ver como lista" de la galería 3D, así que no es descartable.
 - **Un único archivo de datos tipado.** `src/data/projects.ts` contiene todo el contenido de cada proyecto (título, stack, textos, links, imagen y vistas de cámara para el detalle y la placa). `src/data/types.ts` define los tipos. Los tests validan slugs aptos para URL, alt descriptivos, links https y vectores de cámara finitos.
-- **Nombre, rol y contacto siempre visibles.** Viven en un header fijo, fuera de cualquier canvas.
+- **Nombre, rol y contacto siempre visibles.** Viven en un header flotante, fuera de cualquier canvas: dos islas de vidrio esmerilado, a la izquierda el nombre y a la derecha la navegación (Sobre mí, la vista en lista, Contacto y "Descargar CV" como botón oscuro, que al pasar el mouse despliega debajo un recuadro con la flecha de descarga). En pantallas angostas Contacto y el CV siguen a la vista y los otros links pasan a un menú.
 - **Open Graph con imagen generada.** `scripts/og-image.mjs` renderiza la imagen 1200×630 con el Chromium de Playwright y las mismas fuentes del sitio, así se puede regenerar si cambia el texto.
-- **Fuentes self-hosted** con Fontsource (EB Garamond e Inter, variables). Sin pedidos a terceros y el navegador solo descarga los subsets que usa.
+- **Una sola familia tipográfica, self-hosted** con Fontsource: EB Garamond (variable). Los títulos van como "Proyectos" en la pared (mayúsculas espaciadas, peso 500) y el resto del texto, como en las placas; también los textos dibujados en la escena. Sin pedidos a terceros y el navegador solo descarga los subsets que usa.
 - **GitHub Pages + Actions.** Un solo workflow: lint, tipos, tests unitarios, build y e2e; si todo pasa en `main`, publica `dist/`. Los PR corren los mismos chequeos sin publicar.
 - **Base configurable.** `BASE_PATH` cambia la base de Vite si el sitio se publica en un subpath; `VITE_SITE_URL` (en `.env`) define las URLs absolutas de Open Graph.
 

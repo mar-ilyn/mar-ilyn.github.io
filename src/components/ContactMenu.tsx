@@ -48,7 +48,7 @@ export function ContactMenu({ mode }: Props) {
       <button
         ref={toggle}
         type="button"
-        className="button contact-menu__toggle"
+        className="site-nav__link contact-menu__toggle"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
