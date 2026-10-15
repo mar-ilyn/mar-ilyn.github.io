@@ -23,6 +23,7 @@ import { useKTX2 } from './ktx2'
 import { useGroupHover } from './useGroupHover'
 import { BOOK, contactItemKey, DESK, ENVELOPE, INKWELL, PEN, SURFACE, type ContactItem } from './deskLayout'
 import { Book, Envelope, Inkwell, Pen } from './DeskObjects'
+import type { Quality } from './quality'
 
 // Zona "Contacto": escritorio Luis XV (palisandro, cuero y bronce dorado) con un libro grande, una
 // pluma fuente, un tintero y un sobre con sello de lacre. El libro abre el panel de contacto, el sobre
@@ -131,10 +132,12 @@ interface Props {
   view: ViewState
   noHover: boolean
   reducedMotion: boolean
+  quality: Quality
 }
 
-export default function ContactZone({ view, noHover, reducedMotion }: Props) {
+export default function ContactZone({ view, noHover, reducedMotion, quality }: Props) {
   const send = useViewStore((s) => s.send)
+  const copied = useViewStore((s) => s.copied)
   const highlighted = useViewStore((s) => s.highlighted)
   const interactive = view.name === 'contact'
   // El sobre se abre cuando la cámara ya se acomodó frente al escritorio y se cierra al acercarse al
@@ -152,7 +155,7 @@ export default function ContactZone({ view, noHover, reducedMotion }: Props) {
         <planeGeometry />
       </mesh>
       <Item id="book" {...common} position={[BOOK.spineX, BOOK.y, BOOK.z]} hit={[2 * BOOK.width + 0.03, BOOK.pageTop + 0.02, BOOK.depth + 0.03]} onSelect={() => send({ type: 'OPEN_BOOK' })}>
-        <Book />
+        <Book quality={quality} copied={copied} />
       </Item>
       {/* Pluma decorativa (no se selecciona): se mueve apenas cuando el libro está bajo el mouse. */}
       <group name="contact-pen" position={[...PEN.position]} rotation={[0, PEN.rotation, 0]}>

@@ -12,12 +12,15 @@ interface ViewStore {
   sceneReady: boolean
   // Pedestal bajo el mouse o con foco de teclado: enciende su haz de luz.
   highlighted: string | null
+  // Canal de contacto recién copiado desde el libro (se imprime "Copiado" en la página).
+  copied: string | null
   send: (event: ViewEvent) => void
   navigate: (route: Route) => void
   syncFromLocation: () => void
   setCameraMoving: (moving: boolean) => void
   setSceneReady: () => void
   setHighlighted: (slug: string | null) => void
+  setCopied: (id: string | null) => void
 }
 
 const readLocation = (): Route =>
@@ -46,6 +49,7 @@ export const useViewStore = create<ViewStore>((set, get) => ({
   cameraMoving: false,
   sceneReady: false,
   highlighted: null,
+  copied: null,
 
   send: (event) => {
     const { route } = get()
@@ -68,6 +72,7 @@ export const useViewStore = create<ViewStore>((set, get) => ({
   },
 
   setCameraMoving: (cameraMoving) => set({ cameraMoving }),
+  setCopied: (copied) => set({ copied }),
   setSceneReady: () => set({ sceneReady: true }),
   setHighlighted: (highlighted) => set({ highlighted }),
 }))

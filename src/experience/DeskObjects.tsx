@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   CanvasTexture,
   CylinderGeometry,
@@ -13,8 +13,10 @@ import {
   TorusGeometry,
   type Group,
 } from 'three'
-import { BOOK, BOOK_SHEETS, ENVELOPE, PEN } from './deskLayout'
+import { bookPageTexture } from './bookPages'
+import { BOOK, BOOK_BOARD, BOOK_COVER_MARGIN, BOOK_GUTTER_BASE, BOOK_PAGE, BOOK_SHEETS, ENVELOPE, PEN, pageProfile } from './deskLayout'
 import { SERIF } from './museumLabel'
+import type { Quality } from './quality'
 
 // Objetos del escritorio de contacto, modelados por código (assets propios): libro encuadernado en cuero,
 // pluma fuente, tintero de cristal y sobre con sello de lacre. Cada objeto crea sus propios materiales:
@@ -27,12 +29,7 @@ const paper = (color: string) => new MeshStandardMaterial({ color, roughness: 0.
 // las hojas se hunden hacia el lomo) y baja apenas hacia el borde de afuera. Las hojas de abajo asoman en
 // escalones por los bordes, las tapas de cuero asoman alrededor y en los extremos del lomo va la cabezada.
 
-// Perfil de la superficie de las hojas, de 0 (pliegue) a 1 (borde de afuera).
-// u se acota a 0..1: por redondeo, el borde puede dar apenas más que 1 y la potencia de un negativo da NaN.
-const pageProfile = (raw: number) => {
-  const u = Math.min(1, Math.max(0, raw))
-  return (1 - Math.pow(1 - u, 2.5)) * (1 - 0.12 * Math.pow(u, 4))
-}
+// Perfil de la superficie de las hojas: pageProfile, en deskLayout.ts (también lo usan las zonas clickeables).
 const PAGE_STEPS = 28
 
 function canvasTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void): CanvasTexture {
@@ -45,41 +42,6 @@ function canvasTexture(width: number, height: number, draw: (ctx: CanvasRenderin
   texture.colorSpace = SRGBColorSpace
   texture.anisotropy = 8
   return texture
-}
-
-// Cara de las hojas: marfil, con la sombra del pliegue, un leve oscurecimiento hacia el borde y unas pocas
-// manchas de papel viejo, muy suaves.
-function pageTexture(): CanvasTexture {
-  return canvasTexture(512, 512, (ctx) => {
-    ctx.fillStyle = '#f2e8d3'
-    ctx.fillRect(0, 0, 512, 512)
-    const gutter = ctx.createLinearGradient(0, 0, 512, 0)
-    gutter.addColorStop(0, 'rgba(92, 70, 40, 0.55)')
-    gutter.addColorStop(0.06, 'rgba(92, 70, 40, 0.22)')
-    gutter.addColorStop(0.2, 'rgba(92, 70, 40, 0)')
-    gutter.addColorStop(0.9, 'rgba(120, 95, 60, 0)')
-    gutter.addColorStop(1, 'rgba(120, 95, 60, 0.16)')
-    ctx.fillStyle = gutter
-    ctx.fillRect(0, 0, 512, 512)
-    const edges = ctx.createLinearGradient(0, 0, 0, 512)
-    edges.addColorStop(0, 'rgba(120, 95, 60, 0.12)')
-    edges.addColorStop(0.06, 'rgba(120, 95, 60, 0)')
-    edges.addColorStop(0.94, 'rgba(120, 95, 60, 0)')
-    edges.addColorStop(1, 'rgba(120, 95, 60, 0.12)')
-    ctx.fillStyle = edges
-    ctx.fillRect(0, 0, 512, 512)
-    for (const [x, y, r] of [
-      [380, 90, 60],
-      [440, 400, 45],
-      [200, 300, 70],
-    ]) {
-      const spot = ctx.createRadialGradient(x, y, 0, x, y, r)
-      spot.addColorStop(0, 'rgba(170, 130, 70, 0.07)')
-      spot.addColorStop(1, 'rgba(170, 130, 70, 0)')
-      ctx.fillStyle = spot
-      ctx.fillRect(x - r, y - r, 2 * r, 2 * r)
-    }
-  })
 }
 
 // Canto de las hojas apiladas: rayas finas, en el sentido que corresponde a cada cara.
@@ -136,22 +98,25 @@ function pageSurfaceGeometry(width: number, depth: number, base: number, height:
 // todas quedan parejas.
 const SHEET_SHADES = ['#ebe0c8', '#e0d3b6']
 
-export function Book() {
+interface BookProps {
+  quality: Quality
+  // Canal recién copiado desde el libro: su "Copiar" se imprime como "Copiado".
+  copied: string | null
+}
+
+export function Book({ quality, copied }: BookProps) {
   const { width, depth, pageTop } = BOOK
-  const board = 0.008
-  const margin = 0.006
-  const gutterBase = 0.004
+  const margin = BOOK_COVER_MARGIN
   const { count, stepX, stepZ } = BOOK_SHEETS
   // La hoja de arriba (y el bloque bajo ella) es la más chica; la última hoja llega al margen de la tapa.
-  const blockW = width - margin - count * stepX
-  const blockD = depth - count * stepZ
+  const blockW = BOOK_PAGE.width
+  const blockD = BOOK_PAGE.depth
   // Todas las hojas empiezan en la cabeza (z = -depth / 2): cada una se centra según su largo.
   const zFor = (d: number) => -depth / 2 + d / 2
-  const blockH = pageTop - board - gutterBase
+  const blockH = pageTop - BOOK_BOARD - BOOK_GUTTER_BASE
   const m = useMemo(
     () => ({
       leather: new MeshStandardMaterial({ color: '#5a1d19', roughness: 0.55, envMapIntensity: 0.6 }),
-      page: new MeshStandardMaterial({ map: pageTexture(), roughness: 0.92 }),
       // Cabeza y pie del bloque (rayas a lo largo de x) y canto de afuera (rayas a lo largo de y).
       edges: [
         new MeshStandardMaterial({ map: pageEdgeTexture(false), roughness: 0.95 }),
@@ -163,14 +128,37 @@ export function Book() {
     }),
     [],
   )
+  // Hojas de arriba con el contenido impreso (bookPages.ts): la de la izquierda cambia al copiar un canal.
+  const pages = useMemo(
+    () => ({ right: new MeshStandardMaterial({ map: bookPageTexture('right', quality), roughness: 0.92 }) }),
+    [quality],
+  )
+  const leftPage = useMemo(
+    () => new MeshStandardMaterial({ map: bookPageTexture('left', quality, copied), roughness: 0.92 }),
+    [quality, copied],
+  )
+  useEffect(
+    () => () => {
+      pages.right.map?.dispose()
+      pages.right.dispose()
+    },
+    [pages],
+  )
+  useEffect(
+    () => () => {
+      leftPage.map?.dispose()
+      leftPage.dispose()
+    },
+    [leftPage],
+  )
   const geo = useMemo(
     () => ({
-      block: pageBlockGeometry(blockW, blockD, gutterBase, blockH),
-      surface: pageSurfaceGeometry(blockW, blockD, gutterBase, blockH),
+      block: pageBlockGeometry(blockW, blockD, BOOK_GUTTER_BASE, blockH),
+      surface: pageSurfaceGeometry(blockW, blockD, BOOK_GUTTER_BASE, blockH),
       sheets: Array.from({ length: count }, (_, i) => {
         const k = i + 1
         const d = blockD + k * stepZ
-        return { d, geometry: pageSurfaceGeometry(blockW + k * stepX, d, gutterBase, blockH * (1 - k / (count + 0.8))) }
+        return { d, geometry: pageSurfaceGeometry(blockW + k * stepX, d, BOOK_GUTTER_BASE, blockH * (1 - k / (count + 0.8))) }
       }),
     }),
     [blockW, blockD, blockH, count, stepX, stepZ],
@@ -180,12 +168,12 @@ export function Book() {
       {[-1, 1].map((side) => (
         // La mitad izquierda es la derecha espejada: el pliegue queda en el lomo (x = 0).
         <group key={side} scale={[side, 1, 1]}>
-          <mesh material={m.leather} position={[(width + 0.002) / 2 - 0.002, board / 2, 0]}>
-            <boxGeometry args={[width + 0.002, board, depth + 2 * margin]} />
+          <mesh material={m.leather} position={[(width + 0.002) / 2 - 0.002, BOOK_BOARD / 2, 0]}>
+            <boxGeometry args={[width + 0.002, BOOK_BOARD, depth + 2 * margin]} />
           </mesh>
-          <group position={[0.001, board, 0]}>
+          <group position={[0.001, BOOK_BOARD, 0]}>
             <mesh geometry={geo.block} material={m.edges} position={[0, 0, zFor(blockD)]} />
-            <mesh geometry={geo.surface} material={m.page} position={[0, 0, zFor(blockD)]} />
+            <mesh geometry={geo.surface} material={side < 0 ? leftPage : pages.right} position={[0, 0, zFor(blockD)]} />
             {geo.sheets.map(({ d, geometry }, i) => (
               <mesh key={i} geometry={geometry} material={m.sheets[i % 2]} position={[0, 0, zFor(d)]} />
             ))}
@@ -194,11 +182,11 @@ export function Book() {
       ))}
       {/* Cabezadas: en los extremos del pliegue, una banda de tela con un filete dorado. */}
       {[-1, 1].map((end) => (
-        <group key={end} position={[0, board + gutterBase / 2, end * (depth / 2 + 0.0015)]}>
+        <group key={end} position={[0, BOOK_BOARD + BOOK_GUTTER_BASE / 2, end * (depth / 2 + 0.0015)]}>
           <mesh material={m.headband}>
-            <boxGeometry args={[0.012, gutterBase + 0.002, 0.003]} />
+            <boxGeometry args={[0.012, BOOK_GUTTER_BASE + 0.002, 0.003]} />
           </mesh>
-          <mesh material={m.headbandGold} position={[0, gutterBase / 2 + 0.0012, 0]}>
+          <mesh material={m.headbandGold} position={[0, BOOK_GUTTER_BASE / 2 + 0.0012, 0]}>
             <boxGeometry args={[0.012, 0.0012, 0.0032]} />
           </mesh>
         </group>

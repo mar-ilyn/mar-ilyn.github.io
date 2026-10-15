@@ -132,7 +132,7 @@ export default function Experience({ view }: Props) {
         )}
         {contactLoaded && (
           <Suspense fallback={null}>
-            <ContactZone view={view} noHover={noHover} reducedMotion={reducedMotion} />
+            <ContactZone view={view} noHover={noHover} reducedMotion={reducedMotion} quality={quality} />
             <BookAnchor target={bookRef} />
           </Suspense>
         )}

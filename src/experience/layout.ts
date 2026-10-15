@@ -1,7 +1,7 @@
 import type { Project, Vec3 } from '../data/types'
 import type { ViewState } from '../state/machine'
 import { CABINET, FRIEZE, getEntry, SECTIONS, type Row } from '../data/timeline'
-import { BOOK, DESK, OPEN_BOOK_CENTER } from './deskLayout'
+import { BOOK, BOOK_PAGE, DESK, OPEN_BOOK_CENTER } from './deskLayout'
 import { PEDESTAL_LABEL } from './pedestalGeometry'
 
 export const FOV = 45
@@ -195,10 +195,11 @@ export function deskPose(aspect: number): CameraPose {
   return orbit([DESK.x + 0.05, DESK.height + 0.12, DESK.z], distance, 36)
 }
 
-// Libro abierto: casi cenital, para que las dos páginas (y el panel HTML anclado a ellas) se vean
-// planas. Margen arriba para el header y abajo para los botones.
+// Libro abierto: casi cenital, para que las dos páginas (con el contenido impreso y las zonas clickeables
+// del HTML encima) se vean planas. Margen arriba para el header y abajo para los botones. En vertical
+// entran justo las dos hojas a lo ancho, para que el texto se vea lo más grande posible.
 export function bookPose(aspect: number): CameraPose {
-  const halfWidth = BOOK.width + 0.05
+  const halfWidth = aspect <= 1 ? BOOK_PAGE.width + 0.012 : BOOK.width + 0.05
   const halfDepth = BOOK.depth / 2 + 0.09
   const distance = Math.max(halfDepth / halfTan, halfWidth / (halfTan * aspect))
   return orbit([...OPEN_BOOK_CENTER], distance, 82)

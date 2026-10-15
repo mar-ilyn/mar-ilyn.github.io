@@ -41,9 +41,33 @@ export const ENVELOPE = { position: [DESK.x + 0.54, TOP, DESK.z + 0.16] as const
 // pareja): cada una stepX más ancha y stepZ más larga que la anterior.
 export const BOOK_SHEETS = { count: 6, stepX: 0.0035, stepZ: 0.0022 } as const
 
-// Centro de las dos hojas de arriba del libro abierto, donde se ancla el panel HTML: los escalones de
+// Centro de las dos hojas de arriba del libro abierto (adonde mira la cámara de cerca): los escalones de
 // abajo las corren hacia la cabeza.
 export const OPEN_BOOK_CENTER = [BOOK.spineX, BOOK.y + BOOK.pageTop, BOOK.z - (BOOK_SHEETS.count * BOOK_SHEETS.stepZ) / 2] as const
+
+// Hoja de arriba de cada mitad, donde va impreso el contenido (bookPages.ts): de ancho, del pliegue al
+// borde de afuera; de largo, de la cabeza al pie. La tapa de cuero asoma COVER_MARGIN alrededor.
+export const BOOK_COVER_MARGIN = 0.006
+export const BOOK_PAGE = {
+  width: BOOK.width - BOOK_COVER_MARGIN - BOOK_SHEETS.count * BOOK_SHEETS.stepX,
+  depth: BOOK.depth - BOOK_SHEETS.count * BOOK_SHEETS.stepZ,
+} as const
+
+// Espesor de la tapa y altura del bloque de hojas en el pliegue (donde las hojas se hunden hacia el lomo).
+export const BOOK_BOARD = 0.008
+export const BOOK_GUTTER_BASE = 0.004
+
+// Perfil de la superficie de las hojas, de 0 (pliegue) a 1 (borde de afuera): cada mitad se arquea desde
+// el pliegue y baja apenas hacia el borde.
+// u se acota a 0..1: por redondeo, el borde puede dar apenas más que 1 y la potencia de un negativo da NaN.
+export const pageProfile = (raw: number) => {
+  const u = Math.min(1, Math.max(0, raw))
+  return (1 - Math.pow(1 - u, 2.5)) * (1 - 0.12 * Math.pow(u, 4))
+}
+
+// Altura de la hoja de arriba a una fracción u del ancho de la hoja, desde el pliegue.
+export const pageSurfaceY = (u: number) =>
+  BOOK.y + BOOK_BOARD + BOOK_GUTTER_BASE + (BOOK.pageTop - BOOK_BOARD - BOOK_GUTTER_BASE) * pageProfile(u) + 0.0004
 
 // Objetos interactivos del escritorio y su clave de resaltado (hover o foco de su botón en el DOM).
 export type ContactItem = 'book' | 'envelope'
