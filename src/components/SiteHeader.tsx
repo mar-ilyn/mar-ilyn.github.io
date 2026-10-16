@@ -39,6 +39,17 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
     return () => document.removeEventListener('pointerdown', onDown)
   }, [menuOpen])
 
+  // En la lista, el nombre del hero está a la vista arriba: la pestaña aparece cuando queda debajo del header.
+  // Sin IntersectionObserver la pestaña queda siempre a la vista.
+  const [heroNameVisible, setHeroNameVisible] = useState(mode === 'list' && typeof IntersectionObserver !== 'undefined')
+  useEffect(() => {
+    const name = document.getElementById('hero-title')
+    if (mode !== 'list' || !name || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([e]) => setHeroNameVisible(e.isIntersecting), { rootMargin: '-90px 0px 0px 0px' })
+    observer.observe(name)
+    return () => observer.disconnect()
+  }, [mode])
+
   // Esc cierra el menú y no llega a la escena (ahí Esc retrocede un nivel).
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'Escape' || !menuOpen) return
@@ -58,7 +69,8 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
   // "Sobre mí": en la galería lleva a la zona 3D; en la lista, a su sección.
   const aboutHref = mode === 'gallery' ? routeToPath({ name: 'about', section: 'laboral' }, import.meta.env.BASE_URL) : '#sobre-mi'
   const inAbout = mode === 'gallery' && (route.name === 'about' || route.name === 'aboutEntry')
-  const atIntro = mode === 'gallery' && route.name === 'intro'
+  // Sin la pestaña donde el nombre ya está grande: la placa de la intro y el hero de la lista.
+  const nameElsewhere = mode === 'gallery' ? route.name === 'intro' : heroNameVisible
   const onAbout = (e: MouseEvent<HTMLAnchorElement>) => {
     setMenuOpen(false)
     if (mode !== 'gallery' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
@@ -82,9 +94,9 @@ export function SiteHeader({ mode, canShowGallery }: Props) {
         </a>
       )}
       <div className="site-header__inner">
-        {/* Pestaña en la esquina, del color del marco de la galería: el rol arriba, chico, y el nombre. En la
-            intro no está (el nombre ya está en la placa de la pared): baja desde el marco al salir de ella. */}
-        <p className={`site-header__id ${atIntro ? 'site-header__id--away' : ''}`} aria-hidden={atIntro || undefined}>
+        {/* Pestaña en la esquina, del color del marco de la galería: el rol arriba, chico, y el nombre. No está
+            mientras el nombre se ve grande (la placa de la intro, el hero de la lista): baja desde arriba después. */}
+        <p className={`site-header__id ${nameElsewhere ? 'site-header__id--away' : ''}`} aria-hidden={nameElsewhere || undefined}>
           <span className="site-header__name">{profile.name}</span>
           <span className="site-header__role">{profile.role}</span>
         </p>

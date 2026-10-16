@@ -1,9 +1,9 @@
 import { Stats } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { lazy, Suspense, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { PROJECTS_TITLE, projects } from '../data/projects'
 import { sectionOf, type ViewState } from '../state/machine'
-import { useViewStore } from '../state/store'
+import { useViewStore, zoneOf } from '../state/store'
 import { AboutLabels, AboutLabelsAnchor } from './AboutLabels'
 import { Atmosphere } from './Atmosphere'
 import { beamLevel } from './beam'
@@ -59,7 +59,13 @@ export default function Experience({ view }: Props) {
   // Hasta compilar los shaders el canvas no dibuja: así el primer cuadro no congela la página.
   const [compiled, setCompiled] = useState(false)
   const onCompiled = useCallback(() => setCompiled(true), [])
-  const ready = cameraPlaced && compiled
+  // Al entrar directo a "Sobre mí" o a Contacto, la pantalla de carga espera también a esa zona (que se
+  // descarga aparte); una vez revelada la escena, no vuelve a aparecer.
+  const zones = useViewStore((s) => s.zones)
+  const initialZone = zoneOf(view)
+  const [revealed, setRevealed] = useState(false)
+  const ready = revealed || (cameraPlaced && compiled && (!initialZone || zones[initialZone]))
+  if (ready && !revealed) setRevealed(true)
   const aboutRef = useRef<HTMLDivElement>(null)
   const [aboutLoaded, setAboutLoaded] = useState(false)
   if (!aboutLoaded && !render && ABOUT_READY_VIEWS.has(view.name)) setAboutLoaded(true)
@@ -68,6 +74,14 @@ export default function Experience({ view }: Props) {
   if (!contactLoaded && !render && CONTACT_READY_VIEWS.has(view.name)) setContactLoaded(true)
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
+
+  // Con la escena lista, las zonas que se cargan aparte se descargan en segundo plano: al llegar a ellas
+  // ya están (la sombra horneada del mueble y del escritorio nunca se ve sola).
+  useEffect(() => {
+    if (!ready || render) return
+    void import('./AboutZone')
+    void import('./ContactZone')
+  }, [ready, render])
 
   const frameloop = !compiled ? 'never' : debug ? 'always' : 'demand'
 

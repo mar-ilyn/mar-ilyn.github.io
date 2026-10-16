@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
-import { useViewStore } from '../state/store'
+import { useViewStore, whenZoneMounted, zoneOf } from '../state/store'
 import type { PerspectiveCamera } from 'three'
 import { cabinetPose, introCenterX, introLensShift, introWidePose, poseFor, type CameraPose } from './layout'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
@@ -106,6 +106,10 @@ export function CameraRig({ view, holdWide = false }: Props) {
         await go(pose, false, 0)
       } else {
         setCameraMoving(true)
+        // Si la zona de destino todavía se está descargando, la cámara la espera (hasta 8 s) antes de volar.
+        const zone = zoneOf(view)
+        if (zone) await whenZoneMounted(zone, 8000)
+        if (cancelled) return
         if (previous?.name === 'gallery' && view.name === 'about') {
           // Hacia "Sobre mí": primero un vistazo al mueble entero (la cámara se corre a la derecha) y,
           // sin detenerse del todo, sigue al compartimento.

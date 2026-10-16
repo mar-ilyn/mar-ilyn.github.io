@@ -1,6 +1,6 @@
 import { useCursor } from '@react-three/drei'
 import { useFrame, useLoader, useThree, type ThreeEvent } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Box3, Color, Mesh, type Group, type Material, type MeshStandardMaterial, type Object3D } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
@@ -119,10 +119,15 @@ function CabinetBody({ walnut }: { walnut: Material }) {
   )
 }
 
+// El mueble aparece enseguida con el nogal liso y toma la textura cuando termina de cargar: su sombra está
+// horneada en la pared, y sin el mueble se vería sola.
 function Cabinet() {
+  const plain = <CabinetBody walnut={M.walnutPlain} />
   return (
-    <AssetBoundary fallback={<CabinetBody walnut={M.walnutPlain} />}>
-      <TexturedCabinet />
+    <AssetBoundary fallback={plain}>
+      <Suspense fallback={plain}>
+        <TexturedCabinet />
+      </Suspense>
     </AssetBoundary>
   )
 }
@@ -181,15 +186,16 @@ function Certificate({ scale }: { scale: number }) {
 }
 
 function CertificateObject({ scale }: { scale: number }) {
+  const plain = (
+    <mesh material={M.certificatePaper} position={[0, 0.13 * scale, 0]}>
+      <boxGeometry args={[0.2 * scale, 0.26 * scale, 0.02]} />
+    </mesh>
+  )
   return (
-    <AssetBoundary
-      fallback={
-        <mesh material={M.certificatePaper} position={[0, 0.13 * scale, 0]}>
-          <boxGeometry args={[0.2 * scale, 0.26 * scale, 0.02]} />
-        </mesh>
-      }
-    >
-      <Certificate scale={scale} />
+    <AssetBoundary fallback={plain}>
+      <Suspense fallback={plain}>
+        <Certificate scale={scale} />
+      </Suspense>
     </AssetBoundary>
   )
 }
@@ -387,6 +393,8 @@ interface Props {
 
 export default function AboutZone({ view, noHover, reducedMotion, quality }: Props) {
   const interactive = view.name === 'about' || view.name === 'aboutEntry'
+  const setZoneMounted = useViewStore((s) => s.setZoneMounted)
+  useEffect(() => setZoneMounted('about'), [setZoneMounted])
   return (
     <group name="about-zone">
       <Cabinet />

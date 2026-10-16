@@ -1,10 +1,21 @@
 import { create } from 'zustand'
 import { getProject } from '../data/projects'
 import { getEntry } from '../data/timeline'
-import { transition, type ViewEvent } from './machine'
+import { transition, type ViewEvent, type ViewState } from './machine'
 import { pathToRoute, routeToPath, type Route } from './routes'
 
 const BASE = import.meta.env.BASE_URL
+
+// Zonas de la escena que se descargan aparte (React.lazy). Su sombra está horneada en la pared y el piso:
+// hasta que la zona se monta, en su lugar se vería la sombra sola. Por eso la pantalla de carga y los vuelos
+// de cámara esperan a la zona de la vista de destino.
+export type Zone = 'about' | 'contact'
+
+export function zoneOf(view: ViewState): Zone | null {
+  if (view.name === 'about' || view.name === 'aboutEntry') return 'about'
+  if (view.name === 'contact' || view.name === 'contactBook') return 'contact'
+  return null
+}
 
 interface ViewStore {
   route: Route
@@ -14,6 +25,8 @@ interface ViewStore {
   highlighted: string | null
   // Canal de contacto recién copiado desde el libro (se imprime "Copiado" en la página).
   copied: string | null
+  // Zonas lazy ya montadas en la escena.
+  zones: Record<Zone, boolean>
   send: (event: ViewEvent) => void
   navigate: (route: Route) => void
   syncFromLocation: () => void
@@ -21,6 +34,7 @@ interface ViewStore {
   setSceneReady: () => void
   setHighlighted: (slug: string | null) => void
   setCopied: (id: string | null) => void
+  setZoneMounted: (zone: Zone) => void
 }
 
 const readLocation = (): Route =>
@@ -50,6 +64,7 @@ export const useViewStore = create<ViewStore>((set, get) => ({
   sceneReady: false,
   highlighted: null,
   copied: null,
+  zones: { about: false, contact: false },
 
   send: (event) => {
     const { route } = get()
@@ -73,6 +88,23 @@ export const useViewStore = create<ViewStore>((set, get) => ({
 
   setCameraMoving: (cameraMoving) => set({ cameraMoving }),
   setCopied: (copied) => set({ copied }),
+  setZoneMounted: (zone) => set((s) => ({ zones: { ...s.zones, [zone]: true } })),
   setSceneReady: () => set({ sceneReady: true }),
   setHighlighted: (highlighted) => set({ highlighted }),
 }))
+
+// Se resuelve cuando la zona está montada, o a los timeoutMs (la cámara no se queda esperando para siempre).
+export function whenZoneMounted(zone: Zone, timeoutMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (useViewStore.getState().zones[zone]) return resolve()
+    const done = () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+      resolve()
+    }
+    const timer = window.setTimeout(done, timeoutMs)
+    const unsubscribe = useViewStore.subscribe((state) => {
+      if (state.zones[zone]) done()
+    })
+  })
+}

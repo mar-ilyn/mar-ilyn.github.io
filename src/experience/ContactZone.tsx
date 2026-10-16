@@ -1,6 +1,6 @@
 import { useCursor } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Color, Mesh, type Group, type Material, type MeshStandardMaterial } from 'three'
 import type { ViewState } from '../state/machine'
 import { useViewStore } from '../state/store'
@@ -55,10 +55,15 @@ function TexturedDesk() {
   return <DeskBody wood={wood} band={band} leather={leather} />
 }
 
+// El escritorio aparece enseguida con la madera lisa y toma las texturas cuando terminan de cargar: su
+// sombra está horneada en el piso, y sin el escritorio se vería sola.
 function Desk() {
+  const plain = <DeskBody wood={rosewoodPlain} band={rosewoodBandPlain} leather={leatherPlain} />
   return (
-    <AssetBoundary fallback={<DeskBody wood={rosewoodPlain} band={rosewoodBandPlain} leather={leatherPlain} />}>
-      <TexturedDesk />
+    <AssetBoundary fallback={plain}>
+      <Suspense fallback={plain}>
+        <TexturedDesk />
+      </Suspense>
     </AssetBoundary>
   )
 }
@@ -138,6 +143,8 @@ interface Props {
 export default function ContactZone({ view, noHover, reducedMotion, quality }: Props) {
   const send = useViewStore((s) => s.send)
   const copied = useViewStore((s) => s.copied)
+  const setZoneMounted = useViewStore((s) => s.setZoneMounted)
+  useEffect(() => setZoneMounted('contact'), [setZoneMounted])
   const highlighted = useViewStore((s) => s.highlighted)
   const interactive = view.name === 'contact'
   // El sobre se abre cuando la cámara ya se acomodó frente al escritorio y se cierra al acercarse al
