@@ -15,8 +15,8 @@ import { Lettering } from './Lettering'
 import { IntroText } from './IntroText'
 import { FOV, INTRO_WIDE_POSE, ROOM } from './layout'
 import { LightBeam } from './LightBeam'
-import { LoadingScreen } from './LoadingScreen'
 import { Overlays } from './Overlays'
+import { useLoaderProgress } from './useLoaderProgress'
 import { Pedestal } from './Pedestal'
 import { Precompile } from './Precompile'
 import { detectQuality, readDeviceHints, readUrlOverrides } from './quality'
@@ -74,6 +74,8 @@ export default function Experience({ view }: Props) {
   if (!contactLoaded && !render && CONTACT_READY_VIEWS.has(view.name)) setContactLoaded(true)
   const aboutSection = view.name === 'about' ? view.section : view.name === 'aboutEntry' ? sectionOf(view.slug) : null
   useStepInput()
+  // Progreso real de carga para la pantalla de index.html; al estar lista la escena, se abren las puertas.
+  useLoaderProgress(ready && !render)
 
   // Con la escena lista, las zonas que se cargan aparte se descargan en segundo plano: al llegar a ellas
   // ya están (la sombra horneada del mueble y del escritorio nunca se ve sola).
@@ -157,7 +159,6 @@ export default function Experience({ view }: Props) {
       <IntroText visible={view.name === 'intro'} />
       {aboutLoaded && <AboutLabels anchorRef={aboutRef} section={aboutSection} />}
       {view.name === 'contactBook' && <ContactBook anchorRef={bookRef} />}
-      <LoadingScreen done={ready} />
       <Overlays view={view} />
     </div>
   )

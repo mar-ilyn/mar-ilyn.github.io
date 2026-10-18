@@ -27,8 +27,325 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Marilyn Diaz, Desarrolladora Full Stack" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Pantalla de carga de la galería: se encienden las luces de la sala. CSS crítico en línea, para que
+         se vea antes que el JavaScript; el progreso real lo pasa src/lib/loader.ts (--p, de 0 a 1). -->
+    <script>
+      ;(function () {
+        var l = location
+        if (!/\/lista\/?$/.test(l.pathname) && !/[?&]render=/.test(l.search)) document.documentElement.classList.add('has-loader')
+      })()
+    </script>
+    <style>
+      .loader {
+        --p: 0;
+        --ink: #efe2c9;
+        --soft: #c9b79b;
+        --light: 255 214 160;
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        overflow: hidden;
+        perspective: 1800px;
+        color: var(--ink);
+        font-family: 'EB Garamond Variable', 'EB Garamond', Garamond, Georgia, serif;
+      }
+      .has-loader .loader {
+        display: block;
+      }
+      .has-loader body {
+        overflow: hidden;
+      }
+      .loader--done,
+      .has-loader .loader.loader--done {
+        display: none;
+      }
+      /* Dos puertas de museo, de madera oscura con un panel moldurado y su tirador. */
+      .loader__door {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50.2%;
+        background:
+          linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 12%, transparent 88%, rgb(0 0 0 / 0.3)),
+          linear-gradient(180deg, #2a1d15, #22180f 55%, #1a120c);
+        transition: transform 1.3s cubic-bezier(0.62, 0.04, 0.24, 1) 0.18s;
+        backface-visibility: hidden;
+      }
+      .loader__door::before {
+        content: '';
+        position: absolute;
+        inset: 8vh 12%;
+        border: 1px solid rgb(201 163 94 / 0.22);
+        box-shadow:
+          inset 0 0 0 10px rgb(0 0 0 / 0.16),
+          inset 0 0 0 11px rgb(201 163 94 / 0.14),
+          0 0 0 6px rgb(0 0 0 / 0.12);
+      }
+      .loader__door::after {
+        content: '';
+        position: absolute;
+        top: calc(50% - 40px);
+        width: 7px;
+        height: 80px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #8f6630, #e2c487 45%, #8f6630);
+        box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
+      }
+      .loader__door--l {
+        left: 0;
+        transform-origin: left center;
+      }
+      .loader__door--l::after {
+        right: 16px;
+      }
+      .loader__door--r {
+        right: 0;
+        transform-origin: right center;
+      }
+      .loader__door--r::after {
+        left: 16px;
+      }
+      .loader--open .loader__door--l {
+        transform: rotateY(-102deg);
+      }
+      .loader--open .loader__door--r {
+        transform: rotateY(102deg);
+      }
+      /* Luz del aplique sobre las puertas: se enciende con el progreso. */
+      .loader__light {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: var(--p);
+        transition: opacity 0.4s ease;
+      }
+      .loader__light::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 46% 42% at 50% 44%, rgb(var(--light) / 0.22), transparent 70%);
+      }
+      .loader__stage {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 0.35rem;
+        padding: 24px 16px;
+        text-align: center;
+        transition: opacity 0.3s ease;
+      }
+      .loader__lamp {
+        width: min(220px, 52vw);
+        height: auto;
+        margin-bottom: -6px;
+      }
+      .loader__bulb {
+        opacity: var(--p);
+        transition: opacity 0.4s ease;
+      }
+      .loader__beam {
+        width: min(560px, 92vw);
+        height: clamp(40px, 9vh, 90px);
+        margin-bottom: -2.2rem;
+        clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
+        background: linear-gradient(180deg, rgb(var(--light) / 0.38), rgb(var(--light) / 0));
+        transform-origin: top center;
+        transform: scaleY(calc(0.2 + 0.8 * var(--p)));
+        opacity: var(--p);
+        transition:
+          opacity 0.4s ease,
+          transform 0.4s ease;
+      }
+      .loader--lit .loader__light,
+      .loader--lit .loader__bulb,
+      .loader--lit .loader__beam {
+        animation: loader-flicker 0.9s steps(1, end) 1;
+      }
+      @keyframes loader-flicker {
+        0% { filter: brightness(0.2); }
+        18% { filter: brightness(1.2); }
+        30% { filter: brightness(0.35); }
+        45% { filter: brightness(1); }
+        58% { filter: brightness(0.6); }
+        100% { filter: brightness(1); }
+      }
+      /* El nombre: legible desde el principio y el haz lo va iluminando de izquierda a derecha. */
+      .loader__name {
+        margin: 0;
+        padding: 0.1em 0.2em;
+        font-size: clamp(2rem, 7vw, 4.6rem);
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        background: linear-gradient(
+          90deg,
+          #fff2d8 calc(var(--p) * 115% - 15%),
+          var(--soft) calc(var(--p) * 115% + 5%)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 calc(var(--p) * 16px) rgb(var(--light) / calc(var(--p) * 0.4)));
+      }
+      .loader__role {
+        margin: 0 0 0.9rem;
+        font-size: clamp(1rem, 2.4vw, 1.2rem);
+        color: var(--soft);
+      }
+      .loader__status {
+        margin: 0;
+        font-size: 0.82rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #b7a487;
+      }
+      .loader__bar {
+        display: none;
+        width: min(240px, 60vw);
+        height: 3px;
+        margin: 0.3rem 0;
+        background: rgb(239 226 201 / 0.2);
+      }
+      .loader__bar span {
+        display: block;
+        width: calc(var(--p) * 100%);
+        height: 100%;
+        background: #e3c48f;
+      }
+      .loader__live {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      .loader__links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 1.1rem 0 0.3rem;
+        padding: 0;
+        list-style: none;
+      }
+      .loader a,
+      .loader button {
+        font: inherit;
+        color: var(--ink);
+      }
+      .loader__links a,
+      .loader__enter {
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 1.05rem;
+        border: 1px solid rgb(239 226 201 / 0.45);
+        border-radius: 999px;
+        background: transparent;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.16s ease;
+      }
+      .loader__links a:hover {
+        background: rgb(255 240 215 / 0.08);
+      }
+      .loader__enter {
+        margin-top: 0.6rem;
+        background: var(--ink);
+        color: #2a1d15;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+      .loader__enter[hidden] {
+        display: none;
+      }
+      .loader__list {
+        margin-top: 0.4rem;
+        font-size: 0.95rem;
+        text-underline-offset: 4px;
+        text-decoration-color: rgb(239 226 201 / 0.5);
+      }
+      .loader--slow .loader__list {
+        padding: 0.35rem 0.9rem;
+        border-radius: 999px;
+        background: rgb(255 240 215 / 0.12);
+      }
+      .loader a:focus-visible,
+      .loader button:focus-visible {
+        outline: 2px solid #f1c27d;
+        outline-offset: 3px;
+      }
+      /* Al terminar: el contenido se desvanece y las puertas se abren hacia la sala. */
+      .loader--open {
+        pointer-events: none;
+      }
+      .loader--open .loader__stage,
+      .loader--open .loader__light {
+        opacity: 0;
+      }
+      .loader--open .loader__enter {
+        pointer-events: auto;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader *,
+        .loader *::before {
+          transition: none !important;
+          animation: none !important;
+        }
+        .loader__beam {
+          transform: none;
+        }
+        .loader__bar {
+          display: block;
+        }
+      }
+    </style>
   </head>
   <body>
+    <section id="loader" class="loader" aria-labelledby="loader-name">
+      <div class="loader__door loader__door--l" aria-hidden="true"></div>
+      <div class="loader__door loader__door--r" aria-hidden="true"></div>
+      <div class="loader__light" aria-hidden="true"></div>
+      <div class="loader__stage">
+        <svg class="loader__lamp" viewBox="0 0 220 72" aria-hidden="true">
+          <defs>
+            <linearGradient id="loader-brass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#e2c487" />
+              <stop offset="0.55" stop-color="#a67c43" />
+              <stop offset="1" stop-color="#6e4f24" />
+            </linearGradient>
+            <radialGradient id="loader-glow" cx="0.5" cy="0" r="0.75">
+              <stop offset="0" stop-color="#fff1d0" stop-opacity="0.95" />
+              <stop offset="1" stop-color="#ffd8a0" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+          <rect x="98" y="2" width="24" height="9" rx="2" fill="url(#loader-brass)" />
+          <path d="M110 11 C110 26 104 32 92 38" fill="none" stroke="url(#loader-brass)" stroke-width="3.2" stroke-linecap="round" />
+          <rect x="22" y="36" width="176" height="15" rx="7.5" fill="url(#loader-brass)" />
+          <ellipse class="loader__bulb" cx="110" cy="54" rx="92" ry="16" fill="url(#loader-glow)" />
+        </svg>
+        <div class="loader__beam" aria-hidden="true"></div>
+        <p class="loader__name" id="loader-name">Marilyn Diaz</p>
+        <p class="loader__role">Desarrolladora Full Stack</p>
+        <p class="loader__status" aria-hidden="true">Encendiendo la sala · <span class="loader__pct">0%</span></p>
+        <div class="loader__bar" aria-hidden="true"><span></span></div>
+        <p class="loader__live" role="status" aria-live="polite">Cargando la galería: 0%</p>
+        <button class="loader__enter" type="button" hidden>Entrar a la galería</button>
+        <ul class="loader__links" aria-label="Contacto">
+          <li><a href="%BASE_URL%cv/marilyn-diaz-cv.pdf" download>Descargar CV</a></li>
+          <li><a href="https://github.com/mar-ilyn" target="_blank" rel="noopener noreferrer">GitHub<span class="loader__live"> (se abre en una pestaña nueva)</span></a></li>
+          <li><a href="https://www.linkedin.com/in/marilyn-d/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="loader__live"> (se abre en una pestaña nueva)</span></a></li>
+        </ul>
+        <a class="loader__list" href="%BASE_URL%lista">Ver como lista</a>
+      </div>
+    </section>
     <div id="root">
       <noscript>
         <h1>Marilyn Diaz</h1>
@@ -40,6 +357,10 @@
         </p>
       </noscript>
     </div>
+    <script>
+      // Mientras se ve la pantalla de carga, la página de atrás no recibe foco ni clics.
+      if (document.documentElement.classList.contains('has-loader')) document.getElementById('root').setAttribute('inert', '')
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

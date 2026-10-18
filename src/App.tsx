@@ -4,6 +4,7 @@ import { SiteHeader } from './components/SiteHeader'
 import { getProject } from './data/projects'
 import { getEntry } from './data/timeline'
 import { profile } from './data/profile'
+import { bindLoaderActions, hideLoader, startLoader } from './lib/loader'
 import { supportsWebGL } from './lib/webgl'
 import type { Route } from './state/routes'
 import { useViewStore } from './state/store'
@@ -33,6 +34,7 @@ function titleFor(route: Route): string {
 export default function App() {
   const route = useViewStore((s) => s.route)
   const syncFromLocation = useViewStore((s) => s.syncFromLocation)
+  const navigate = useViewStore((s) => s.navigate)
   const [webgl] = useState(supportsWebGL)
   const showGallery = webgl && route.name !== 'list'
 
@@ -48,6 +50,13 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('is-gallery', showGallery)
   }, [showGallery])
+
+  // Pantalla de carga (index.html): mientras carga la galería; sin WebGL o en la lista, no está.
+  useEffect(() => {
+    if (showGallery && !RENDER_FRAME) startLoader()
+    else hideLoader()
+  }, [showGallery])
+  useEffect(() => bindLoaderActions(() => navigate({ name: 'list' })), [navigate])
 
   if (RENDER_FRAME) {
     return (
