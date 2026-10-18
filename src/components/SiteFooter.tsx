@@ -24,10 +24,13 @@ export function SiteFooter() {
           <h2 id="footer-page">Recorrido</h2>
           <ul>
             <li>
+              <a href="#sobre-mi">Sobre mí</a>
+            </li>
+            <li>
               <a href="#proyectos">Proyectos</a>
             </li>
             <li>
-              <a href="#sobre-mi">Experiencia</a>
+              <a href="#experiencia">Experiencia</a>
             </li>
             <li>
               <a href="#estudios">Estudios</a>

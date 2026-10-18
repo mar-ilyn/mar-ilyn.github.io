@@ -17,7 +17,7 @@ function Column() {
 // "Cómo trabajo": tres principios en columnas, con su número romano y su lema.
 export function Principles() {
   return (
-    <section className="band band--warm principles" aria-labelledby="principles-title">
+    <section id="sobre-mi" className="band band--warm principles" aria-labelledby="principles-title" tabIndex={-1}>
       <SectionHeading id="principles-title" eyebrow="Cómo trabajo" title="Tres principios" intro={profile.about} />
       <ol className="principles__list">
         {principles.map((p, i) => (

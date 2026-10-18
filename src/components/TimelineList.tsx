@@ -4,7 +4,7 @@ import { SectionHeading } from './SectionHeading'
 
 interface Props {
   row: Row
-  // Ancla de la sección (la de experiencia es #sobre-mi, adonde lleva "Sobre mí" del header).
+  // Ancla de la sección (#experiencia o #estudios).
   id: string
   eyebrow: string
   title: string

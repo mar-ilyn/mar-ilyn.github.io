@@ -16,7 +16,7 @@ export function ListView({ canShowGallery }: { canShowGallery: boolean }) {
         <Principles />
         <ProjectList />
         <QuoteBand />
-        <TimelineSection row="laboral" id="sobre-mi" eyebrow="Trayectoria" title="Experiencia" />
+        <TimelineSection row="laboral" id="experiencia" eyebrow="Trayectoria" title="Experiencia" />
         <TimelineSection row="estudios" id="estudios" eyebrow="Formación" title="Estudios" />
         <ContactSection />
       </main>
