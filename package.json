@@ -17,7 +17,6 @@
     "bake:env": "node scripts/bake-environment.mjs",
     "bake:lightmaps": "node scripts/bake-lightmaps.mjs",
     "render:images": "node scripts/render-images.mjs",
-    "frame-kit": "node scripts/build-frame-kit.mjs",
     "lettering-font": "node scripts/build-lettering-font.mjs"
   },
   "dependencies": {

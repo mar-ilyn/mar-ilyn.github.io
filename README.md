@@ -145,15 +145,9 @@ Fuera de la escena, el header tiene un botón "Contacto" fijo en todas las zonas
 
 Pendiente: el formulario real con función serverless (etapa 2).
 
-### Molduras doradas de la pared
+### Molduras de la pared
 
-Se arman con el tallado real del marco `fancy_picture_frame_02` (Poly Haven, CC0, Rob Tuytel y Rico Cilliers), no con ornamentos generados por código:
-
-1. `scripts/blender/render_frame_kit.py` renderiza el marco de frente en Blender: color, normal map, oclusión, rugosidad y altura del relieve.
-2. `npm run frame-kit` recorta el contorno, abre el hueco y genera `giltframe_albedo/normal/orm.ktx2` (~500 KB), con lados múltiplos de 4 (las texturas comprimidas lo exigen; si no, la GPU las rechaza y salen negras).
-3. `giltFrameGeometry.ts` las usa "en 9 partes": esquinas talladas reales y tramos rectos repetidos a lo largo de cada lado, sin deformar las esquinas.
-
-El material lleva la luminancia del render a una paleta de oro envejecido (recovecos #4A3118, altos #A67C3D, desgaste #D6B56C), con rugosidad de 0,35 a 0,55 y metal moderado. **Sin crestería**: la banda superior de este marco es un rectángulo macizo, sin silueta propia, y recortarla quedaba como un bloque. Para tener una haría falta otro modelo.
+Las molduras de los paneles son de yeso, del mismo marfil que la pared, con un filete dorado fino y apagado junto al borde interior. Se hacen por código (`moldingGeometry.ts`): el perfil (canto, garganta honda, toro, escalón del filete y filo) se recorre alrededor del rectángulo, con las esquinas en inglete y sombreado suave, así la luz corre por las curvas y la moldura no se ve plana. Una franja translúcida con degradé simula la sombra que proyecta sobre la pared, adentro y afuera del panel. El mismo recorrido de perfil arma el marco del retrato. No descargan texturas.
 
 ### Vista en lista (`/lista`)
 
@@ -196,7 +190,7 @@ Medido con `vite preview` registrando cada pedido hasta que la escena está list
 | Galería, cualquier calidad (hasta la intro lista) | 2,39 MB |
 | "Sobre mí", aparte, al llegar a la galería | 520 KB |
 
-Lo más pesado de la galería: las texturas KTX2 (~1,23 MB: parquet, yeso, molduras doradas y lightmaps), el chunk de three.js con la escena (~310 KB), el marco tallado (~275 KB), el transcodificador de Basis (~260 KB) y el entorno (~120 KB). En "Sobre mí", el nogal (~430 KB) y el marco de los certificados (~90 KB).
+Lo más pesado de la galería: las texturas KTX2 (~0,7 MB: parquet, yeso y lightmaps), el chunk de three.js con la escena (~310 KB), el marco tallado (~275 KB), el transcodificador de Basis (~260 KB) y el entorno (~120 KB). En "Sobre mí", el nogal (~430 KB) y el marco de los certificados (~90 KB).
 
 Todas las texturas KTX2, sueltas o dentro de un GLB, pasan por un único `KTX2Loader` (`ktx2.ts`): cada instancia descarga su propio transcodificador, y con dos se bajaba dos veces (~245 KB de más). Los fps en un celular de gama media están pendientes de medir en un dispositivo real con `?debug`.
 

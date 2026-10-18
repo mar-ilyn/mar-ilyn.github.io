@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { BufferGeometry, Float32BufferAttribute, InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from 'three'
+import { InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from 'three'
+import { sweptRectangle } from './moldingGeometry'
 
 interface Props {
   width: number
@@ -70,34 +71,7 @@ function beadPoints(width: number, height: number): [number, number][] {
 
 const beadGeometry = new SphereGeometry(1, 8, 6)
 
-// La moldura recorrida alrededor del rectángulo: cada punto del perfil es un rectángulo metido `d` hacia
-// adentro, a la altura `z`; los rectángulos consecutivos se unen con caras. Las esquinas quedan en inglete.
-function frameGeometry(width: number, height: number): BufferGeometry {
-  const loops = PROFILE.map(([d, z]) => {
-    const hw = width / 2 - d
-    const hh = height / 2 - d
-    return [
-      [-hw, -hh, z],
-      [hw, -hh, z],
-      [hw, hh, z],
-      [-hw, hh, z],
-    ]
-  })
-  const positions: number[] = []
-  for (let i = 0; i < loops.length - 1; i++) {
-    const a = loops[i]
-    const b = loops[i + 1]
-    for (let c = 0; c < 4; c++) {
-      const n = (c + 1) % 4
-      // Dos triángulos por tramo de lado, mirando hacia el frente.
-      positions.push(...a[c], ...a[n], ...b[n], ...a[c], ...b[n], ...b[c])
-    }
-  }
-  const g = new BufferGeometry()
-  g.setAttribute('position', new Float32BufferAttribute(positions, 3))
-  g.computeVertexNormals()
-  return g
-}
+const frameGeometry = (width: number, height: number) => sweptRectangle(width, height, PROFILE)
 
 // Oro de la moldura: metálico y satinado, con reflejos suaves.
 const gilt = new MeshStandardMaterial({ color: '#d2ad62', metalness: 0.88, roughness: 0.34, envMapIntensity: 1.1, flatShading: true })

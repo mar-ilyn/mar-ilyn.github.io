@@ -33,13 +33,6 @@ export const TEXTURES = {
   },
 } as const
 
-// Molduras doradas de la pared, armadas con el mismo marco tallado (scripts/build-frame-kit.mjs).
-export const GILT_FRAME = {
-  albedo: `${BASE}giltframe_albedo.ktx2`,
-  normal: `${BASE}giltframe_normal.ktx2`,
-  orm: `${BASE}giltframe_orm.ktx2`,
-} as const
-
 // Nogal de la vitrina (black_walnut_veneer_01) y marco con atril de los certificados
 // (standing_picture_frame_02), ambos de Poly Haven, CC0.
 export const WALNUT = {

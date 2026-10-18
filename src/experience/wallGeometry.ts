@@ -1,6 +1,6 @@
 import { BoxGeometry, ExtrudeGeometry, Group, Shape, SphereGeometry, TorusGeometry, type BufferGeometry } from 'three'
 import { bake } from './bake'
-import { place, ring, scroll } from './ornament'
+import { place, ring } from './ornament'
 import { flute, lathe } from './pedestalGeometry'
 
 // Pared de palacio modular: columnas adosadas, boiserie con molduras doradas y friso.
@@ -172,107 +172,6 @@ export function columnGeometries(): ColumnGeometries {
   return { ivory: bake(marble), gold: bake(gold) }
 }
 
-interface Ornaments {
-  cScroll: TorusGeometry
-  curl: TorusGeometry
-  shell: SphereGeometry
-  leaf: SphereGeometry
-  knob: SphereGeometry
-}
-
-function ornaments(k = 1): Ornaments {
-  return {
-    cScroll: new TorusGeometry(0.075 * k, 0.018 * k, 5, 14, Math.PI * 1.5),
-    curl: new TorusGeometry(0.035 * k, 0.012 * k, 5, 10, Math.PI * 1.75),
-    shell: new SphereGeometry(0.07 * k, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2),
-    leaf: new SphereGeometry(0.045 * k, 6, 4),
-    knob: new SphereGeometry(0.022 * k, 6, 4),
-  }
-}
-
-function crest(parent: Group, o: Ornaments, x: number, y: number, flip: boolean, k: number) {
-  const s = flip ? -1 : 1
-  const r = flip ? Math.PI : 0
-  place(parent, o.shell, { position: [x, y, 0.01], rotation: [Math.PI / 2, 0, r], scale: [1, 0.55, 0.8] })
-  place(parent, o.knob, { position: [x, y + s * 0.07 * k, 0.025] })
-  place(parent, o.cScroll, { position: [x + 0.12 * k, y - s * 0.005, 0.01], ...scroll(r + Math.PI * 0.85, 0.85) })
-  place(parent, o.cScroll, { position: [x - 0.12 * k, y - s * 0.005, 0.01], ...scroll(r + Math.PI * 0.15, 0.85, true) })
-  place(parent, o.curl, { position: [x + 0.22 * k, y + s * 0.02, 0.01], ...scroll(r + Math.PI * 0.2) })
-  place(parent, o.curl, { position: [x - 0.22 * k, y + s * 0.02, 0.01], ...scroll(r + Math.PI * 0.8, 1, true) })
-  place(parent, o.leaf, { position: [x + 0.32 * k, y, 0.005], scale: [2.2, 0.45, 0.4] })
-  place(parent, o.leaf, { position: [x - 0.32 * k, y, 0.005], scale: [2.2, 0.45, 0.4] })
-}
-
-// Moldura dorada de boiserie con detalle de marco tallado: moldura principal biselada, fila de
-// perlas, relieve de hojas alternadas, filete interior, floreos en las esquinas y cartela arriba.
-export function goldPanel(width: number, height: number, k = 1): BufferGeometry {
-  const o = ornaments(k)
-  const root = new Group()
-  const t = 0.07
-  place(root, ring(width, height, width - 2 * t, height - 2 * t, 0.025, 0.014), { position: [0, 0, 0] })
-  place(root, ring(width - 2 * t + 0.02, height - 2 * t + 0.02, width - 2 * t - 0.01, height - 2 * t - 0.01, 0.035, 0.005), {
-    position: [0, 0, 0],
-  })
-  place(root, ring(width - 0.24, height - 0.24, width - 0.24 - 0.025, height - 0.24 - 0.025, 0.012, 0.004), {
-    position: [0, 0, 0],
-  })
-
-  // Perlas sobre el canto interior y hojas sobre la moldura principal.
-  const bead = new SphereGeometry(0.011, 6, 4)
-  const leafRun = new SphereGeometry(0.026, 6, 4)
-  const perimeter = (w: number, h: number, spacing: number, fn: (x: number, y: number, along: number, i: number) => void) => {
-    let i = 0
-    const side = (x0: number, y0: number, x1: number, y1: number, rot: number) => {
-      const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / spacing))
-      for (let j = 0; j < n; j++) fn(x0 + ((x1 - x0) * j) / n, y0 + ((y1 - y0) * j) / n, rot, i++)
-    }
-    side(-w / 2, -h / 2, w / 2, -h / 2, 0)
-    side(w / 2, -h / 2, w / 2, h / 2, Math.PI / 2)
-    side(w / 2, h / 2, -w / 2, h / 2, 0)
-    side(-w / 2, h / 2, -w / 2, -h / 2, Math.PI / 2)
-  }
-  perimeter(width - 2 * t + 0.005, height - 2 * t + 0.005, 0.03, (x, y) => place(root, bead, { position: [x, y, 0.036] }))
-  perimeter(width - t, height - t, 0.065, (x, y, rot, i) =>
-    place(root, leafRun, {
-      position: [x, y, 0.03],
-      rotation: [0, 0, rot + (i % 2 === 0 ? 0.55 : -0.55)],
-      scale: [1.5, 0.6, 0.7],
-    }),
-  )
-
-  const hw = width / 2 - t
-  const hh = height / 2 - t
-  for (const [sx, sy] of [
-    [-1, 1],
-    [1, 1],
-    [1, -1],
-    [-1, -1],
-  ] as const) {
-    const angle = Math.atan2(sy, sx)
-    // Floreo de esquina: voluta y dos hojas que siguen los lados.
-    place(root, o.curl, { position: [sx * (hw - 0.05), sy * (hh - 0.05), 0.03], ...scroll(angle + Math.PI) })
-    place(root, o.leaf, {
-      position: [sx * (hw - 0.13), sy * (hh - 0.03), 0.02],
-      rotation: [0, 0, sx * sy * 0.25],
-      scale: [2, 0.45, 0.45],
-    })
-    place(root, o.leaf, {
-      position: [sx * (hw - 0.03), sy * (hh - 0.13), 0.02],
-      rotation: [0, 0, Math.PI / 2 - sx * sy * 0.25],
-      scale: [2, 0.45, 0.45],
-    })
-  }
-  // Cartela arriba (más grande y elaborada) y un remate chico abajo.
-  crest(root, o, 0, height / 2 + 0.03, false, k * 1.35)
-  crest(root, o, -0.42 * k, height / 2 + 0.01, false, k * 0.55)
-  crest(root, o, 0.42 * k, height / 2 + 0.01, false, k * 0.55)
-  crest(root, o, 0, -height / 2 - 0.02, true, k * 0.7)
-  return bake(root)
-}
-
-// Cornisa de yeso hasta el techo, como en las salas clásicas: filetes escalonados que avanzan,
-// una media caña cóncava y un último escalón contra el techo. Es un perfil (profundidad × altura)
-// extruido a lo largo de toda la pared, así las sombras corren continuas.
 function corniceGeometry(length: number): BufferGeometry {
   const y0 = WALL.architrave - 0.04
   const shape = new Shape()
