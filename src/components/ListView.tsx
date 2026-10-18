@@ -8,11 +8,11 @@ import { TimelineSection } from './TimelineList'
 
 // Vista en lista: el mismo portfolio en HTML, con la estética de un museo clásico. Debajo de la portada,
 // los principios, los proyectos, una cita, la experiencia, los estudios y el contacto.
-export function ListView() {
+export function ListView({ canShowGallery }: { canShowGallery: boolean }) {
   return (
     <>
       <main className="list-view">
-        <ListHero />
+        <ListHero canShowGallery={canShowGallery} />
         <Principles />
         <ProjectList />
         <QuoteBand />

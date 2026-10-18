@@ -82,7 +82,7 @@ export default function App() {
           <Experience view={route} />
         </Suspense>
       ) : (
-        <ListView />
+        <ListView canShowGallery={webgl} />
       )}
     </>
   )
