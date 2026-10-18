@@ -13,6 +13,8 @@ const Experience = lazy(() => import('./experience/Experience'))
 const FrameStudio = lazy(() => import('./experience/FrameStudio'))
 // ?render=marco: solo el marco tallado, para scripts/render-images.mjs.
 const RENDER_FRAME = new URLSearchParams(window.location.search).get('render') === 'marco'
+// Cualquier ?render (imágenes generadas por scripts) va sin pantalla de carga.
+const RENDER = new URLSearchParams(window.location.search).has('render')
 
 const BASE_TITLE = `${profile.name} · ${profile.role}`
 
@@ -53,7 +55,7 @@ export default function App() {
 
   // Pantalla de carga (index.html): mientras carga la galería; sin WebGL o en la lista, no está.
   useEffect(() => {
-    if (showGallery && !RENDER_FRAME) startLoader()
+    if (showGallery && !RENDER) startLoader()
     else hideLoader()
   }, [showGallery])
   useEffect(() => bindLoaderActions(() => navigate({ name: 'list' })), [navigate])

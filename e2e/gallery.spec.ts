@@ -104,7 +104,8 @@ test('subir desde el detalle vuelve a la cartela y desde la cartela a los proyec
 
 test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Ver como lista' }).click()
+  // El del header (la pantalla de carga tiene su propio "Ver como lista" mientras está a la vista).
+  await page.getByRole('banner').getByRole('link', { name: 'Ver como lista' }).click()
   await expect(page).toHaveURL(/\/lista$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
   await page.goBack()

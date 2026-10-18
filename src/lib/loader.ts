@@ -58,7 +58,7 @@ export function setLoaderProgress(percent: number, preparing: boolean) {
     lit = true
     el.classList.add('loader--lit')
   }
-  setText('.loader__pct', preparing ? 'Preparando la sala…' : `${p}%`)
+  setText('.loader__status', preparing ? 'Preparando la sala…' : `Encendiendo la sala · ${p}%`)
   // Para lectores de pantalla, de a 10 %: cada número sería demasiado.
   const step = preparing ? 11 : Math.floor(p / 10)
   if (step !== lastSpoken) {

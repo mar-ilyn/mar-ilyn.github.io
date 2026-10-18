@@ -34,7 +34,7 @@ describe('<App /> sin WebGL', () => {
   it('la vista en lista incluye la sección de contacto', () => {
     render(<App />)
     const section = within(screen.getByRole('region', { name: 'Contacto' }))
-    expect(section.getByRole('heading', { level: 3, name: 'Mis canales' })).toBeInTheDocument()
+    expect(section.getByText('Respondo por cualquiera de estos medios.')).toBeInTheDocument()
     expect(section.getAllByRole('button', { name: /^Copiar / })).toHaveLength(3)
     expect(section.getByRole('link', { name: 'Escribirme' })).toHaveAttribute(
       'href',

@@ -161,7 +161,9 @@ Mismo contenido en HTML con la estética de la galería. La portada usa imágene
 - `hero-h` y `hero-v` (16:9 y 9:16, AVIF y WebP con `<picture>`): la sala de la intro con `?render=fondo`, sin cuadro, lámpara ni texto. Usa una oclusión de pared horneada sin el cuadro (`wall_ao_bare`), así no queda su sombra.
 - `frame.webp`: el marco tallado y la lámpara solos (`?render=marco`), con fondo transparente y el hueco del lienzo abierto para la foto en HTML.
 
-Encima van el texto, el botón y el stack en HTML. En pantallas anchas se ubican sobre el panel de la pared y escalan con el ancho (unidades de contenedor). Por debajo de 1100 px pasan abajo de la imagen. Los proyectos se muestran en marcos dorados hechos con CSS.
+Encima van el texto, el botón y el stack en HTML. En pantallas anchas se ubican sobre el panel de la pared y escalan con el ancho (unidades de contenedor). Por debajo de 1100 px pasan abajo de la imagen.
+
+Debajo de la portada, la página sigue la estética de un museo clásico: bandas que alternan crema claro y cálido, encabezados centrados con un filete dorado y un rombo (`SectionHeading`), números romanos y una banda oscura con la frase del perfil como cita. Las secciones: **Cómo trabajo** (tres principios, uno por cada parte de la frase: interfaces, APIs y datos, en `src/data/principles.ts`, textos de ejemplo), **Proyectos** (grilla de obras: título en versalitas, año y rol en itálica dorada, tecnologías y enlaces), **Experiencia** y **Estudios** (listas numeradas, como las exposiciones de un museo), **Contacto** ("Escribirme" en dorado, el CV y los canales con Copiar) y un footer oscuro en columnas: recorrido, galería 3D, redes y descargas.
 
 ### Horneado de la oclusión ambiental
 

@@ -86,9 +86,9 @@
       .loader__door::after {
         content: '';
         position: absolute;
-        top: calc(50% - 40px);
-        width: 7px;
-        height: 80px;
+        bottom: 14vh;
+        width: 6px;
+        height: 56px;
         border-radius: 4px;
         background: linear-gradient(90deg, #8f6630, #e2c487 45%, #8f6630);
         box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
@@ -255,8 +255,12 @@
       .loader__links a:hover {
         background: rgb(255 240 215 / 0.08);
       }
+      /* Mientras se abren las puertas, abajo: permite saltear la apertura. */
       .loader__enter {
-        margin-top: 0.6rem;
+        position: absolute;
+        left: 50%;
+        bottom: max(28px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
         background: var(--ink);
         color: #2a1d15;
         letter-spacing: 0.1em;
@@ -334,10 +338,9 @@
         <div class="loader__beam" aria-hidden="true"></div>
         <p class="loader__name" id="loader-name">Marilyn Diaz</p>
         <p class="loader__role">Desarrolladora Full Stack</p>
-        <p class="loader__status" aria-hidden="true">Encendiendo la sala · <span class="loader__pct">0%</span></p>
+        <p class="loader__status" aria-hidden="true">Encendiendo la sala · 0%</p>
         <div class="loader__bar" aria-hidden="true"><span></span></div>
         <p class="loader__live" role="status" aria-live="polite">Cargando la galería: 0%</p>
-        <button class="loader__enter" type="button" hidden>Entrar a la galería</button>
         <ul class="loader__links" aria-label="Contacto">
           <li><a href="%BASE_URL%cv/marilyn-diaz-cv.pdf" download>Descargar CV</a></li>
           <li><a href="https://github.com/mar-ilyn" target="_blank" rel="noopener noreferrer">GitHub<span class="loader__live"> (se abre en una pestaña nueva)</span></a></li>
@@ -345,6 +348,7 @@
         </ul>
         <a class="loader__list" href="%BASE_URL%lista">Ver como lista</a>
       </div>
+      <button class="loader__enter" type="button" hidden>Entrar a la galería</button>
     </section>
     <div id="root">
       <noscript>
