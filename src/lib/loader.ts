@@ -52,7 +52,7 @@ export function setLoaderProgress(percent: number, preparing: boolean) {
   if (!el || finished) return
   const p = Math.max(0, Math.min(100, percent))
   el.style.setProperty('--p', (p / 100).toFixed(3))
-  setText('.loader__status', preparing ? 'Preparando la galería…' : `Cargando la galería · ${p}%`)
+  setText('.loader__status', preparing ? 'Abriendo la sala' : 'Preparando la exposición')
   // Para lectores de pantalla, de a 10 %: cada número sería demasiado.
   const step = preparing ? 11 : Math.floor(p / 10)
   if (step !== lastSpoken) {
