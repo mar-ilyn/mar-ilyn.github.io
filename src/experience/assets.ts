@@ -49,9 +49,6 @@ export const WALNUT = {
 } as const
 export const CERT_FRAME_MODEL = `${BASE}cert_frame.glb`
 
-// Marco tallado (fancy_picture_frame_02, Poly Haven CC0): geometría meshopt y texturas KTX2.
-export const FRAME_MODEL = `${BASE}frame.glb`
-
 // Entorno de reflejos ya prefiltrado (scripts/bake-environment.mjs), a partir del HDRI "ballroom".
 export const ENVIRONMENT = `${BASE}ballroom_pmrem.png`
 

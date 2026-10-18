@@ -185,12 +185,13 @@ test('Sobre mí: bajar por los compartimentos del mueble, abrir con teclado, rec
   await expect(page).toHaveURL(/\/sobre-mi$/)
 })
 
-test('la vista en lista incluye la línea de tiempo como lista ordenada', async ({ page }) => {
+test('la vista en lista incluye la trayectoria como listas ordenadas', async ({ page }) => {
   await page.goto('/lista')
-  const section = page.getByRole('region', { name: 'Sobre mí' })
-  await expect(section.getByRole('list')).toBeVisible()
-  await expect(section.getByRole('listitem')).toHaveCount(5)
-  await expect(section.getByRole('heading', { level: 3 }).first()).toHaveText('Asistente de Documentación Internacional')
+  const experience = page.getByRole('region', { name: 'Experiencia' })
+  await expect(experience.getByRole('list')).toBeVisible()
+  await expect(experience.getByRole('listitem')).toHaveCount(2)
+  await expect(experience.getByRole('heading', { level: 3 }).first()).toHaveText('Asistente de Documentación Internacional')
+  await expect(page.getByRole('region', { name: 'Estudios' }).getByRole('listitem')).toHaveCount(3)
 })
 
 test('Contacto: desde el menú fijo al escritorio, acercarse al libro con teclado, volver y reiniciar', async ({ page }) => {
@@ -230,6 +231,8 @@ test('el sobre del escritorio descarga el CV', async ({ page }) => {
   // Solo el HTML: la escena se espera abajo (la carga completa de los assets superaba los 30 s en paralelo).
   await page.goto('/contacto', { waitUntil: 'domcontentloaded' })
   await expect(page.getByRole('heading', { name: /^Contacto · / })).toBeVisible({ timeout: 60_000 })
+  // Mientras está la pantalla de carga, la página de atrás no recibe foco: se espera a que se vaya.
+  await expect(page.locator('.experience')).toHaveAttribute('data-ready', 'true', { timeout: 60_000 })
   const download = page.waitForEvent('download', { timeout: 60_000 })
   await page.getByRole('link', { name: /Descargar mi CV en PDF \(el sobre\)/ }).focus()
   await page.keyboard.press('Enter')

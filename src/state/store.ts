@@ -47,10 +47,18 @@ function commit(route: Route, mode: 'push' | 'replace') {
   else window.history.replaceState(null, '', path)
 }
 
+// La página se recargó (F5, botón de recargar). Abrir un link o escribir la URL no cuenta.
+function isReload(): boolean {
+  const nav = performance.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined
+  return nav?.type === 'reload'
+}
+
 // Al entrar, la URL queda en su forma actual (p. ej. un link viejo a /placa pasa a la cartela, sin
-// /placa), conservando los parámetros como ?calidad.
+// /placa), conservando los parámetros como ?calidad. Al recargar estando en la galería, el recorrido
+// vuelve a empezar en la intro; un link compartido sí abre directo en su vista.
 function initialRoute(): Route {
-  const route = readLocation()
+  const read = readLocation()
+  const route: Route = read.name !== 'list' && read.name !== 'intro' && isReload() ? { name: 'intro' } : read
   const path = routeToPath(route, BASE)
   if (route.name !== 'list' && path !== window.location.pathname) {
     window.history.replaceState(null, '', path + window.location.search + window.location.hash)

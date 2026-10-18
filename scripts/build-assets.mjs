@@ -32,20 +32,12 @@ const TEXTURES = [
   { file: 'black_walnut_veneer_01_arm_1k.jpg', path: 'Textures/jpg/1k/black_walnut_veneer_01', out: 'walnut_arm.ktx2', kind: 'linear' },
 ]
 
-// Marco tallado (fancy_picture_frame_02). La pintura que trae se descarta: el lienzo es nuestro.
-const FRAME = {
-  dir: 'fancy_picture_frame_02',
-  gltf: 'fancy_picture_frame_02_1k.gltf',
-  base: 'Models/gltf/1k/fancy_picture_frame_02',
-  out: 'frame.glb',
-}
 // Marco con atril para los certificados de la vitrina (standing_picture_frame_02).
 const CERT_FRAME = {
   dir: 'standing_picture_frame_02',
   gltf: 'standing_picture_frame_02_1k.gltf',
   out: 'cert_frame.glb',
 }
-const FRAME_RATIO = Number(process.env.FRAME_RATIO ?? 0.35)
 const HDRI = { file: 'ballroom_1k.hdr', path: 'HDRIs/hdr/1k', out: 'ballroom_256.hdr', width: 256 }
 
 async function fetchSource({ file, path }) {
@@ -171,7 +163,7 @@ async function fetchModel({ dir, gltf }) {
 }
 
 // Geometría comprimida con meshopt y texturas en KTX2 (el mapa normal con su modo específico).
-async function buildFrame(model = FRAME, { ratio = FRAME_RATIO, texSize = 512 } = {}) {
+async function buildFrame(model, { ratio = 1, texSize = 512 } = {}) {
   await MeshoptEncoder.ready
   await MeshoptSimplifier.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder })
@@ -214,7 +206,6 @@ for (const t of TEXTURES) {
   console.log(`${t.out}: ${(ktx2.length / 1024).toFixed(0)} KB`)
 }
 
-await buildFrame()
 // Marcos de los certificados de la vitrina: chicos, sin simplificar, texturas de 256 px.
 await buildFrame(CERT_FRAME, { ratio: 1, texSize: 256 })
 

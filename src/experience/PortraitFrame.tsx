@@ -1,12 +1,5 @@
-import { useLoader, useThree } from '@react-three/fiber'
-import { useMemo } from 'react'
-import { Box3, Mesh, MeshStandardMaterial, Vector3, type Object3D } from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
-import { AssetBoundary } from './AssetBoundary'
-import { FRAME_MODEL } from './assets'
-import { OrnateFrame } from './OrnateFrame'
-import { ktx2Loader } from './ktx2'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { BufferGeometry, Float32BufferAttribute, InstancedMesh, MeshStandardMaterial, Object3D, SphereGeometry } from 'three'
 
 interface Props {
   width: number
@@ -18,65 +11,127 @@ interface Props {
 
 // Lienzo liso y cálido, reservado para la foto de presentación.
 const CANVAS_COLOR = '#ebe3d3'
-// En el modelo original (66 × 77 cm), el lienzo mide 39 × 50 cm.
-const CANVAS_RATIO = { width: 0.392 / 0.66, height: 0.5 / 0.771 }
 
-function CarvedFrame({ height, position, showCanvas = true }: Props) {
-  const gl = useThree((s) => s.gl)
-  const gltf = useLoader(GLTFLoader, FRAME_MODEL, (loader) => {
-    loader.setKTX2Loader(ktx2Loader(gl))
-    loader.setMeshoptDecoder(MeshoptDecoder)
+// Ancho de la moldura y perfil, del borde de afuera hacia el hueco: [distancia hacia adentro, altura] en
+// metros. Un canto exterior redondeado, una garganta, un toro alto (el cuerpo de la moldura), un cordón
+// fino de perlas sobre un filete, un escalón y el filo interior que baja hacia la foto.
+// El perfil se dibuja a escala 1 (0,105 m de ancho) y se agranda con SCALE.
+const SCALE = 1.22
+const BASE_PROFILE: [number, number][] = [
+  [0, 0],
+  [0, 0.022],
+  [0.003, 0.03],
+  [0.008, 0.034],
+  [0.013, 0.031],
+  [0.017, 0.026],
+  [0.022, 0.024],
+  [0.027, 0.028],
+  [0.033, 0.037],
+  [0.04, 0.044],
+  [0.048, 0.047],
+  [0.056, 0.046],
+  [0.063, 0.041],
+  [0.068, 0.035],
+  [0.071, 0.034],
+  [0.073, 0.037],
+  [0.076, 0.037],
+  [0.078, 0.034],
+  [0.081, 0.033],
+  [0.083, 0.036],
+  [0.086, 0.036],
+  [0.088, 0.032],
+  [0.093, 0.029],
+  [0.097, 0.026],
+  [0.1, 0.021],
+  [0.103, 0.014],
+  [0.105, 0.006],
+]
+const PROFILE = BASE_PROFILE.map(([d, z]) => [d * SCALE, z * SCALE] as [number, number])
+const BORDER = 0.105 * SCALE
+// Cordón de perlas sobre el filete fino, entre el toro y el escalón: distancia hacia adentro, altura y
+// separación entre perlas.
+const BEADS = { inset: 0.0795 * SCALE, z: 0.036 * SCALE, radius: 0.0034 * SCALE, spacing: 0.0095 * SCALE }
+
+// Puntos a lo largo del rectángulo metido inset hacia adentro, cada spacing.
+function beadPoints(width: number, height: number): [number, number][] {
+  const w = width / 2 - BEADS.inset
+  const h = height / 2 - BEADS.inset
+  const points: [number, number][] = []
+  const side = (x0: number, y0: number, x1: number, y1: number) => {
+    const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / BEADS.spacing))
+    for (let i = 0; i < n; i++) points.push([x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n])
+  }
+  side(-w, -h, w, -h)
+  side(w, -h, w, h)
+  side(w, h, -w, h)
+  side(-w, h, -w, -h)
+  return points
+}
+
+const beadGeometry = new SphereGeometry(1, 8, 6)
+
+// La moldura recorrida alrededor del rectángulo: cada punto del perfil es un rectángulo metido `d` hacia
+// adentro, a la altura `z`; los rectángulos consecutivos se unen con caras. Las esquinas quedan en inglete.
+function frameGeometry(width: number, height: number): BufferGeometry {
+  const loops = PROFILE.map(([d, z]) => {
+    const hw = width / 2 - d
+    const hh = height / 2 - d
+    return [
+      [-hw, -hh, z],
+      [hw, -hh, z],
+      [hw, hh, z],
+      [-hw, hh, z],
+    ]
   })
+  const positions: number[] = []
+  for (let i = 0; i < loops.length - 1; i++) {
+    const a = loops[i]
+    const b = loops[i + 1]
+    for (let c = 0; c < 4; c++) {
+      const n = (c + 1) % 4
+      // Dos triángulos por tramo de lado, mirando hacia el frente.
+      positions.push(...a[c], ...a[n], ...b[n], ...a[c], ...b[n], ...b[c])
+    }
+  }
+  const g = new BufferGeometry()
+  g.setAttribute('position', new Float32BufferAttribute(positions, 3))
+  g.computeVertexNormals()
+  return g
+}
 
-  const { frame, scale, size } = useMemo(() => {
-    const frame: Object3D = gltf.scene.clone(true)
-    frame.traverse((node) => {
-      if (!(node instanceof Mesh)) return
-      const source = node.material as MeshStandardMaterial
-      // Oro envejecido: metálico, con la rugosidad de la textura para que no parezca plástico.
-      const material = source.clone()
-      material.color.set('#ffffff')
-      material.metalness = 0.85
-      material.roughness = 1.7
-      material.envMapIntensity = 1
-      // La textura original es un dorado oscuro y rojizo: se usa solo su luminancia (desgaste y
-      // suciedad del tallado) sobre un oro antiguo propio.
-      material.onBeforeCompile = (shader) => {
-        shader.fragmentShader = shader.fragmentShader.replace(
-          '#include <map_fragment>',
-          `#include <map_fragment>
-          float frameLum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-          diffuseColor.rgb = vec3(0.78, 0.58, 0.28) * (0.25 + 1.35 * frameLum);`,
-        )
-      }
-      node.material = material
+// Oro de la moldura: metálico y satinado, con reflejos suaves.
+const gilt = new MeshStandardMaterial({ color: '#d2ad62', metalness: 0.88, roughness: 0.34, envMapIntensity: 1.1, flatShading: true })
+const beadGilt = new MeshStandardMaterial({ color: '#d8b56c', metalness: 0.85, roughness: 0.3, envMapIntensity: 1.1 })
+
+// Marco de la foto de presentación: un marco dorado clásico de moldura escalonada, con un cordón fino de
+// perlas (una sola malla instanciada).
+export function PortraitFrame({ width, height, position, showCanvas = true }: Props) {
+  const geometry = useMemo(() => frameGeometry(width, height), [width, height])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const beads = useMemo(() => beadPoints(width, height), [width, height])
+  const beadMesh = useRef<InstancedMesh>(null)
+  useLayoutEffect(() => {
+    const mesh = beadMesh.current
+    if (!mesh) return
+    const dummy = new Object3D()
+    beads.forEach(([x, y], i) => {
+      dummy.position.set(x, y, BEADS.z)
+      dummy.scale.set(BEADS.radius, BEADS.radius, BEADS.radius * 0.7)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
     })
-    const box = new Box3().setFromObject(frame)
-    const size = box.getSize(new Vector3())
-    return { frame, scale: height / size.y, size }
-  }, [gltf, height])
-
-  const canvasW = size.x * scale * CANVAS_RATIO.width
-  const canvasH = size.y * scale * CANVAS_RATIO.height
-
+    mesh.instanceMatrix.needsUpdate = true
+  }, [beads])
   return (
     <group position={position} name="portrait-frame">
-      <primitive object={frame} scale={scale} />
+      <mesh geometry={geometry} material={gilt} />
+      <instancedMesh ref={beadMesh} args={[beadGeometry, beadGilt, beads.length]} />
       {showCanvas && (
-        <mesh position={[0, 0, 0.012 * scale]} name="photo">
-          <planeGeometry args={[canvasW + 0.04, canvasH + 0.04]} />
+        <mesh position={[0, 0, 0.004]} name="photo">
+          <planeGeometry args={[width - 2 * BORDER + 0.01, height - 2 * BORDER + 0.01]} />
           <meshStandardMaterial color={CANVAS_COLOR} roughness={0.95} />
         </mesh>
       )}
     </group>
-  )
-}
-
-// Marco de la foto de presentación: modelo tallado real; si no carga, el marco procedural.
-export function PortraitFrame(props: Props) {
-  return (
-    <AssetBoundary fallback={<OrnateFrame width={props.width} height={props.height} position={props.position} />}>
-      <CarvedFrame {...props} />
-    </AssetBoundary>
   )
 }
