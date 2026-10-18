@@ -11,6 +11,7 @@ export const mailto = (email: string, subject: string) => `mailto:${email}?subje
 
 export const contact: ContactContent = {
   title: 'Contacto',
+  lead: { title: '¿Hablamos?', text: 'Estoy abierta a nuevas oportunidades, proyectos y colaboraciones.' },
   hint: 'Acercate al libro para escribirme o tomá el sobre para llevarte mi CV',
   channelsTitle: 'Mis canales',
   channelsIntro: 'Respondo por cualquiera de estos medios.',

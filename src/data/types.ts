@@ -53,6 +53,8 @@ export interface ContactChannel {
 
 export interface ContactContent {
   title: string
+  // Invitación de la sección de contacto en la vista en lista.
+  lead: { title: string; text: string }
   hint: string
   channelsTitle: string
   channelsIntro: string

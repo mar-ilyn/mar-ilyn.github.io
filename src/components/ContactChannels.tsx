@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { contact } from '../data/contact'
+import { ICONS, STROKED } from './icons'
 
 interface Props {
   // Prefijo para ids únicos cuando la lista aparece más de una vez en la página.
   idPrefix: string
+  // Con un ícono en lugar del rótulo visible (el rótulo queda para lectores de pantalla).
+  icons?: boolean
 }
 
 // Canales de contacto (mail, LinkedIn, GitHub), cada uno con su botón "Copiar". La confirmación se
 // anuncia en una región aria-live y se borra sola a los pocos segundos.
-export function ContactChannels({ idPrefix }: Props) {
+export function ContactChannels({ idPrefix, icons = false }: Props) {
   const [status, setStatus] = useState('')
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -25,11 +28,20 @@ export function ContactChannels({ idPrefix }: Props) {
   }
 
   return (
-    <div className="channels">
+    <div className={`channels ${icons ? 'channels--icons' : ''}`}>
       <ul className="channels__list">
         {contact.channels.map((c) => (
           <li key={c.id} className="channels__item">
-            <span className="channels__label" id={`${idPrefix}-${c.id}`}>
+            {icons && (
+              <svg className="channels__icon" viewBox="0 0 24 24" aria-hidden="true">
+                {STROKED.has(c.id) ? (
+                  <path d={ICONS[c.id]} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                ) : (
+                  <path d={ICONS[c.id]} fill="currentColor" />
+                )}
+              </svg>
+            )}
+            <span className={icons ? 'visually-hidden' : 'channels__label'} id={`${idPrefix}-${c.id}`}>
               {c.label}
             </span>
             <a

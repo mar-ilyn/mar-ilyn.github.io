@@ -1106,23 +1106,83 @@ html.is-gallery {
 .cta--gold:hover {
   background: #a8843f;
 }
+/* Contacto: el texto y los canales a la izquierda, la ilustración del sobre a la derecha. */
+.contact-section__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: var(--max);
+  margin: 0 auto;
+}
+.contact-section h2 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--museum-ink);
+}
+.contact-section__lead {
+  max-width: 30rem;
+  margin: 1rem 0 0;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--museum-soft);
+}
+.contact-section__lead span {
+  display: block;
+  color: var(--museum-ink);
+}
+.contact-section__note {
+  margin: 1.8rem 0 0.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--museum-gold);
+}
 .contact-section__actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 0.8rem;
+  margin-top: 1.6rem;
 }
-.contact-section__channels {
-  max-width: 34rem;
-  margin: clamp(2.5rem, 5vw, 3.2rem) auto 0;
-  padding-top: 2rem;
-  border-top: 1px solid rgb(184 146 74 / 0.35);
+.envelope-art {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  justify-self: center;
 }
-.contact-section__note {
-  margin: 0 0 1.2rem;
-  text-align: center;
-  font-style: italic;
+/* Canales con ícono: el ícono, el link subrayado y "Copiar" discreto a la derecha. */
+.channels--icons .channels__list {
+  gap: 0.9rem;
+}
+.channels--icons .channels__item {
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 0 1.1rem;
+}
+.channels__icon {
+  width: 22px;
+  height: 22px;
+  color: var(--museum-ink);
+}
+.channels--icons .channels__link {
+  font-size: 1.12rem;
+  text-decoration-color: rgb(74 54 38 / 0.45);
+  text-underline-offset: 5px;
+}
+.channels--icons .channels__copy {
+  min-height: 28px;
+  border-color: rgb(74 54 38 / 0.35);
+  font-size: 0.8rem;
   color: var(--museum-soft);
+}
+@media (max-width: 760px) {
+  .contact-section__inner {
+    grid-template-columns: 1fr;
+  }
+  .envelope-art {
+    order: -1;
+    max-width: 340px;
+  }
 }
 
 /* Footer oscuro: cuatro columnas. */
