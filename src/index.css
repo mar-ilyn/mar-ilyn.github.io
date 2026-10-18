@@ -909,57 +909,6 @@ html.is-gallery {
   color: var(--museum-soft);
 }
 
-/* Cómo trabajo: tres columnas, cada una con su columna dorada, número romano y lema. */
-.principles__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: clamp(2.5rem, 5vw, 4rem);
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-  text-align: center;
-}
-.principle__icon {
-  display: block;
-  width: 26px;
-  height: auto;
-  margin: 0 auto 1.1rem;
-  color: var(--museum-gilt);
-}
-.principle__numeral {
-  display: block;
-  font-size: 1.15rem;
-  letter-spacing: 0.1em;
-  color: var(--museum-gilt);
-}
-.principle h3 {
-  margin-top: 0.6rem;
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0.24em;
-  color: var(--museum-ink);
-}
-.principle__motto {
-  margin: 0.3rem 0 0;
-  font-style: italic;
-  color: var(--museum-gold);
-}
-.principle__text {
-  max-width: 30ch;
-  margin: 1rem auto 0;
-  font-size: 0.98rem;
-  line-height: 1.6;
-  color: var(--museum-soft);
-}
-.principle__stack {
-  margin: 0.8rem 0 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--museum-gold);
-}
-
 /* Proyectos: grilla de obras con un filete fino debajo del encabezado. */
 .works__header {
   display: flex;
@@ -1176,42 +1125,18 @@ html.is-gallery {
   color: var(--museum-soft);
 }
 
-/* Footer oscuro: el nombre y cuatro columnas. */
+/* Footer oscuro: cuatro columnas. */
 .site-footer {
   padding: clamp(3.5rem, 8vw, 5rem) var(--gutter) 2rem;
   background: var(--museum-dark);
   color: #d9cbb2;
-}
-.site-footer__brand {
-  text-align: center;
-}
-.site-footer__ornament {
-  font-size: 0.5rem;
-  letter-spacing: 0.6em;
-  color: var(--museum-gilt);
-}
-.site-footer__name {
-  margin: 0.8rem 0 0;
-  font-size: 1.15rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: #efe2c9;
-}
-.site-footer__role {
-  margin: 0.4rem 0 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #b9a585;
 }
 .site-footer__columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 2rem;
   max-width: var(--max);
-  margin: clamp(2.5rem, 6vw, 3.5rem) auto 0;
-  padding-top: 2.2rem;
-  border-top: 1px solid rgb(201 163 94 / 0.2);
+  margin: 0 auto;
 }
 .site-footer h2 {
   margin-bottom: 0.9rem;

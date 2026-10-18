@@ -70,7 +70,7 @@ export function ListHero({ canShowGallery }: { canShowGallery: boolean }) {
     .map((w) => w[0])
     .join('')
   return (
-    <section className="list-hero" aria-labelledby="hero-title">
+    <section id="sobre-mi" className="list-hero" aria-labelledby="hero-title" tabIndex={-1}>
       <ColumnDefs />
       <Column side="left" />
       <Column side="right" />

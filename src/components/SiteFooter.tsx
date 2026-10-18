@@ -6,19 +6,12 @@ import { routeToPath } from '../state/routes'
 const YEAR = new Date().getFullYear()
 const BASE = import.meta.env.BASE_URL
 
-// Footer oscuro de la vista en lista: el nombre, el recorrido por la página, la galería 3D y las redes.
+// Footer oscuro de la vista en lista: el recorrido por la página, la galería 3D, las redes y las descargas.
 export function SiteFooter() {
   const email = contact.channels.find((c) => c.id === 'email')
   const social = profile.contacts.filter((c) => c.external)
   return (
     <footer className="site-footer">
-      <div className="site-footer__brand">
-        <span className="site-footer__ornament" aria-hidden="true">
-          ◆ ◆ ◆
-        </span>
-        <p className="site-footer__name">{profile.name}</p>
-        <p className="site-footer__role">{profile.role}</p>
-      </div>
       <div className="site-footer__columns">
         <nav aria-labelledby="footer-page">
           <h2 id="footer-page">Recorrido</h2>

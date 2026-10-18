@@ -1,4 +1,4 @@
-import { roman } from '../data/principles'
+import { roman } from '../data/format'
 import { entriesOf, formatRange, KIND_LABEL, type Row } from '../data/timeline'
 import { SectionHeading } from './SectionHeading'
 
