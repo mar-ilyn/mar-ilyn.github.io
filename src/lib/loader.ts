@@ -10,8 +10,14 @@ const SLOW_MS = 15_000
 // Respaldo por si no llega el fin de la entrada por la puerta (filtro, hojas y avance: unos 2,2 s).
 const DOORS_MS = 2600
 
+// Cuando la vista empieza a pasar por la puerta (el avance de .loader__scene arranca 1,1 s después de
+// abrirla, ver index.html): recién ahí la cámara de la intro hace su acercamiento.
+const ENTER_MS = 1100
+
 let shownAt = 0
 let finished = false
+let entered = false
+const enterListeners = new Set<() => void>()
 let lastSpoken = -1
 let slowTimer: number | undefined
 
@@ -32,6 +38,7 @@ export function startLoader() {
   if (!visible) {
     shownAt = performance.now()
     finished = false
+    entered = false
     lastSpoken = -1
     el.classList.remove('loader--done', 'loader--open', 'loader--slow')
     el.style.setProperty('--p', '0')
@@ -74,6 +81,7 @@ export function finishLoader() {
     hideLoader()
     return
   }
+  window.setTimeout(markEntered, ENTER_MS)
   const enter = el.querySelector<HTMLButtonElement>('.loader__enter')
   if (enter) enter.hidden = false
   el.classList.add('loader--open')
@@ -92,11 +100,27 @@ export function hideLoader() {
   const el = loader()
   window.clearTimeout(slowTimer)
   finished = true
+  markEntered()
   root()?.removeAttribute('inert')
   if (!el || el.classList.contains('loader--done')) return
   const hadFocus = el.contains(document.activeElement)
   el.classList.add('loader--done')
   if (hadFocus) document.querySelector<HTMLElement>('.intro-text__cta')?.focus()
+}
+
+function markEntered() {
+  if (entered) return
+  entered = true
+  for (const listener of enterListeners) listener()
+  enterListeners.clear()
+}
+
+// Se resuelve cuando la vista entra por la puerta (o enseguida, si la pantalla de carga no está a la vista).
+export function whenLoaderEntered(): Promise<void> {
+  const el = loader()
+  const showing = !!el && document.documentElement.classList.contains('has-loader') && !el.classList.contains('loader--done')
+  if (entered || !showing) return Promise.resolve()
+  return new Promise((resolve) => enterListeners.add(resolve))
 }
 
 // "Ver como lista" y "Entrar a la galería" de la pantalla. La lista la abre la app sin recargar.

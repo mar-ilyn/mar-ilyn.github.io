@@ -1248,109 +1248,284 @@ html.is-gallery {
   font-style: italic;
   color: #9d8a6c;
 }
-
-/* Portada de la vista en lista, plana: fondo oscuro liso, el nombre en mayúsculas grandes (el apellido en
-   dorado), la frase en itálica, dos botones y abajo una franja con las tecnologías. El header flota encima. */
-.list-hero {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  min-height: min(100svh, 880px);
-  padding: 7rem var(--gutter) 0;
-  background: var(--museum-dark);
-  color: #efe2c9;
-  text-align: center;
-}
-.list-hero__content {
-  align-self: center;
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 2rem 0 3rem;
-}
-.list-hero__eyebrow {
-  margin: 0;
-  font-size: 0.74rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: #c9b48f;
-}
-.list-hero h1 {
-  margin-top: 1.4rem;
-  font-size: clamp(3.2rem, 11vw, 8.5rem);
-  font-weight: 400;
-  line-height: 0.98;
-  letter-spacing: 0.06em;
-  color: #f1e5cd;
-}
-.list-hero h1 span {
-  display: block;
-}
-.list-hero__gold {
-  color: #c9a35e;
-}
-.list-hero__tagline {
-  max-width: 36rem;
-  margin: 1.8rem auto 0;
-  font-size: clamp(1.08rem, 2vw, 1.3rem);
-  font-style: italic;
-  line-height: 1.55;
-  color: #d4c4a6;
-}
-.list-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.8rem;
-  margin-top: 2.4rem;
-}
-.cta--light {
-  border-color: rgb(239 226 201 / 0.5);
-  color: #efe2c9;
-}
-.cta--light:hover {
-  background: rgb(239 226 201 / 0.08);
-}
-.list-hero__strip {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem 1.6rem;
-  margin: 0 calc(-1 * var(--gutter));
-  padding: 1.3rem var(--gutter);
-  border-top: 1px solid rgb(201 163 94 / 0.22);
-  list-style: none;
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: #b9a585;
-}
-.list-hero__strip li + li::before {
-  content: '·';
-  margin-right: 1.6rem;
-  color: #c9a35e;
-}
-@media (max-width: 720px) {
-  .list-hero {
-    min-height: auto;
-    padding-top: 6rem;
-  }
-  .list-hero__content {
-    padding: 1.5rem 0 2.8rem;
-  }
-  .list-hero__eyebrow {
-    font-size: 0.64rem;
-    letter-spacing: 0.2em;
-  }
-  .list-hero__strip {
-    gap: 0.3rem 0.9rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.16em;
-  }
-  .list-hero__strip li + li::before {
-    margin-right: 0.9rem;
-  }
-}
 /* En la lista el header flota sobre la portada (sin franja crema arriba del fondo oscuro). */
 .site-header:not(.site-header--overlay) {
   position: fixed;
   inset: 0 0 auto 0;
+}
+
+/* Portada de la vista en lista: la sala de la intro, plana. Pared marfil con cornisa, zócalo y parquet,
+   columnas a los costados, el panel dorado con la placa y un cuadro simple. El relieve lo dan sombras
+   proyectadas y degradés (sin imágenes). El header flota encima. */
+.list-hero {
+  --floor: clamp(56px, 9vh, 110px);
+  --dado: clamp(44px, 7vh, 80px);
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(1rem, 3vh, 2rem);
+  min-height: min(100svh, 900px);
+  padding: clamp(5.5rem, 13vh, 7.5rem) var(--gutter) calc(var(--floor) + var(--dado) + clamp(0.8rem, 2.5vh, 1.6rem));
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    /* Luz cálida de la lámpara sobre el panel y viñeta hacia los bordes. */
+    radial-gradient(ellipse 55% 45% at 50% 42%, rgb(255 236 200 / 0.55), transparent 70%),
+    radial-gradient(ellipse 90% 80% at 50% 45%, transparent 55%, rgb(90 64 36 / 0.22)),
+    linear-gradient(180deg, #e9e0d0, #efe8dc 40%, #e6dccb);
+}
+/* Cornisa arriba: molduras con su sombra. */
+.list-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5.6rem;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgb(70 50 30 / 0.16), transparent 18px) 0 100% / 100% 18px no-repeat,
+    linear-gradient(180deg, #f6f1e7 0 62%, #dcd1bd 62% 66%, #f3ede2 66% 84%, #cdbfa6 84% 87%, #efe8dc 87%);
+}
+/* Zócalo con su moldura, arriba del parquet. */
+.list-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--floor);
+  height: var(--dado);
+  z-index: -1;
+  background:
+    linear-gradient(180deg, #d9cdb7 0 6px, #f3ede2 6px 12px, rgb(70 50 30 / 0.16) 12px 18px, #ebe3d4 18px calc(100% - 10px), #d2c4ab calc(100% - 10px));
+}
+/* Parquet en espiga, más oscuro hacia la pared y con dos manchas de sol de las ventanas. */
+.list-hero__floor {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--floor);
+  z-index: -1;
+  background:
+    linear-gradient(100deg, transparent 16%, rgb(255 230 185 / 0.3) 21% 29%, transparent 34%, transparent 61%, rgb(255 230 185 / 0.26) 66% 73%, transparent 78%),
+    linear-gradient(180deg, rgb(40 22 8 / 0.55), rgb(40 22 8 / 0.08) 45%, rgb(40 22 8 / 0.2)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32'%3E%3Crect width='64' height='32' fill='%23946238'/%3E%3Cpath d='M0 0 32 16 32 32 0 16ZM64 0 32 16 32 32 64 16Z' fill='%23a8723f'/%3E%3Cpath d='M0 16 32 32 64 16M0 0 32 16 64 0M32 16V32' fill='none' stroke='%236e4523' stroke-width='1.2'/%3E%3C/svg%3E") 0 0 / 64px 32px;
+}
+.list-hero__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+/* Columnas sobre el parquet, con su sombra en la pared. */
+.list-hero__column {
+  position: absolute;
+  bottom: calc(var(--floor) - 6px);
+  z-index: 0;
+  width: auto;
+  height: calc(100% - 5.2rem - var(--floor));
+  filter: drop-shadow(16px 4px 14px rgb(70 48 26 / 0.3));
+}
+.list-hero__column--left {
+  left: max(0.5rem, 3vw);
+}
+.list-hero__column--right {
+  right: max(0.5rem, 3vw);
+  filter: drop-shadow(-16px 4px 14px rgb(70 48 26 / 0.3));
+}
+/* Panel de la pared: filete dorado doble, con la pared un poco más clara adentro. */
+.list-hero__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  width: min(1040px, 74vw);
+  position: relative;
+  z-index: 1;
+  padding: clamp(1.1rem, 3vh, 2.6rem) clamp(1.5rem, 4vw, 3.5rem);
+  border: 7px solid transparent;
+  background:
+    linear-gradient(#f3ede2, #ece4d6) padding-box,
+    linear-gradient(135deg, #e9c983, #a77a33 30%, #f0d595 55%, #8d652a 80%, #d9b56b) border-box;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 248 230 / 0.6),
+    inset 0 0 0 9px #efe8dc,
+    inset 0 0 0 10px rgb(168 122 51 / 0.55),
+    inset 0 10px 24px -14px rgb(70 48 26 / 0.35),
+    0 14px 26px -18px rgb(70 48 26 / 0.55);
+}
+/* La placa: filete dorado y esquinas recortadas en cuarto de círculo (la misma de la pared de la intro). */
+.list-hero__plaque {
+  --notch: 16px;
+  --rim: 5px;
+  padding: var(--rim);
+  background: linear-gradient(135deg, #e3c27f, #9b7234 45%, #d9b26a);
+  mask:
+    radial-gradient(circle at 0 0, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) 100% 100% / 51% 51% no-repeat;
+  filter: drop-shadow(6px 10px 10px rgb(60 40 20 / 0.28));
+}
+.list-hero__plaque-face {
+  --n: calc(var(--notch) + var(--rim));
+  padding: clamp(1.1rem, 3.4vh, 2.1rem) clamp(1.2rem, 3vw, 2.4rem);
+  text-align: center;
+  background:
+    radial-gradient(circle at 26px 26px, #e8cf98 0 2px, #7a5a2c 2.6px, transparent 3.4px),
+    radial-gradient(circle at calc(100% - 26px) 26px, #e8cf98 0 2px, #7a5a2c 2.6px, transparent 3.4px),
+    radial-gradient(circle at 26px calc(100% - 26px), #e8cf98 0 2px, #7a5a2c 2.6px, transparent 3.4px),
+    radial-gradient(circle at calc(100% - 26px) calc(100% - 26px), #e8cf98 0 2px, #7a5a2c 2.6px, transparent 3.4px),
+    radial-gradient(ellipse at 50% 40%, #f4ecda, #e2d4b5);
+  mask:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) 0 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) 100% 0 / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) 0 100% / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) 100% 100% / 51% 51% no-repeat;
+  box-shadow: inset 0 0 0 1px rgb(92 64 30 / 0.3);
+}
+.list-hero h1 {
+  font-size: clamp(1.8rem, min(4vw, 5.4vh), 3.1rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  /* Letras de bronce en relieve: luz arriba y sombra abajo. */
+  color: #8a6226;
+  text-shadow:
+    0 -1px 0 rgb(255 240 205 / 0.8),
+    0 2px 2px rgb(60 38 12 / 0.35);
+}
+.list-hero__role {
+  margin: 0.45rem 0 0;
+  font-size: clamp(0.66rem, 1.1vw, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #6b5741;
+}
+.list-hero__title {
+  margin: 1rem 0 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  color: #2e2116;
+}
+.list-hero__title strong {
+  font-weight: 650;
+  margin-right: 0.3em;
+}
+.list-hero__stack {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: #2e2116;
+}
+.list-hero__tagline {
+  max-width: 34ch;
+  margin: 0.8rem auto 0;
+  font-size: clamp(0.92rem, 1.25vw, 1.02rem);
+  line-height: 1.45;
+  color: #5a4634;
+}
+/* Cuadro simple con su lámpara: moldura dorada lisa, paspartú y la tela oscura con las iniciales. */
+.list-hero__portrait {
+  display: grid;
+  justify-items: center;
+}
+.list-hero__lamp {
+  position: relative;
+  width: 62%;
+  height: 12px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #e6c27c, #9b7234);
+  box-shadow: 0 2px 3px rgb(60 40 20 / 0.35);
+}
+.list-hero__lamp::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 4px;
+  height: 18px;
+  translate: -50% 0;
+  background: #9b7234;
+}
+.list-hero__lamp::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 100%;
+  height: 90px;
+  background: radial-gradient(ellipse 60% 100% at 50% 0, rgb(255 236 190 / 0.6), transparent 75%);
+  pointer-events: none;
+}
+.list-hero__frame {
+  display: block;
+  width: min(100%, 270px, 31vh);
+  padding: clamp(10px, 1.6vw, 16px);
+  background: linear-gradient(135deg, #f0d594, #b4893f 28%, #7d5a25 52%, #d9b56b 76%, #9b7234);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 240 200 / 0.6),
+    inset 0 0 0 4px rgb(90 60 25 / 0.35),
+    10px 16px 20px -8px rgb(60 40 20 / 0.45);
+}
+.list-hero__canvas {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  border: clamp(6px, 1vw, 10px) solid #f1e9d8;
+  outline: 1px solid rgb(120 90 50 / 0.4);
+  background: radial-gradient(ellipse at 50% 35%, #5a4130, #2c1f17 75%);
+  box-shadow: inset 0 0 18px rgb(0 0 0 / 0.5);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  letter-spacing: 0.06em;
+  color: #d8b878;
+}
+.list-hero__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+.cta--dark {
+  background: #3a2418;
+  border-color: #3a2418;
+  color: #f4ead6;
+  box-shadow: inset 0 0 0 3px #3a2418, inset 0 0 0 4px rgb(201 163 94 / 0.55);
+}
+.cta--dark:hover {
+  background: #4b3021;
+}
+.cta--paper {
+  background: rgb(247 242 232 / 0.8);
+  border-color: rgb(120 90 50 / 0.5);
+}
+
+/* Pantallas angostas: las columnas quedan a medias en los bordes, detrás; el cuadro arriba de la placa. */
+@media (max-width: 760px) {
+  .list-hero {
+    --dado: 36px;
+    padding-top: 6.5rem;
+  }
+  .list-hero__column {
+    display: none;
+  }
+  .list-hero__panel {
+    grid-template-columns: 1fr;
+    width: min(100%, 440px);
+    padding: 1.4rem 1rem;
+  }
+  .list-hero__portrait {
+    order: -1;
+  }
+  .list-hero__lamp {
+    width: 120px;
+  }
+  .list-hero__frame {
+    width: 150px;
+  }
+  .list-hero h1 {
+    font-size: 2rem;
+  }
+  .list-hero__plaque {
+    --notch: 13px;
+    --rim: 4px;
+  }
 }

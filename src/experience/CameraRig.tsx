@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { projects } from '../data/projects'
 import type { ViewState } from '../state/machine'
+import { whenLoaderEntered } from '../lib/loader'
 import { useViewStore, whenZoneMounted, zoneOf } from '../state/store'
 import type { PerspectiveCamera } from 'three'
 import { cabinetPose, introCenterX, introLensShift, introWidePose, poseFor, type CameraPose } from './layout'
@@ -95,9 +96,10 @@ export function CameraRig({ view, holdWide = false }: Props) {
         await go(opening ? wide : pose, false, 0)
         if (opening) {
           // El acercamiento no bloquea el scroll: si se baja antes de que termine, el vuelo a la
-          // galería arranca desde donde esté la cámara.
+          // galería arranca desde donde esté la cámara. Con la pantalla de carga, la cámara espera en el
+          // plano general hasta que la vista pasa por la puerta: el acercamiento sigue ese movimiento.
           setSceneReady()
-          await new Promise((r) => setTimeout(r, 350))
+          await Promise.all([whenLoaderEntered(), new Promise((r) => setTimeout(r, 350))])
           if (cancelled) return
           await go(pose, true, 1.1)
         }
