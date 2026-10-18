@@ -1,20 +1,19 @@
 // Puente con la pantalla de carga, que está escrita en index.html (HTML, CSS crítico y SVG en línea) para
 // verse desde el primer momento, antes que el JavaScript. Desde acá se le pasa el progreso real de carga
-// (--p, de 0 a 1), se anuncia el porcentaje y, al terminar, se abren las puertas. Si la página no tiene la
+// (--p, de 0 a 1: la llave se vuelve dorada), se anuncia el porcentaje y, al terminar, se abre la puerta. Si la página no tiene la
 // pantalla (tests, vista en lista), todo esto no hace nada.
 
 // Si la escena está lista antes de esto desde que apareció la pantalla, no hay animación: entra directo.
 const FAST_MS = 1200
 // Si tarda más que esto, la pantalla sugiere la vista en lista.
 const SLOW_MS = 15_000
-// Respaldo por si no llega el fin de la transición de las puertas.
-const DOORS_MS = 1900
+// Respaldo por si no llega el fin de la entrada por la puerta (filtro, hojas y avance: unos 2,2 s).
+const DOORS_MS = 2600
 
 let shownAt = 0
 let finished = false
 let lastSpoken = -1
 let slowTimer: number | undefined
-let lit = false
 
 const loader = () => document.getElementById('loader')
 const root = () => document.getElementById('root')
@@ -33,9 +32,8 @@ export function startLoader() {
   if (!visible) {
     shownAt = performance.now()
     finished = false
-    lit = false
     lastSpoken = -1
-    el.classList.remove('loader--done', 'loader--open', 'loader--lit', 'loader--slow')
+    el.classList.remove('loader--done', 'loader--open', 'loader--slow')
     el.style.setProperty('--p', '0')
     document.documentElement.classList.add('has-loader')
     root()?.setAttribute('inert', '')
@@ -54,11 +52,7 @@ export function setLoaderProgress(percent: number, preparing: boolean) {
   if (!el || finished) return
   const p = Math.max(0, Math.min(100, percent))
   el.style.setProperty('--p', (p / 100).toFixed(3))
-  if (!lit && p > 0) {
-    lit = true
-    el.classList.add('loader--lit')
-  }
-  setText('.loader__status', preparing ? 'Preparando la sala…' : `Encendiendo la sala · ${p}%`)
+  setText('.loader__status', preparing ? 'Preparando la galería…' : `Cargando la galería · ${p}%`)
   // Para lectores de pantalla, de a 10 %: cada número sería demasiado.
   const step = preparing ? 11 : Math.floor(p / 10)
   if (step !== lastSpoken) {
@@ -67,7 +61,8 @@ export function setLoaderProgress(percent: number, preparing: boolean) {
   }
 }
 
-// La escena está lista: se abren las puertas (o se entra directo si fue rápido o sin animaciones).
+// La escena está lista: se va el filtro, se abre la puerta y la vista entra a la sala (o se entra directo si
+// fue rápido o sin animaciones).
 export function finishLoader() {
   const el = loader()
   if (!el || finished) return
@@ -82,11 +77,13 @@ export function finishLoader() {
   const enter = el.querySelector<HTMLButtonElement>('.loader__enter')
   if (enter) enter.hidden = false
   el.classList.add('loader--open')
-  // La galería se puede usar mientras se abren las puertas.
+  // La galería se puede usar mientras se abre la puerta.
   root()?.removeAttribute('inert')
-  const door = el.querySelector('.loader__door')
+  const scene = el.querySelector('.loader__scene')
   const done = () => hideLoader()
-  door?.addEventListener('transitionend', done, { once: true })
+  scene?.addEventListener('transitionend', (e) => {
+    if (e.target === scene && (e as TransitionEvent).propertyName === 'opacity') done()
+  })
   window.setTimeout(done, DOORS_MS)
 }
 

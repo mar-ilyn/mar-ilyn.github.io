@@ -102,10 +102,13 @@ test('subir desde el detalle vuelve a la cartela y desde la cartela a los proyec
   await expect(page).toHaveURL(/\/proyectos$/)
 })
 
-test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async ({ page }) => {
+test('"Ver como lista" muestra el HTML y "atrás" vuelve a la galería', async ({ page, isMobile }) => {
   await page.goto('/')
-  // El del header (la pantalla de carga tiene su propio "Ver como lista" mientras está a la vista).
-  await page.getByRole('banner').getByRole('link', { name: 'Ver como lista' }).click()
+  // El del header (la pantalla de carga tiene su propio "Ver como lista" mientras está a la vista). En
+  // pantallas angostas está en el menú.
+  const header = page.getByRole('banner')
+  if (isMobile) await header.getByRole('button', { name: 'Más opciones' }).click()
+  await header.getByRole('link', { name: 'Ver como lista' }).click()
   await expect(page).toHaveURL(/\/lista$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Marilyn Diaz' })).toBeVisible()
   await page.goBack()

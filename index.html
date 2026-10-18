@@ -28,8 +28,10 @@
     <meta property="og:image:alt" content="Marilyn Diaz, Desarrolladora Full Stack" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Pantalla de carga de la galería: se encienden las luces de la sala. CSS crítico en línea, para que
-         se vea antes que el JavaScript; el progreso real lo pasa src/lib/loader.ts (--p, de 0 a 1). -->
+    <!-- Pantalla de carga de la galería: la fachada de un museo, plana (SVG en línea), con un filtro oscuro y
+         una llave antigua que se vuelve dorada de abajo hacia arriba con el progreso real. Al terminar se quita
+         el filtro, se abre la puerta y la vista entra a la sala. CSS crítico en línea, para que se vea antes que
+         el JavaScript; el progreso lo pasa src/lib/loader.ts (--p, de 0 a 1). -->
     <script>
       ;(function () {
         var l = location
@@ -40,14 +42,11 @@
       .loader {
         --p: 0;
         --ink: #efe2c9;
-        --soft: #c9b79b;
-        --light: 255 214 160;
         display: none;
         position: fixed;
         inset: 0;
         z-index: 50;
         overflow: hidden;
-        perspective: 1800px;
         color: var(--ink);
         font-family: 'EB Garamond Variable', 'EB Garamond', Garamond, Georgia, serif;
       }
@@ -57,167 +56,81 @@
       .has-loader body {
         overflow: hidden;
       }
-      .loader--done,
       .has-loader .loader.loader--done {
         display: none;
       }
-      /* Dos puertas de museo, de madera oscura con un panel moldurado y su tirador. */
-      .loader__door {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 50.2%;
-        background:
-          linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 12%, transparent 88%, rgb(0 0 0 / 0.3)),
-          linear-gradient(180deg, #2a1d15, #22180f 55%, #1a120c);
-        transition: transform 1.3s cubic-bezier(0.62, 0.04, 0.24, 1) 0.18s;
-        backface-visibility: hidden;
-      }
-      .loader__door::before {
-        content: '';
-        position: absolute;
-        inset: 8vh 12%;
-        border: 1px solid rgb(201 163 94 / 0.22);
-        box-shadow:
-          inset 0 0 0 10px rgb(0 0 0 / 0.16),
-          inset 0 0 0 11px rgb(201 163 94 / 0.14),
-          0 0 0 6px rgb(0 0 0 / 0.12);
-      }
-      .loader__door::after {
-        content: '';
-        position: absolute;
-        bottom: 14vh;
-        width: 6px;
-        height: 56px;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #8f6630, #e2c487 45%, #8f6630);
-        box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
-      }
-      .loader__door--l {
-        left: 0;
-        transform-origin: left center;
-      }
-      .loader__door--l::after {
-        right: 16px;
-      }
-      .loader__door--r {
-        right: 0;
-        transform-origin: right center;
-      }
-      .loader__door--r::after {
-        left: 16px;
-      }
-      .loader--open .loader__door--l {
-        transform: rotateY(-102deg);
-      }
-      .loader--open .loader__door--r {
-        transform: rotateY(102deg);
-      }
-      /* Luz del aplique sobre las puertas: se enciende con el progreso. */
-      .loader__light {
+      /* La fachada cubre la pantalla; el hueco de la puerta es transparente (al abrirse se ve la sala). */
+      .loader__scene {
         position: absolute;
         inset: 0;
-        pointer-events: none;
-        opacity: var(--p);
+        transform-origin: 50% 52%;
+        transition:
+          transform 0.9s cubic-bezier(0.55, 0, 0.8, 0.4) 1.25s,
+          opacity 0.5s ease 1.65s;
+      }
+      .loader__facade {
+        width: 100%;
+        height: 100%;
+      }
+      .loader__fanlight-glow {
+        opacity: calc(var(--p) * 0.85);
         transition: opacity 0.4s ease;
       }
-      .loader__light::before {
-        content: '';
+      .loader__leaf {
+        transform-box: fill-box;
+        transition:
+          transform 0.95s cubic-bezier(0.5, 0, 0.3, 1) 0.4s,
+          filter 0.95s ease 0.4s;
+      }
+      .loader__leaf--l {
+        transform-origin: left center;
+      }
+      .loader__leaf--r {
+        transform-origin: right center;
+      }
+      /* Filtro oscuro sobre la fachada mientras carga. */
+      .loader__shade {
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse 46% 42% at 50% 44%, rgb(var(--light) / 0.22), transparent 70%);
+        background: rgb(14 10 8 / 0.74);
+        transition: opacity 0.5s ease;
       }
-      .loader__stage {
+      .loader__front {
         position: absolute;
         inset: 0;
         display: grid;
         place-content: center;
         justify-items: center;
-        gap: 0.35rem;
-        padding: 24px 16px;
+        gap: 0.6rem;
+        padding: 16px;
         text-align: center;
         transition: opacity 0.3s ease;
       }
-      .loader__lamp {
-        width: min(220px, 52vw);
-        height: auto;
-        margin-bottom: -6px;
+      /* La llave: una base apagada y encima la dorada, recortada de abajo hacia arriba según el progreso. */
+      .loader__key {
+        position: relative;
+        width: clamp(56px, 9vh, 84px);
+        aspect-ratio: 80 / 200;
       }
-      .loader__bulb {
-        opacity: var(--p);
-        transition: opacity 0.4s ease;
+      .loader__key svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
       }
-      .loader__beam {
-        width: min(560px, 92vw);
-        height: clamp(40px, 9vh, 90px);
-        margin-bottom: -2.2rem;
-        clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
-        background: linear-gradient(180deg, rgb(var(--light) / 0.38), rgb(var(--light) / 0));
-        transform-origin: top center;
-        transform: scaleY(calc(0.2 + 0.8 * var(--p)));
-        opacity: var(--p);
-        transition:
-          opacity 0.4s ease,
-          transform 0.4s ease;
-      }
-      .loader--lit .loader__light,
-      .loader--lit .loader__bulb,
-      .loader--lit .loader__beam {
-        animation: loader-flicker 0.9s steps(1, end) 1;
-      }
-      @keyframes loader-flicker {
-        0% { filter: brightness(0.2); }
-        18% { filter: brightness(1.2); }
-        30% { filter: brightness(0.35); }
-        45% { filter: brightness(1); }
-        58% { filter: brightness(0.6); }
-        100% { filter: brightness(1); }
-      }
-      /* El nombre: legible desde el principio y el haz lo va iluminando de izquierda a derecha. */
-      .loader__name {
-        margin: 0;
-        padding: 0.1em 0.2em;
-        font-size: clamp(2rem, 7vw, 4.6rem);
-        font-weight: 500;
-        line-height: 1.1;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        background: linear-gradient(
-          90deg,
-          #fff2d8 calc(var(--p) * 115% - 15%),
-          var(--soft) calc(var(--p) * 115% + 5%)
-        );
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        filter: drop-shadow(0 0 calc(var(--p) * 16px) rgb(var(--light) / calc(var(--p) * 0.4)));
-      }
-      .loader__role {
-        margin: 0 0 0.9rem;
-        font-size: clamp(1rem, 2.4vw, 1.2rem);
-        color: var(--soft);
+      .loader__key-gold {
+        clip-path: inset(calc((1 - var(--p)) * 100%) 0 0 0);
+        filter: drop-shadow(0 0 calc(var(--p) * 10px) rgb(240 190 100 / 0.45));
+        transition: clip-path 0.35s ease;
       }
       .loader__status {
-        margin: 0;
+        margin: 0.4rem 0 0;
         font-size: 0.82rem;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #b7a487;
+        color: #d8c6a4;
       }
-      .loader__bar {
-        display: none;
-        width: min(240px, 60vw);
-        height: 3px;
-        margin: 0.3rem 0;
-        background: rgb(239 226 201 / 0.2);
-      }
-      .loader__bar span {
-        display: block;
-        width: calc(var(--p) * 100%);
-        height: 100%;
-        background: #e3c48f;
-      }
-      .loader__live {
+      .loader__sr {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -225,12 +138,23 @@
         clip-path: inset(50%);
         white-space: nowrap;
       }
+      .loader__bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        display: grid;
+        justify-items: center;
+        gap: 0.5rem;
+        padding: 0 16px;
+        transition: opacity 0.3s ease;
+      }
       .loader__links {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
         gap: 0.5rem;
-        margin: 1.1rem 0 0.3rem;
+        margin: 0;
         padding: 0;
         list-style: none;
       }
@@ -243,108 +167,189 @@
       .loader__enter {
         display: inline-flex;
         align-items: center;
-        min-height: 40px;
-        padding: 0 1.05rem;
+        min-height: 38px;
+        padding: 0 1rem;
         border: 1px solid rgb(239 226 201 / 0.45);
         border-radius: 999px;
-        background: transparent;
+        background: rgb(20 14 10 / 0.35);
+        font-size: 0.92rem;
         text-decoration: none;
         cursor: pointer;
-        transition: background-color 0.16s ease;
       }
       .loader__links a:hover {
-        background: rgb(255 240 215 / 0.08);
-      }
-      /* Mientras se abren las puertas, abajo: permite saltear la apertura. */
-      .loader__enter {
-        position: absolute;
-        left: 50%;
-        bottom: max(28px, env(safe-area-inset-bottom));
-        transform: translateX(-50%);
-        background: var(--ink);
-        color: #2a1d15;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-      }
-      .loader__enter[hidden] {
-        display: none;
+        background: rgb(255 240 215 / 0.12);
       }
       .loader__list {
-        margin-top: 0.4rem;
         font-size: 0.95rem;
         text-underline-offset: 4px;
-        text-decoration-color: rgb(239 226 201 / 0.5);
+        text-decoration-color: rgb(239 226 201 / 0.55);
       }
       .loader--slow .loader__list {
-        padding: 0.35rem 0.9rem;
+        padding: 0.3rem 0.9rem;
         border-radius: 999px;
-        background: rgb(255 240 215 / 0.12);
+        background: rgb(255 240 215 / 0.14);
       }
       .loader a:focus-visible,
       .loader button:focus-visible {
         outline: 2px solid #f1c27d;
         outline-offset: 3px;
       }
-      /* Al terminar: el contenido se desvanece y las puertas se abren hacia la sala. */
+      /* Mientras se abre la puerta, abajo: permite saltear la apertura. */
+      .loader .loader__enter {
+        position: absolute;
+        left: 50%;
+        bottom: max(24px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        background: var(--ink);
+        color: #2a1d15;
+        font-size: 0.82rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .loader__enter[hidden] {
+        display: none;
+      }
+      /* Al terminar: se va el filtro, se abren las hojas y la vista entra por la puerta. */
       .loader--open {
         pointer-events: none;
       }
-      .loader--open .loader__stage,
-      .loader--open .loader__light {
-        opacity: 0;
-      }
       .loader--open .loader__enter {
         pointer-events: auto;
+      }
+      .loader--open .loader__shade,
+      .loader--open .loader__front,
+      .loader--open .loader__bottom {
+        opacity: 0;
+      }
+      .loader--open .loader__leaf--l,
+      .loader--open .loader__leaf--r {
+        transform: scaleX(0.06);
+        filter: brightness(0.55);
+      }
+      .loader--open .loader__scene {
+        transform: scale(3.2);
+        opacity: 0;
       }
       @media (prefers-reduced-motion: reduce) {
         .loader *,
         .loader *::before {
           transition: none !important;
-          animation: none !important;
-        }
-        .loader__beam {
-          transform: none;
-        }
-        .loader__bar {
-          display: block;
         }
       }
     </style>
   </head>
   <body>
     <section id="loader" class="loader" aria-labelledby="loader-name">
-      <div class="loader__door loader__door--l" aria-hidden="true"></div>
-      <div class="loader__door loader__door--r" aria-hidden="true"></div>
-      <div class="loader__light" aria-hidden="true"></div>
-      <div class="loader__stage">
-        <svg class="loader__lamp" viewBox="0 0 220 72" aria-hidden="true">
+      <div class="loader__scene" aria-hidden="true">
+        <svg class="loader__facade" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid slice">
           <defs>
-            <linearGradient id="loader-brass" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#e2c487" />
-              <stop offset="0.55" stop-color="#a67c43" />
-              <stop offset="1" stop-color="#6e4f24" />
+            <linearGradient id="ld-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f0d394" />
+              <stop offset="0.5" stop-color="#b8892f" />
+              <stop offset="1" stop-color="#e4c07a" />
             </linearGradient>
-            <radialGradient id="loader-glow" cx="0.5" cy="0" r="0.75">
-              <stop offset="0" stop-color="#fff1d0" stop-opacity="0.95" />
-              <stop offset="1" stop-color="#ffd8a0" stop-opacity="0" />
+            <radialGradient id="ld-glow" cx="0.5" cy="1" r="1">
+              <stop offset="0" stop-color="#ffd27a" />
+              <stop offset="1" stop-color="#e08a2e" />
             </radialGradient>
+            <pattern id="ld-courses" width="1600" height="56" patternUnits="userSpaceOnUse">
+              <path d="M0 55.5H1600" stroke="#d9d1c1" stroke-width="1.5" />
+            </pattern>
           </defs>
-          <rect x="98" y="2" width="24" height="9" rx="2" fill="url(#loader-brass)" />
-          <path d="M110 11 C110 26 104 32 92 38" fill="none" stroke="url(#loader-brass)" stroke-width="3.2" stroke-linecap="round" />
-          <rect x="22" y="36" width="176" height="15" rx="7.5" fill="url(#loader-brass)" />
-          <ellipse class="loader__bulb" cx="110" cy="54" rx="92" ry="16" fill="url(#loader-glow)" />
+          <!-- Pared con el hueco de la puerta (transparente). -->
+          <path fill="#ebe5d8" fill-rule="evenodd" d="M0 0H1600V1100H0Z M705 360H895V790H705Z" />
+          <path fill="url(#ld-courses)" fill-rule="evenodd" d="M0 250H1600V790H0Z M690 255H910V790H690Z" />
+          <rect y="185" width="1600" height="65" fill="#e1d9c8" />
+          <rect y="180" width="1600" height="6" fill="#d2c8b4" />
+          <!-- Pilastras de los costados. -->
+          <g fill="#f3eee4" stroke="#d6cdbb" stroke-width="2">
+            <rect x="180" y="268" width="44" height="502" />
+            <rect x="370" y="268" width="44" height="502" />
+            <rect x="1186" y="268" width="44" height="502" />
+            <rect x="1376" y="268" width="44" height="502" />
+          </g>
+          <!-- Frontón con el rosetón y la inscripción en el friso. -->
+          <path d="M520 185 800 108 1080 185Z" fill="#f2ede3" stroke="#d2c8b4" stroke-width="3" />
+          <path d="M565 176 800 121 1035 176Z" fill="none" stroke="#ddd4c3" stroke-width="2" />
+          <circle cx="800" cy="152" r="17" fill="none" stroke="#c9bfab" stroke-width="3" />
+          <circle cx="800" cy="152" r="6" fill="#c9bfab" />
+          <rect x="530" y="185" width="540" height="65" fill="#f6f2ea" stroke="#d2c8b4" stroke-width="3" />
+          <text x="800" y="221" text-anchor="middle" font-size="30" letter-spacing="9" fill="#6f5c45" font-family="'EB Garamond Variable','EB Garamond',Garamond,Georgia,serif">MARILYN DIAZ</text>
+          <text x="800" y="241" text-anchor="middle" font-size="13" letter-spacing="6" fill="#9a8668" font-family="'EB Garamond Variable','EB Garamond',Garamond,Georgia,serif">DESARROLLADORA FULL STACK</text>
+          <!-- Columnas. -->
+          <g>
+            <g fill="#f8f5ee" stroke="#d6cdbb" stroke-width="2">
+              <rect x="565" y="250" width="70" height="18" />
+              <rect x="633" y="250" width="70" height="18" />
+              <rect x="897" y="250" width="70" height="18" />
+              <rect x="965" y="250" width="70" height="18" />
+              <rect x="578" y="268" width="44" height="502" />
+              <rect x="646" y="268" width="44" height="502" />
+              <rect x="910" y="268" width="44" height="502" />
+              <rect x="978" y="268" width="44" height="502" />
+              <rect x="570" y="770" width="60" height="20" />
+              <rect x="638" y="770" width="60" height="20" />
+              <rect x="902" y="770" width="60" height="20" />
+              <rect x="970" y="770" width="60" height="20" />
+            </g>
+            <path stroke="#e3dccd" stroke-width="2" d="M592 272V766M608 272V766M660 272V766M676 272V766M924 272V766M940 272V766M992 272V766M1008 272V766" />
+          </g>
+          <!-- Marco de la puerta y abanico de vidrio con rayos dorados. -->
+          <path d="M690 790V350A110 110 0 0 1 910 350V790H895V360H705V790Z" fill="#f4efe6" stroke="#d2c8b4" stroke-width="2" />
+          <path d="M705 350A95 95 0 0 1 895 350Z" fill="#2c2226" />
+          <path class="loader__fanlight-glow" d="M705 350A95 95 0 0 1 895 350Z" fill="url(#ld-glow)" />
+          <path d="M800 350V255M800 350 733 283M800 350 867 283M800 350 710 318M800 350 890 318" stroke="#c9a35e" stroke-width="4" />
+          <path d="M752 350A48 48 0 0 1 848 350" fill="none" stroke="#c9a35e" stroke-width="4" />
+          <rect x="703" y="350" width="194" height="10" fill="#c9a35e" />
+          <!-- Hojas de la puerta. -->
+          <g class="loader__leaf loader__leaf--l">
+            <rect x="705" y="360" width="95" height="430" fill="#3a2b2d" />
+            <rect x="719" y="378" width="67" height="180" fill="none" stroke="#57444a" stroke-width="3" />
+            <rect x="719" y="580" width="67" height="190" fill="none" stroke="#57444a" stroke-width="3" />
+            <rect x="788" y="520" width="6" height="66" rx="3" fill="url(#ld-gold)" />
+            <circle cx="752" cy="660" r="11" fill="none" stroke="#c9a35e" stroke-width="4" />
+            <rect x="798" y="360" width="2" height="430" fill="#241a1c" />
+          </g>
+          <g class="loader__leaf loader__leaf--r">
+            <rect x="800" y="360" width="95" height="430" fill="#3a2b2d" />
+            <rect x="814" y="378" width="67" height="180" fill="none" stroke="#57444a" stroke-width="3" />
+            <rect x="814" y="580" width="67" height="190" fill="none" stroke="#57444a" stroke-width="3" />
+            <rect x="806" y="520" width="6" height="66" rx="3" fill="url(#ld-gold)" />
+            <circle cx="848" cy="660" r="11" fill="none" stroke="#c9a35e" stroke-width="4" />
+          </g>
+          <!-- Escalinata y piso. -->
+          <rect x="520" y="790" width="560" height="22" fill="#e7e0d2" />
+          <rect x="490" y="812" width="620" height="40" fill="#ddd5c5" />
+          <rect x="460" y="852" width="680" height="40" fill="#d3caba" />
+          <rect x="430" y="892" width="740" height="40" fill="#c9bfad" />
+          <rect y="790" width="430" height="310" fill="#d8d0c0" />
+          <rect x="1170" y="790" width="430" height="310" fill="#d8d0c0" />
+          <rect y="932" width="1600" height="168" fill="#c3b8a5" />
         </svg>
-        <div class="loader__beam" aria-hidden="true"></div>
-        <p class="loader__name" id="loader-name">Marilyn Diaz</p>
-        <p class="loader__role">Desarrolladora Full Stack</p>
-        <p class="loader__status" aria-hidden="true">Encendiendo la sala · 0%</p>
-        <div class="loader__bar" aria-hidden="true"><span></span></div>
-        <p class="loader__live" role="status" aria-live="polite">Cargando la galería: 0%</p>
+      </div>
+      <div class="loader__shade" aria-hidden="true"></div>
+      <p class="loader__sr" id="loader-name">Marilyn Diaz, Desarrolladora Full Stack</p>
+      <div class="loader__front">
+        <div class="loader__key" aria-hidden="true">
+          <svg viewBox="0 0 80 200">
+            <defs>
+              <path id="ld-key" fill-rule="evenodd" d="M40 4a8 8 0 1 1 0 16 8 8 0 1 1 0-16ZM40 18a26 26 0 1 1 0 52 26 26 0 1 1 0-52Zm0 11a15 15 0 1 0 0 30 15 15 0 1 0 0-30ZM9 37a7 7 0 1 1 0 14 7 7 0 1 1 0-14Zm62 0a7 7 0 1 1 0 14 7 7 0 1 1 0-14ZM31 70h18v6H31Zm3 6h12v4H34Zm1 4h10v100H35Zm-5 6h20v5H30Zm0 9h20v4H30ZM45 148h22v8h-8v6h8v8h-8v6h8v8H45Z" />
+            </defs>
+            <use href="#ld-key" fill="#3b3026" stroke="#8a6a3e" stroke-width="1.2" />
+          </svg>
+          <svg class="loader__key-gold" viewBox="0 0 80 200">
+            <use href="#ld-key" fill="url(#ld-gold)" stroke="#f3dca6" stroke-width="1.2" />
+          </svg>
+        </div>
+        <p class="loader__status" aria-hidden="true">Cargando la galería · 0%</p>
+        <p class="loader__sr loader__live" role="status" aria-live="polite">Cargando la galería: 0%</p>
+      </div>
+      <div class="loader__bottom">
         <ul class="loader__links" aria-label="Contacto">
           <li><a href="%BASE_URL%cv/marilyn-diaz-cv.pdf" download>Descargar CV</a></li>
-          <li><a href="https://github.com/mar-ilyn" target="_blank" rel="noopener noreferrer">GitHub<span class="loader__live"> (se abre en una pestaña nueva)</span></a></li>
-          <li><a href="https://www.linkedin.com/in/marilyn-d/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="loader__live"> (se abre en una pestaña nueva)</span></a></li>
+          <li><a href="https://github.com/mar-ilyn" target="_blank" rel="noopener noreferrer">GitHub<span class="loader__sr"> (se abre en una pestaña nueva)</span></a></li>
+          <li><a href="https://www.linkedin.com/in/marilyn-d/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="loader__sr"> (se abre en una pestaña nueva)</span></a></li>
         </ul>
         <a class="loader__list" href="%BASE_URL%lista">Ver como lista</a>
       </div>
