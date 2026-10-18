@@ -1,7 +1,6 @@
 import {
   AdditiveBlending,
   CanvasTexture,
-  Color,
   MeshBasicMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
@@ -9,8 +8,9 @@ import {
   Vector2,
   type Texture,
 } from 'three'
+import { CHERRY, CHERRY_PLAIN } from './cherry'
 
-// Materiales de la zona "Sobre mí". Paleta: nogal oscuro satinado, latón envejecido, fondo de lino claro,
+// Materiales de la zona "Sobre mí". Paleta: cerezo miel satinado, latón envejecido, fondo de lino claro,
 // vidrio, cuero, papel marfil. Los efectos de luz (manchas, sombras de contacto, reflejos del vidrio) son
 // texturas de degradé sobre planos: livianos y sin luces en tiempo real.
 
@@ -22,8 +22,8 @@ export function createWalnut(color: Texture, normal: Texture, _arm: Texture): Me
   }
   return new MeshStandardMaterial({
     map: color,
-    // Nogal oscuro: la textura se tiñe hacia un marrón profundo, con brillo satinado.
-    color: new Color('#6e4f3c'),
+    // Cerezo miel (cherry.ts), con brillo satinado.
+    color: CHERRY,
     normalMap: normal,
     normalScale: new Vector2(0.5, 0.5),
     // Satinado parejo: el mapa de rugosidad del enchapado es de un barniz brillante y reflejaba la
@@ -33,8 +33,8 @@ export function createWalnut(color: Texture, normal: Texture, _arm: Texture): Me
   })
 }
 
-// Si las texturas no cargan: nogal liso.
-export const walnutPlain = new MeshStandardMaterial({ color: '#3d281c', roughness: 0.5 })
+// Si las texturas no cargan: cerezo liso. También es la madera de los soportes de los objetos.
+export const walnutPlain = new MeshStandardMaterial({ color: CHERRY_PLAIN, roughness: 0.5 })
 
 export const agedBrass = new MeshStandardMaterial({ color: '#a5844c', metalness: 0.8, roughness: 0.42 })
 // Fondo claro de los compartimentos: lino marfil, mate.
