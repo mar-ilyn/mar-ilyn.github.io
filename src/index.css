@@ -1358,7 +1358,7 @@ html.is-gallery {
   width: min(1040px, 71vw);
   position: relative;
   z-index: 1;
-  padding: clamp(1.1rem, 3vh, 2.6rem) clamp(1.5rem, 4vw, 3.5rem);
+  padding: clamp(1.8rem, 5.5vh, 4.2rem) clamp(1.5rem, 4vw, 3.5rem);
   border: 1px solid rgb(168 122 51 / 0.7);
   background: linear-gradient(#f3ede2, #ece4d6);
   box-shadow:
