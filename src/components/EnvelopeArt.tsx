@@ -100,6 +100,32 @@ function buildSprig(): Sprig {
 
 const SPRIG = buildSprig()
 
+// Contorno del charco de lacre alrededor de (cx, cy): el radio ondula con tres frecuencias, como el lacre que
+// se desparrama al apoyar el sello; los puntos se unen con curvas por sus puntos medios.
+function waxBlob(cx: number, cy: number, r: number): string {
+  const n = 28
+  const pts: Point[] = []
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2
+    const k = 1 + 0.07 * Math.sin(a * 3 + 0.6) + 0.05 * Math.sin(a * 5 + 2.1) + 0.035 * Math.sin(a * 9 + 1.3)
+    pts.push([cx + Math.cos(a) * r * k, cy + Math.sin(a) * r * k * 0.94])
+  }
+  const mid = (p: Point, q: Point): Point => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]
+  let d = `M${f(mid(pts[n - 1], pts[0])[0])} ${f(mid(pts[n - 1], pts[0])[1])}`
+  for (let i = 0; i < n; i++) {
+    const m = mid(pts[i], pts[(i + 1) % n])
+    d += `Q${f(pts[i][0])} ${f(pts[i][1])} ${f(m[0])} ${f(m[1])}`
+  }
+  return d + 'Z'
+}
+const SEAL = { x: 254, y: 251 }
+const SEAL_BLOB = waxBlob(SEAL.x, SEAL.y, 31)
+// Flor grabada en el centro del sello: seis pétalos alrededor de un botón y dos hojitas.
+const SEAL_FLOWER = [0, 60, 120, 180, 240, 300].map((a) => {
+  const t = (a * Math.PI) / 180
+  return [SEAL.x + Math.cos(t) * 5.2, SEAL.y - 1 + Math.sin(t) * 5.2] as Point
+})
+
 // Hoja lanceolada a lo largo del eje x, con la nervadura central y cuatro pares de nervaduras laterales.
 const leafPath = (l: number, w: number) => `M0 0C${f(l * 0.2)} ${f(-w)} ${f(l * 0.7)} ${f(-w * 0.85)} ${f(l)} 0C${f(l * 0.7)} ${f(w * 0.85)} ${f(l * 0.2)} ${f(w)} 0 0Z`
 const veinPath = (l: number, w: number) =>
@@ -129,7 +155,7 @@ function Florets() {
 
 export function EnvelopeArt() {
   return (
-    <svg className="envelope-art" viewBox="0 0 440 352" aria-hidden="true">
+    <svg className="envelope-art" viewBox="0 0 440 372" aria-hidden="true">
       <defs>
         {/* Papel viejo: manchas grandes y grano fino, multiplicados sobre el color; bordes apenas irregulares. */}
         <filter id="ea-aged" x="-2%" y="-2%" width="104%" height="104%">
@@ -142,7 +168,7 @@ export function EnvelopeArt() {
             <feMergeNode in="grainC" />
           </feMerge>
           <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="2" result="edgeNoise" />
-          <feDisplacementMap in="SourceGraphic" in2="edgeNoise" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough" />
+          <feDisplacementMap in="SourceGraphic" in2="edgeNoise" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="rough" />
           <feComposite in="marks" in2="rough" operator="in" result="marksIn" />
           <feBlend in="marksIn" in2="rough" mode="multiply" />
         </filter>
@@ -193,34 +219,62 @@ export function EnvelopeArt() {
           <stop offset="0" stopColor="#e6d3ad" />
           <stop offset="1" stopColor="#ad8d5d" />
         </radialGradient>
-        {/* Lacre: el gris del dibujo es un mapa de alturas (borde abultado, centro hundido, emblema en relieve);
-            la luz difusa y el brillo salen de él, y el color es el del lacre. */}
+        {/* Lacre: el gris del dibujo es un mapa de alturas (charco con el borde redondeado, óvalo prensado, su
+            anillo y la flor en relieve); la luz difusa y el brillo salen de él, y el color es el del lacre. */}
         <filter id="ea-wax" x="-20%" y="-20%" width="140%" height="140%">
           <feColorMatrix in="SourceGraphic" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0" result="height" />
-          <feGaussianBlur in="height" stdDeviation="1.3" result="soft" />
-          <feDiffuseLighting in="soft" surfaceScale="7" diffuseConstant="1.15" lightingColor="#ffffff" result="diffuse">
-            <feDistantLight azimuth="225" elevation="48" />
+          <feGaussianBlur in="height" stdDeviation="1.4" result="soft" />
+          <feDiffuseLighting in="soft" surfaceScale="9" diffuseConstant="1.2" lightingColor="#ffffff" result="diffuse">
+            <feDistantLight azimuth="225" elevation="46" />
           </feDiffuseLighting>
-          <feSpecularLighting in="soft" surfaceScale="7" specularConstant="0.55" specularExponent="26" lightingColor="#ffe3d4" result="spec">
-            <feDistantLight azimuth="225" elevation="52" />
+          <feSpecularLighting in="soft" surfaceScale="9" specularConstant="1.15" specularExponent="34" lightingColor="#ffe8e0" result="spec">
+            <feDistantLight azimuth="225" elevation="50" />
           </feSpecularLighting>
-          <feFlood floodColor="#6a1e16" result="wax" />
+          <feFlood floodColor="#a3121b" result="wax" />
           <feBlend in="diffuse" in2="wax" mode="multiply" result="lit" />
           <feComposite in="lit" in2="SourceAlpha" operator="in" result="litIn" />
           <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
-          <feComposite in="litIn" in2="specIn" operator="arithmetic" k2="1" k3="0.55" />
+          <feComposite in="litIn" in2="specIn" operator="arithmetic" k2="1" k3="0.85" />
         </filter>
-        <filter id="ea-drop" x="-20%" y="-20%" width="140%" height="150%">
-          <feDropShadow dx="7" dy="13" stdDeviation="9" floodColor="#4a3420" floodOpacity="0.28" />
+        {/* Apoyado sobre la mesa: una sombra de contacto pegada y fuerte, y otra más amplia y suave. */}
+        <filter id="ea-drop" x="-15%" y="-15%" width="130%" height="135%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="near" />
+          <feOffset in="near" dx="1.5" dy="2.5" result="nearOff" />
+          <feFlood floodColor="#3a2614" floodOpacity="0.55" />
+          <feComposite in2="nearOff" operator="in" result="contact" />
+          <feGaussianBlur in="SourceAlpha" stdDeviation="5.5" result="far" />
+          <feOffset in="far" dx="4" dy="7" result="farOff" />
+          <feFlood floodColor="#3a2614" floodOpacity="0.22" />
+          <feComposite in2="farOff" operator="in" result="ambient" />
+          <feMerge>
+            <feMergeNode in="ambient" />
+            <feMergeNode in="contact" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
         <filter id="ea-drop-soft" x="-20%" y="-20%" width="140%" height="150%">
-          <feDropShadow dx="2.5" dy="4" stdDeviation="2.5" floodColor="#4a3420" floodOpacity="0.25" />
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="near" />
+          <feOffset in="near" dx="1" dy="1.8" result="nearOff" />
+          <feFlood floodColor="#3a2614" floodOpacity="0.45" />
+          <feComposite in2="nearOff" operator="in" result="contact" />
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3.5" result="far" />
+          <feOffset in="far" dx="2.5" dy="4" result="farOff" />
+          <feFlood floodColor="#3a2614" floodOpacity="0.18" />
+          <feComposite in2="farOff" operator="in" result="ambient" />
+          <feMerge>
+            <feMergeNode in="ambient" />
+            <feMergeNode in="contact" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="ea-crease" x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="0.9" />
         </filter>
         <filter id="ea-blur" x="-20%" y="-20%" width="140%" height="160%">
           <feGaussianBlur stdDeviation="5" />
         </filter>
         <clipPath id="ea-env-clip">
-          <rect x="90" y="150" width="320" height="160" rx="3" />
+          <rect x="118" y="140" width="272" height="192" rx="3" />
         </clipPath>
         <clipPath id="ea-sheet-clip">
           <rect x="190" y="30" width="210" height="190" />
@@ -256,47 +310,54 @@ export function EnvelopeArt() {
         <Florets />
       </g>
 
-      {/* Sobre cerrado, apenas inclinado. */}
-      <g transform="rotate(-6 250 230)" filter="url(#ea-drop)">
+      {/* Sobre cerrado, apenas inclinado, apoyado sobre la mesa. */}
+      <g transform="rotate(-6 254 236)" filter="url(#ea-drop)">
         <g filter="url(#ea-aged)">
-          <rect x="90" y="150" width="320" height="160" rx="3" fill="url(#ea-body)" />
+          <rect x="118" y="140" width="272" height="192" rx="3" fill="url(#ea-body)" />
           {/* Solapas plegadas: izquierda (de cara a la luz), derecha y abajo (en sombra). */}
-          <path d="M90 152 236 240 90 308Z" fill="url(#ea-side-l)" />
-          <path d="M410 152 264 240 410 308Z" fill="url(#ea-side-r)" />
-          <path d="M92 310 250 222 408 310Z" fill="url(#ea-bottom)" />
+          <path d="M118 142 242 250 118 330Z" fill="url(#ea-side-l)" />
+          <path d="M390 142 266 250 390 330Z" fill="url(#ea-side-r)" />
+          <path d="M120 332 254 236 388 332Z" fill="url(#ea-bottom)" />
         </g>
         <g clipPath="url(#ea-env-clip)">
           {/* Sombra que la solapa de arriba proyecta sobre las de abajo. */}
-          <path d="M96 160 250 262 404 160Z" fill="#3b2812" opacity="0.32" filter="url(#ea-blur)" />
+          <path d="M124 150 254 268 384 150Z" fill="#3b2812" opacity="0.34" filter="url(#ea-blur)" />
           {/* Pliegues con su luz y su sombra. */}
-          <path d="M92 309 250 223" stroke="#fff6e2" strokeOpacity="0.55" strokeWidth="1.2" />
-          <path d="M250 223 408 309" stroke="#7d6036" strokeOpacity="0.3" strokeWidth="1.3" />
-          <path d="M91 153 236 240" stroke="#fff6e2" strokeOpacity="0.4" strokeWidth="1" />
-          <path d="M409 153 264 240" stroke="#7d6036" strokeOpacity="0.28" strokeWidth="1.1" />
+          <path d="M120 331 254 237" stroke="#fff6e2" strokeOpacity="0.55" strokeWidth="1.2" />
+          <path d="M254 237 388 331" stroke="#7d6036" strokeOpacity="0.32" strokeWidth="1.3" />
+          <path d="M119 143 242 250" stroke="#fff6e2" strokeOpacity="0.4" strokeWidth="1" />
+          <path d="M389 143 266 250" stroke="#7d6036" strokeOpacity="0.3" strokeWidth="1.1" />
+          {/* Arrugas del papel: un trazo claro y uno oscuro, apenas corridos. */}
+          <g filter="url(#ea-crease)" fill="none" strokeWidth="1.6">
+            <path d="M140 300c22-8 40-6 58-14M330 312c16-6 30-4 44-12M352 200c8 12 20 18 30 30" stroke="#fff4dd" strokeOpacity="0.3" />
+            <path d="M141 302c22-8 40-6 58-14M331 314c16-6 30-4 44-12M353 202c8 12 20 18 30 30" stroke="#6e5230" strokeOpacity="0.12" />
+          </g>
         </g>
         {/* Solapa de arriba, cerrada. */}
         <g filter="url(#ea-aged)">
-          <path d="M90 150h320L250 250Z" fill="url(#ea-flap)" />
+          <path d="M118 140h272L254 254Z" fill="url(#ea-flap)" />
         </g>
         <g clipPath="url(#ea-env-clip)">
-          <path d="M90 150 250 250 410 150" fill="none" stroke="#9c845c" strokeOpacity="0.55" strokeWidth="1.3" />
-          <path d="M93 152 250 247" stroke="#fff8ea" strokeOpacity="0.55" strokeWidth="0.9" />
+          <path d="M118 140 254 254 390 140" fill="none" stroke="#9c845c" strokeOpacity="0.55" strokeWidth="1.3" />
+          <path d="M121 142 254 251" stroke="#fff8ea" strokeOpacity="0.55" strokeWidth="0.9" />
+          <path d="M170 168c20 4 34 14 46 22M300 162c-14 8-22 16-30 26" fill="none" stroke="#6e5230" strokeOpacity="0.12" strokeWidth="1.6" filter="url(#ea-crease)" />
           {/* Bordes tostados y manchas de humedad. */}
-          <rect x="90" y="150" width="320" height="160" fill="url(#ea-burn)" />
-          <circle cx="132" cy="282" r="22" fill="url(#ea-fox)" />
-          <circle cx="372" cy="178" r="14" fill="url(#ea-fox)" />
-          <circle cx="330" cy="290" r="10" fill="url(#ea-fox)" />
+          <rect x="118" y="140" width="272" height="192" fill="url(#ea-burn)" />
+          <circle cx="152" cy="300" r="22" fill="url(#ea-fox)" />
+          <circle cx="360" cy="168" r="14" fill="url(#ea-fox)" />
+          <circle cx="330" cy="310" r="10" fill="url(#ea-fox)" />
         </g>
-        {/* Sello de lacre: mapa de alturas en grises (borde 0,75, centro hundido 0,45, anillo 0,6, emblema 0,85). */}
+        {/* Sello de lacre: mapa de alturas en grises (charco 0,55, óvalo prensado 0,36, anillo 0,8, flor 0,7). */}
         <g filter="url(#ea-drop-soft)">
           <g filter="url(#ea-wax)">
-            <path
-              d="M250 212c10-1 15 4 23 6 8 3 10 10 9 18 3 8-1 14-7 19-5 7-13 9-21 8-9 1-17-2-22-9-7-5-10-12-8-20-1-8 3-14 10-18 5-3 9-4 16-4Z"
-              fill="rgb(190 190 190)"
-            />
-            <circle cx="251" cy="238" r="18" fill="rgb(150 150 150)" />
-            <circle cx="251" cy="238" r="14.5" fill="rgb(115 115 115)" />
-            <path d="M241.5 246v-15l9.5 9.5 9.5-9.5v15" fill="none" stroke="rgb(215 215 215)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+            <path d={SEAL_BLOB} fill="rgb(140 140 140)" />
+            <ellipse cx={SEAL.x} cy={SEAL.y - 1} rx="17" ry="19" fill="rgb(92 92 92)" />
+            <ellipse cx={SEAL.x} cy={SEAL.y - 1} rx="18.5" ry="20.5" fill="none" stroke="rgb(205 205 205)" strokeWidth="3" />
+            {SEAL_FLOWER.map(([x, y]) => (
+              <circle key={`${f(x)}-${f(y)}`} cx={x} cy={y} r="2.6" fill="rgb(180 180 180)" />
+            ))}
+            <circle cx={SEAL.x} cy={SEAL.y - 1} r="2.4" fill="rgb(200 200 200)" />
+            <path d={`M${SEAL.x} ${SEAL.y + 5}v8M${SEAL.x} ${SEAL.y + 9}l-5 3M${SEAL.x} ${SEAL.y + 9}l5 3`} fill="none" stroke="rgb(175 175 175)" strokeWidth="1.6" strokeLinecap="round" />
           </g>
         </g>
       </g>
