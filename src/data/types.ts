@@ -102,3 +102,11 @@ export interface TimelineEntry {
   accessibleName: string
   camera: CameraView
 }
+
+export type SkillGroupId = 'frontend' | 'backend' | 'datos' | 'herramientas'
+
+export interface SkillGroup {
+  id: SkillGroupId
+  title: string
+  items: readonly string[]
+}
